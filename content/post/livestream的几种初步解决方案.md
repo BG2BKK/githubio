@@ -50,24 +50,30 @@ ffmpeg+websocket播放
     google-chrome stream-example.html		使用websocket在线观看
 ```
 
-视频流解决方案
+vlc视频流输出和vlc视频流播放
+---------------------------------
 
-1、vlc
-    http://www.cnblogs.com/fx2008/p/4315416.html
+    site: http://www.cnblogs.com/fx2008/p/4315416.html
+```bash
     a、关掉防火墙，至少将视频流端口开启
     b、vlc --ttl 12 -vvv --color -I telnet --telnet-password videolan --rtsp-host 0.0.0.0 --rtsp-port 5554
     c、通过telnet启动vlc的vlm管理中，telnet 127.0.0.1 4212，密码是刚才的videolan
     d、new Test vod enabled 新建一个vod，名字是Test
     e、setup Test input /path/video.file    给Test输入视频
     f、vlc rtsp://127.0.0.1:5554/Test 启动vlc观看视频流，这里还差声音
+```
 
-2、nginx的rtmp转播
-    http://itony.me/619.html
-    https://github.com/arut/nginx-rtmp-module
-    openresty.org
-    http://blog.csdn.net/leixiaohua1020/article/details/12029543
-    http://blog.csdn.net/leixiaohua1020/article/details/39803457
-    http://blog.csdn.net/fireroll/article/details/18899285
+nginx的rtmp转播
+-------------------
+
+    site: http://itony.me/619.html
+    site: https://github.com/arut/nginx-rtmp-module
+    site: http://openresty.org
+    site: http://blog.csdn.net/leixiaohua1020/article/details/12029543
+    site: http://blog.csdn.net/leixiaohua1020/article/details/39803457
+    site: http://blog.csdn.net/fireroll/article/details/18899285
+
+```bash
     a、安装openresty和rtmp模块
     b、配置nginx，rtmp配置块与http配置块平级
         rtmp {
@@ -79,31 +85,69 @@ ffmpeg+websocket播放
                 }
             }
         }
-    c、ffmpeg转发视频流  ffmpeg -re -i xxx.mp4 -c copy -f flv   rtmp://localhost:1935/live1/room1
+    c、ffmpeg转发视频流  
+        ffmpeg -re -i xxx.mp4 -c copy -f flv   rtmp://localhost:1935/live1/room1
         其中的live1是应用，room1是将来要打开的节点
-    d、在vlc中打开视频流： rtmp://localhost:1935/live1/room1
-    e、  ffmpeg -f video4linux2 -i /dev/video0 -c:v libx264 -an -f flv
-    rtmp://localhost:1935/live1/room1 试试摄像头
 
-3、aliyun+nginx+rtmp在线转播
+    d、在vlc中打开视频流： 
+        rtmp://localhost:1935/live1/room1
 
-    http://blog.csdn.net/xdwyyan/article/details/43198985
-    注意：在nginx中配置rtmp后，reload是不够的，需要kill掉重新启动nginx。通过sudo
-    netstat -tlnp | grep 1935来观察nginx是否将端口打开
+    e、ffmpeg -f video4linux2 -i /dev/video0 -c:v libx264 -an -f flv rtmp://localhost:1935/live1/room1 试试摄像头
+```
 
+aliyun+nginx+rtmp在线转播
+-------------------------------
+
+    site: http://blog.csdn.net/xdwyyan/article/details/43198985
+    注意：在nginx中配置rtmp后，reload是不够的，需要kill掉重新启动nginx。
+    通过sudo netstat -tlnp | grep 1935来观察nginx是否将端口打开
+
+```bash
     sudo ffmpeg -i /dev/video0 -acodec acc -strict experimental -ar 44100 -ac 2 -b:a 96k -r 25 -b:v 500k -s 640*480 -f flv rtmp://101.200.124.174:1935/live1/room1
     vlc rtmp://101.200.124.174:1935/live1/room1
 
     ffmpeg -loglevel verbose -re -i xxx.mp4 -vcodec libx264 -vprofile baseline -acodec libmp3lame -ar 44100 -ac 1 -f flv rtmp://101.200.124.174:1935/hls/movie
     vlc http://101.200.124.174/hls/movie
 
+    #v4l2读取摄像头，进行x264编码并将视频流发送至阿里云，进而进行hls播放
     ffmpeg -f video4linux2 -s 320x240 -i /dev/video0 -vcodec libx264 -f flv  rtmp://101.200.124.174:1935/hls/movie
     vlc http://101.200.124.174/hls/movie
     手机浏览器打开也行
 
+    #http config block
+    rtmp {
+        server {
+            listen 1935;
+            application live1 {
+                live on;
+                record off;
+            }
+            application hls{
+                live on;
+                hls on;
+                hls_path /tmp/hls;
+            }
+    
+        }
+    }
 
-4、防火墙设置
-    usr/local/bin/ss-server -u -c ./fakang.json > /dev/null 2>&1 &
+    #server config block
+    location /hls {
+        types {
+            application/vnd.apple.mpegurl m3u8;
+            video/mp2t ts;
+        }
+        root /tmp;
+        add_header Cache-Control no-cache;
+    }
+```
+
+Extra Info
+------------------
+
+    防火墙设置，配置1985端口可以被外网访问
     huang@vultr:~$ sudo iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 1985 -j ACCEPT
 
-5、ffmpeg的使用方法及参数
+
+
+
