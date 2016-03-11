@@ -1,6 +1,6 @@
 +++
 date = "2016-02-26T14:56:41+08:00"
-draft = true
+draft = false
 title = "redis持久化学习笔记"
 
 +++

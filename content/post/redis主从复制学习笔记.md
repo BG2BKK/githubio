@@ -1,6 +1,6 @@
 +++
 date = "2016-02-26T16:15:31+08:00"
-draft = true
+draft = false
 title = "redis主从复制学习笔记"
 
 +++

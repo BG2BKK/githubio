@@ -1,6 +1,6 @@
 +++
 date = "2016-02-19T10:54:28+08:00"
-draft = true
+draft = false
 title = "linux shell控制并发进程数实践"
 
 +++
@@ -106,7 +106,7 @@ linux shell 和 lsof 等工具使用的一些tips
 
 linux shell cocurrency并发控制
 -----------------------------
-[Bash脚本实现批量作业并行化](http://blog.sciencenet.cn/blog-548663-750136.html)
+[Bash脚本实现批量作业并行化](http://blog.sciencenet.cn/blog-548663-750136.html)   
 [A script for running processes in parallel in Bash](https://pebblesinthesand.wordpress.com/2008/05/22/a-srcipt-for-running-processes-in-parallel-in-bash/)
 
 awk&sed
