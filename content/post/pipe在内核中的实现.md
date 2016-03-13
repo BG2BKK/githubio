@@ -5,39 +5,61 @@ title = "pipe在内核中的实现"
 
 +++
 
+## pipe在linux内核中的实现
 
-* 基于linux-2.4.20内核
-* new_inode()
-* register_filesystem()
-* get_empty_file
-* get_unused_fd()
-* do_pipe作为pipe系统调用函数，在/arch/i386/sys_i386.c中定义
-* pipe的module_init在initcall中调用，但是pipe.c是编译在fs.o中的，他的module_init是如何调用进去的，需要进一步查找
-* struct dentry在include/linux/dcache.h中定义
+在之前关于linux shell多线程并发数控制的[博文](https://bg2bkk.github.io/post/shell%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AE%9E%E8%B7%B5/)中，我们使用了fifo作为token池，通过读写fifo实现token分发控制，进而实现了控制线程数的目的。 
+我对pipe这个*** *NIX ***系统中最常用的组件（|）产生了兴趣 
 
-* pipe文件系统初始化
-    * 注册pipefs
-        * register_filesystems
+- fifo和pipe是什么关系？
+- fifo或者pipe的使用方法？
+- pipe在linux kernel中的实现是怎样的？
+- fifo或者pipe的容量有多大，可以配置吗？
 
-* pipe系统调用
-    * pipe调用do_pipe
-    * do_pipe()
-        * f1&f2 get_empty_filep分配filep数据结构
-        * inode = get_pipe_inode()从pipe文件系统获得inode
-            * new_inode()
-            * pipe_new()新建pipe
-                * __get_free_pages(GFP_USER)为该pipe分配一页内存（4KB）
-                * inode->i_pipe = kmalloc(sizeof(struct pipe_inde_info), GFP_KERNEL)分配pipe信息结构
-        * i&j = get_unused_fd()获取两个fd
-        * dentry = d_alloc()从pipefs分配dentry
-        * d_add(dentry, inode)将inode插入到dentry中
-        * 将f1设置成O_RDONLY，将f2设置成O_WRONLY
-        * 进程的files列表中，files[i] = f1, files[j] = f2
+先说结论吧
 
-* 实现函数
-    * pipe
-        * pipe_read
-        * pipe_write
+- fifo和pipe的区别
+    * pipe是匿名管道，没有名字，只能用于两个拥有pipe读写两端fd的进程通信；
+    * fifo在文件系统中有自己的名称，操作fifo与操作普通文件几无差别，可以用于两个没有关系的进程间通信
+- fifo和pipe在kernel层面上都实现在fs/pipe.c中，所以本质上二者是一个东西。
+- pipe作为linux文件系统的一部分，与epoll一样，都是在向kernel注册了自己的文件系统，可以使用VFS提供的通用接口，比如open、read和write等操作
+- pipe的容量不是无限大的，早期linux版本（kernel-2.4）中pipe容量只能是4KB大小，新版本可以在运行时根据需要扩大到64KB
+
+本文主要基于linux-2.4.20内核中的pipe实现进行分析，理由是该版本的pipe实现与新版本kernel并没有太大差别，但是代码可读性要强很多，可以快速了解pipe的实际实现；从2.4.20内核中对pipe的架构有整体了解后，再阅读新版本(4.4.1)中的新feature，会比较顺遂。
+
+### pipe在fs/pipe.c中一些函数
+    - new_inode()
+    - register_filesystem()
+    - get_empty_file
+    - get_unused_fd()
+    - do_pipe作为pipe系统调用函数，在/arch/i386/sys_i386.c中定义
+    - pipe的module_init在initcall中调用，但是pipe.c是编译在fs.o中的，他的module_init是如何调用进去的，需要进一步查找
+    - struct dentry在include/linux/dcache.h中定义
+
+### 具体实现
+
+    * pipe文件系统初始化
+        * 注册pipefs
+            * register_filesystems
+    
+    * pipe系统调用
+        * pipe调用do_pipe
+        * do_pipe()
+            * f1&f2 get_empty_filep分配filep数据结构
+            * inode = get_pipe_inode()从pipe文件系统获得inode
+                * new_inode()
+                * pipe_new()新建pipe
+                    * __get_free_pages(GFP_USER)为该pipe分配一页内存（4KB）
+                    * inode->i_pipe = kmalloc(sizeof(struct pipe_inde_info), GFP_KERNEL)分配pipe信息结构
+            * i&j = get_unused_fd()获取两个fd
+            * dentry = d_alloc()从pipefs分配dentry
+            * d_add(dentry, inode)将inode插入到dentry中
+            * 将f1设置成O_RDONLY，将f2设置成O_WRONLY
+            * 进程的files列表中，files[i] = f1, files[j] = f2
+    
+    * 实现函数
+        * pipe
+            * pipe_read
+            * pipe_write
 
 
 * tips
@@ -96,7 +118,12 @@ write size:     131072; bytes successfully before error: 0
 write size:     262144; bytes successfully before error: 0
 
 ```
-    * 内核中64KB大小的限制，sysctl中fs.max_pipe_size的设置，以及ulimit -a中的"pipe size            (512 bytes, -p) 8"，到底都会发挥怎样的功能呢？这些还需要[进一步探讨](http://home.gna.org/pysfst/tests/pipe-limit.html)。
+    * 内核中64KB大小的限制在哪里设置的？(TO DO)
+        * 只有在高版本的pipe实现中才有64KB大小，低版本都是4KB的。
+        * ulimit -a 的结果中，"pipe size (512 bytes, -p) 8"，表示一个pipe拥有8个512KB的buffer，总共是4KB
+        * 在include/linux/fs_pipe_i.h中，#define PIPE_DEF_BUFFERS   16, 这里是[按buffer的数量分配的](http://home.gna.org/pysfst/tests/pipe-limit.html)。
+        * 在fs/pipe.c中，pipe_write和pipe_read是在运行时按页大小分配的
+        * sysctl中fs.max_pipe_size的设置，fs.pipe-max-size = 1048576，又会起什么作用
 
 
 * 函数分析
@@ -135,22 +162,6 @@ struct file_system_type var = { \
     * pipe源码（2.4的实现中实在没什么可讲的，比较有价值的是pipe_write和pipe_read中处理缓冲队列源码可以参考）
 
 ```cpp
-/*
- *  linux/fs/pipe.c
- *
- *  Copyright (C) 1991, 1992, 1999  Linus Torvalds
- */
-
-#include <linux/mm.h>
-#include <linux/file.h>
-#include <linux/poll.h>
-#include <linux/slab.h>
-#include <linux/module.h>
-#include <linux/init.h>
-
-#include <asm/uaccess.h>
-#include <asm/ioctls.h>
-
 /*
  * We use a start+len construction, which provides full use of the 
  * allocated memory.
@@ -385,29 +396,6 @@ sigpipe:
 	return -EPIPE;
 }
 
-static ssize_t
-bad_pipe_r(struct file *filp, char *buf, size_t count, loff_t *ppos)
-{
-	return -EBADF;
-}
-
-static ssize_t
-bad_pipe_w(struct file *filp, const char *buf, size_t count, loff_t *ppos)
-{
-	return -EBADF;
-}
-
-static int
-pipe_ioctl(struct inode *pino, struct file *filp,
-	   unsigned int cmd, unsigned long arg)
-{
-	switch (cmd) {
-		case FIONREAD:
-			return put_user(PIPE_LEN(*pino), (int *)arg);
-		default:
-			return -EINVAL;
-	}
-}
 
 /* No kernel lock held - fine */
 static unsigned int
@@ -430,361 +418,5 @@ pipe_poll(struct file *filp, poll_table *wait)
 	return mask;
 }
 
-/* FIXME: most Unices do not set POLLERR for fifos */
-#define fifo_poll pipe_poll
-
-static int
-pipe_release(struct inode *inode, int decr, int decw)
-{
-	down(PIPE_SEM(*inode));
-	PIPE_READERS(*inode) -= decr;
-	PIPE_WRITERS(*inode) -= decw;
-	if (!PIPE_READERS(*inode) && !PIPE_WRITERS(*inode)) {
-		struct pipe_inode_info *info = inode->i_pipe;
-		inode->i_pipe = NULL;
-		free_page((unsigned long) info->base);
-		kfree(info);
-	} else {
-		wake_up_interruptible(PIPE_WAIT(*inode));
-	}
-	up(PIPE_SEM(*inode));
-
-	return 0;
-}
-
-static int
-pipe_read_release(struct inode *inode, struct file *filp)
-{
-	return pipe_release(inode, 1, 0);
-}
-
-static int
-pipe_write_release(struct inode *inode, struct file *filp)
-{
-	return pipe_release(inode, 0, 1);
-}
-
-static int
-pipe_rdwr_release(struct inode *inode, struct file *filp)
-{
-	int decr, decw;
-
-	decr = (filp->f_mode & FMODE_READ) != 0;
-	decw = (filp->f_mode & FMODE_WRITE) != 0;
-	return pipe_release(inode, decr, decw);
-}
-
-static int
-pipe_read_open(struct inode *inode, struct file *filp)
-{
-	/* We could have perhaps used atomic_t, but this and friends
-	   below are the only places.  So it doesn't seem worthwhile.  */
-	down(PIPE_SEM(*inode));
-	PIPE_READERS(*inode)++;
-	up(PIPE_SEM(*inode));
-
-	return 0;
-}
-
-static int
-pipe_write_open(struct inode *inode, struct file *filp)
-{
-	down(PIPE_SEM(*inode));
-	PIPE_WRITERS(*inode)++;
-	up(PIPE_SEM(*inode));
-
-	return 0;
-}
-
-static int
-pipe_rdwr_open(struct inode *inode, struct file *filp)
-{
-	down(PIPE_SEM(*inode));
-	if (filp->f_mode & FMODE_READ)
-		PIPE_READERS(*inode)++;
-	if (filp->f_mode & FMODE_WRITE)
-		PIPE_WRITERS(*inode)++;
-	up(PIPE_SEM(*inode));
-
-	return 0;
-}
-
-/*
- * The file_operations structs are not static because they
- * are also used in linux/fs/fifo.c to do operations on FIFOs.
- */
-struct file_operations read_fifo_fops = {
-	llseek:		no_llseek,
-	read:		pipe_read,
-	write:		bad_pipe_w,
-	poll:		fifo_poll,
-	ioctl:		pipe_ioctl,
-	open:		pipe_read_open,
-	release:	pipe_read_release,
-};
-
-struct file_operations write_fifo_fops = {
-	llseek:		no_llseek,
-	read:		bad_pipe_r,
-	write:		pipe_write,
-	poll:		fifo_poll,
-	ioctl:		pipe_ioctl,
-	open:		pipe_write_open,
-	release:	pipe_write_release,
-};
-
-struct file_operations rdwr_fifo_fops = {
-	llseek:		no_llseek,
-	read:		pipe_read,
-	write:		pipe_write,
-	poll:		fifo_poll,
-	ioctl:		pipe_ioctl,
-	open:		pipe_rdwr_open,
-	release:	pipe_rdwr_release,
-};
-
-struct file_operations read_pipe_fops = {
-	llseek:		no_llseek,
-	read:		pipe_read,
-	write:		bad_pipe_w,
-	poll:		pipe_poll,
-	ioctl:		pipe_ioctl,
-	open:		pipe_read_open,
-	release:	pipe_read_release,
-};
-
-struct file_operations write_pipe_fops = {
-	llseek:		no_llseek,
-	read:		bad_pipe_r,
-	write:		pipe_write,
-	poll:		pipe_poll,
-	ioctl:		pipe_ioctl,
-	open:		pipe_write_open,
-	release:	pipe_write_release,
-};
-
-struct file_operations rdwr_pipe_fops = {
-	llseek:		no_llseek,
-	read:		pipe_read,
-	write:		pipe_write,
-	poll:		pipe_poll,
-	ioctl:		pipe_ioctl,
-	open:		pipe_rdwr_open,
-	release:	pipe_rdwr_release,
-};
-
-struct inode* pipe_new(struct inode* inode)
-{
-	unsigned long page;
-
-	page = __get_free_page(GFP_USER);
-	if (!page)
-		return NULL;
-
-	inode->i_pipe = kmalloc(sizeof(struct pipe_inode_info), GFP_KERNEL);
-	if (!inode->i_pipe)
-		goto fail_page;
-
-	init_waitqueue_head(PIPE_WAIT(*inode));
-	PIPE_BASE(*inode) = (char*) page;
-	PIPE_START(*inode) = PIPE_LEN(*inode) = 0;
-	PIPE_READERS(*inode) = PIPE_WRITERS(*inode) = 0;
-	PIPE_WAITING_READERS(*inode) = PIPE_WAITING_WRITERS(*inode) = 0;
-	PIPE_RCOUNTER(*inode) = PIPE_WCOUNTER(*inode) = 1;
-
-	return inode;
-fail_page:
-	free_page(page);
-	return NULL;
-}
-
-static struct vfsmount *pipe_mnt;
-static int pipefs_delete_dentry(struct dentry *dentry)
-{
-	return 1;
-}
-static struct dentry_operations pipefs_dentry_operations = {
-	d_delete:	pipefs_delete_dentry,
-};
-
-static struct inode * get_pipe_inode(void)
-{
-	struct inode *inode = new_inode(pipe_mnt->mnt_sb);
-
-	if (!inode)
-		goto fail_inode;
-
-	if(!pipe_new(inode))
-		goto fail_iput;
-	PIPE_READERS(*inode) = PIPE_WRITERS(*inode) = 1;
-	inode->i_fop = &rdwr_pipe_fops;
-
-	/*
-	 * Mark the inode dirty from the very beginning,
-	 * that way it will never be moved to the dirty
-	 * list because "mark_inode_dirty()" will think
-	 * that it already _is_ on the dirty list.
-	 */
-	inode->i_state = I_DIRTY;
-	inode->i_mode = S_IFIFO | S_IRUSR | S_IWUSR;
-	inode->i_uid = current->fsuid;
-	inode->i_gid = current->fsgid;
-	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-	inode->i_blksize = PAGE_SIZE;
-	return inode;
-
-fail_iput:
-	iput(inode);
-fail_inode:
-	return NULL;
-}
-
-int do_pipe(int *fd)
-{
-	struct qstr this;
-	char name[32];
-	struct dentry *dentry;
-	struct inode * inode;
-	struct file *f1, *f2;
-	int error;
-	int i,j;
-
-	error = -ENFILE;
-	f1 = get_empty_filp();
-	if (!f1)
-		goto no_files;
-
-	f2 = get_empty_filp();
-	if (!f2)
-		goto close_f1;
-
-	inode = get_pipe_inode();
-	if (!inode)
-		goto close_f12;
-
-	error = get_unused_fd();
-	if (error < 0)
-		goto close_f12_inode;
-	i = error;
-
-	error = get_unused_fd();
-	if (error < 0)
-		goto close_f12_inode_i;
-	j = error;
-
-	error = -ENOMEM;
-	sprintf(name, "[%lu]", inode->i_ino);
-	this.name = name;
-	this.len = strlen(name);
-	this.hash = inode->i_ino; /* will go */
-	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &this);
-	if (!dentry)
-		goto close_f12_inode_i_j;
-	dentry->d_op = &pipefs_dentry_operations;
-	d_add(dentry, inode);
-	f1->f_vfsmnt = f2->f_vfsmnt = mntget(mntget(pipe_mnt));
-	f1->f_dentry = f2->f_dentry = dget(dentry);
-
-	/* read file */
-	f1->f_pos = f2->f_pos = 0;
-	f1->f_flags = O_RDONLY;
-	f1->f_op = &read_pipe_fops;
-	f1->f_mode = 1;
-	f1->f_version = 0;
-
-	/* write file */
-	f2->f_flags = O_WRONLY;
-	f2->f_op = &write_pipe_fops;
-	f2->f_mode = 2;
-	f2->f_version = 0;
-
-	fd_install(i, f1);
-	fd_install(j, f2);
-	fd[0] = i;
-	fd[1] = j;
-	return 0;
-
-close_f12_inode_i_j:
-	put_unused_fd(j);
-close_f12_inode_i:
-	put_unused_fd(i);
-close_f12_inode:
-	free_page((unsigned long) PIPE_BASE(*inode));
-	kfree(inode->i_pipe);
-	inode->i_pipe = NULL;
-	iput(inode);
-close_f12:
-	put_filp(f2);
-close_f1:
-	put_filp(f1);
-no_files:
-	return error;	
-}
-
-/*
- * pipefs should _never_ be mounted by userland - too much of security hassle,
- * no real gain from having the whole whorehouse mounted. So we don't need
- * any operations on the root directory. However, we need a non-trivial
- * d_name - pipe: will go nicely and kill the special-casing in procfs.
- */
-static int pipefs_statfs(struct super_block *sb, struct statfs *buf)
-{
-	buf->f_type = PIPEFS_MAGIC;
-	buf->f_bsize = 1024;
-	buf->f_namelen = 255;
-	return 0;
-}
-
-static struct super_operations pipefs_ops = {
-	statfs:		pipefs_statfs,
-};
-
-static struct super_block * pipefs_read_super(struct super_block *sb, void *data, int silent)
-{
-	struct inode *root = new_inode(sb);
-	if (!root)
-		return NULL;
-	root->i_mode = S_IFDIR | S_IRUSR | S_IWUSR;
-	root->i_uid = root->i_gid = 0;
-	root->i_atime = root->i_mtime = root->i_ctime = CURRENT_TIME;
-	sb->s_blocksize = 1024;
-	sb->s_blocksize_bits = 10;
-	sb->s_magic = PIPEFS_MAGIC;
-	sb->s_op	= &pipefs_ops;
-	sb->s_root = d_alloc(NULL, &(const struct qstr) { "pipe:", 5, 0 });
-	if (!sb->s_root) {
-		iput(root);
-		return NULL;
-	}
-	sb->s_root->d_sb = sb;
-	sb->s_root->d_parent = sb->s_root;
-	d_instantiate(sb->s_root, root);
-	return sb;
-}
-
-static DECLARE_FSTYPE(pipe_fs_type, "pipefs", pipefs_read_super, FS_NOMOUNT);
-
-static int __init init_pipe_fs(void)
-{
-	int err = register_filesystem(&pipe_fs_type);
-	if (!err) {
-		pipe_mnt = kern_mount(&pipe_fs_type);
-		err = PTR_ERR(pipe_mnt);
-		if (IS_ERR(pipe_mnt))
-			unregister_filesystem(&pipe_fs_type);
-		else
-			err = 0;
-	}
-	return err;
-}
-
-static void __exit exit_pipe_fs(void)
-{
-	unregister_filesystem(&pipe_fs_type);
-	mntput(pipe_mnt);
-}
-
-module_init(init_pipe_fs)
-module_exit(exit_pipe_fs)
 ```
 
