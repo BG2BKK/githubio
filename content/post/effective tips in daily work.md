@@ -5,6 +5,69 @@ title = "effective tips in daily work"
 
 +++
 
+tsar监控系统负载和nginx运行情况
+------------------------------------------
+[tsar](https://github.com/alibaba/tsar)是阿里巴巴发布的一款能够实时监控系统状态的命令行工具，并且支持第三方模块扩展，其中比较注明的是nginx模块。使用tsar时，可以将系统负载和nginx运行情况同步同时打出，可以用来定位系统瓶颈，所以广受好评。
+
+***tsar -li1*** 是其最经典的用法，可以将一般我们感兴趣的监控项每秒更新一次并输出
+
+```bash
+Time              ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda---  ---load- 
+Time                util     util   retran    bytin  bytout     util     load1   
+25/03/16-19:03:30   0.08    10.22     0.00     1.4K    1.2K     0.00     0.33  
+25/03/16-19:03:31   0.08    10.21     0.00   424.00  468.00     0.00     0.33   
+```
+
+如果想使能nginx模块，需要对其进行配置
+
+```bash
+1. mkdir /etc/tsar/conf.d
+2. touch /etc/tsar/conf.d/nginx.conf
+
+3. 写入如下内容并保存
+mod_nginx on
+
+####add it to tsar default output
+output_stdio_mod mod_nginx
+
+####add it to center db
+#output_db_mod mod_nginx
+
+####add it to nagios send
+####set nagios threshold for alert
+#output_nagios_mod mod_nginx
+
+#threshold nginx.value1;N;N;N;N;
+#threshold nginx.value2;N;N;N;N;
+#threshold nginx.value3;N;N;N;N;
+
+表示使能nginx模块，并使用stdio输出
+
+4. tsar -li1
+
+Time              ---cpu-- ---mem-- ---tcp-- -----traffic---- --sda---  ---load- ------------------nginx----------------- 
+Time                util     util   retran    bytin  bytout     util     load1      qps      rt  sslqps  spdyps  sslhst   
+25/03/16-19:06:19   0.08    11.40     7.14   302.00  546.00     0.00     0.02     1.00    0.00    0.00    0.00    0.00   
+
+```
+
+wrk在CentOS系统上的编译方法
+----------------------------------
+
+[wrk](https://github.com/wg/wrk)作为一款可以内嵌lua脚本的，支持多线程的压测工具，受到了广泛欢迎。在高版本CentOS 7上，直接在wrk目录下执行make，可以首先编译deps/luajit，得到deps/luajit/libluajit.a，然而在低版本上，CentOS 6.5系统中，会报一些莫名奇妙的错误。 
+
+解决方法是，查看wrk的Makefile，发现wrk依赖于luajit，那么首先进入deps/luajit编译它，并且是静态编译
+
+```bash
+cd wrk
+cd deps/luajit
+make -j24 BUILDMODE=static
+
+cd ../..
+make -j24
+
+```
+
 rpmbuild环境的快速初始化
 -----------------------------------
 
