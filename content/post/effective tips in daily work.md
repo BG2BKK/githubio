@@ -74,6 +74,7 @@ require "fun"
 ```
 
 这点对于我们自己的lua project的设置来说无疑是很方便的。
+[参考链接](http://www.runoob.com/lua/lua-modules-packages.html)
 
 cpp调用c函数
 --------------------------
