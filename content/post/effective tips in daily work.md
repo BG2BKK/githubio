@@ -5,6 +5,365 @@ title = "effective tips in daily work"
 
 +++
 
+Lua库文件的加载路径
+---------------------------
+
+Lua 提供一个名为 [require](http://www.lua.org/manual/5.1/manual.html#pdf-require) 的函数来加载模块，使用也很简单，它只有一个参数，这个参数就是要指定加载的模块名，[例如](http://dhq.me/lua-learning-notes-package-and-module)：
+
+```lua
+require("<模块名>")
+-- 或者是
+-- require "<模块名>"
+```
+
+然后会返回一个由模块常量或函数组成的 table，并且还会定义一个包含该 table 的全局变量。
+
+或者给加载的模块定义一个别名变量，方便调用：
+
+```lua
+local m = require("module")
+print(m.constant)
+m.func3()
+```
+
+对于自定义的模块，模块文件不是放在哪个文件目录都行，函数 require 有它自己的文件路径加载策略，它会尝试从 Lua 文件或 C 程序库中加载模块。
+
+require 用于搜索 Lua 文件的路径是存放在全局变量 package.path 中，当 Lua 启动后，会以环境变量 LUA_PATH 的值来初始这个环境变量。如果没有找到该环境变量，则使用一个编译时定义的默认路径来初始化。
+
+```bash
+
+Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio
+>  print(package.path)
+~/lua/?.lua;/usr/local/share/lua/5.1/?.lua;/home/huang/workspace/luactor/?.lua;./?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/lib/lua/5.1/?.lua;/usr/local/lib/lua/5.1/?/init.lua;
+
+```
+
+如果没有 LUA_PATH 这个环境变量，也可以自定义设置
+
+```bash
+huang@ThinkPad-X220:~/workspace/luapkg/luasocket-2.0.2$ export LUA_PATH="4;;"
+huang@ThinkPad-X220:~/workspace/luapkg/luasocket-2.0.2$ lua
+Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio
+>  print(package.path)
+4;./?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;/usr/local/lib/lua/5.1/?.lua;/usr/local/lib/lua/5.1/?/init.lua;
+> 
+```
+可以看到，随便加的环境变量"4;"写在了package.path中。
+
+而为什么4需要两个'；'号呢：文件路径以 ";" 号分隔，最后的 2 个 ";;" 表示新加的路径后面加上原来的默认路径。
+
+```bash
+huang@ThinkPad-X220:~/workspace/luapkg/luasocket-2.0.2$ export LUA_PATH="4;"
+huang@ThinkPad-X220:~/workspace/luapkg/luasocket-2.0.2$ lua
+Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio
+> print(package.path)
+4;
+> 
+```
+可见如果只有一个；号，将只采用这个分号。
+
+如果找过目标文件，则会调用 package.loadfile 来加载模块。否则，就会去找 C 程序库。搜索的文件路径是从全局变量 package.cpath 获取，而这个变量则是通过环境变量 LUA_CPATH 来初始。搜索的策略跟上面的一样，只不过现在换成搜索的是 so 或 dll 类型的文件。如果找得到，那么 require 就会通过 package.loadlib 来加载它。
+
+
+我们也可以在lua代码中[动态修改package.path变量](https://github.com/rtsisyk/luafun)，
+
+```bash
+package.path = "../?.lua;"..package.path
+require "fun"
+
+```
+
+这点对于我们自己的lua project的设置来说无疑是很方便的。
+
+cpp调用c函数
+--------------------------
+由于CPP在链接时与C不太一样，因此在调用C函数时，[需要做一定处理。](http://www.cnblogs.com/skynet/archive/2010/07/10/1774964.html)
+
+将C函数的声明房子 ***#ifdef __cplusplus*** 块中
+
+```bash
+#ifdef __cplusplus
+extern "C" {
+#endif
+ 
+/*.
+ * c functions declarations
+..*/
+
+#ifdef __cplusplus
+}
+#endif
+```
+
+多少人在猜你机器的密码呢
+-----------------------------
+
+VPS在公网就是个待宰的肥肉，都想去登陆，那[都谁猜我的IP了呢？](https://plus.google.com/+AlbertSu2015/posts/Uu1vbeJY1Hw)
+
+```bash
+sudo grep "Failed password for root" /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -nr | more
+```
+
+grep的简单使用，与 或 非
+------------------------------
+
+* 或操作
+
+```bash
+grep -E '123|abc' filename  // 找出文件（filename）中包含123或者包含abc的行
+egrep '123|abc' filename    // 用egrep同样可以实现
+awk '/123|abc/' filename   // awk 的实现方式
+```
+
+* 与操作
+
+```bash
+grep pattern1 files | grep pattern2 ：显示既匹配 pattern1 又匹配 pattern2 的行。
+```
+
+* 其他操作
+
+```bash
+
+grep -i pattern files ：不区分大小写地搜索。默认情况区分大小写，
+grep -l pattern files ：只列出匹配的文件名，
+grep -L pattern files ：列出不匹配的文件名，
+grep -w pattern files ：只匹配整个单词，而不是字符串的一部分（如匹配‘magic’，而不是‘magical’），
+grep -v pattern files ：不匹配pattern
+grep -C number pattern files ：匹配的上下文分别显示[number]行，
+```
+
+iptables的简单使用
+-----------------------
+
+其实并不想写iptables相关的内容，因为用的不熟，但是一些常用的命令还是记一下吧
+
+[iptables的详细解释](https://linux.cn/article-1586-1.html)
+
+    Linux系统中,防火墙(Firewall),网址转换(NAT),数据包(package)记录,流量统计,这些功能是由Netfilter子系统所提供的，而iptables是控制Netfilter的工具。iptables将许多复杂的规则组织成成容易控制的方式，以便管理员可以进行分组测试，或关闭、启动某组规则。
+
+```bash
+https://blog.phpgao.com/vps_iptables.html
+http://www.tabyouto.com/bandwagon-vps-for-shadowsocks-was-hacked.html
+http://my.oschina.net/yqc/blog/82111?fromerr=VxVIazGW
+http://www.vpser.net/security/linux-iptables.html
+```
+
+```bash
+# 列出所有规则
+iptables -L -n
+
+# 更新iptables规则，规则写在/etc/iptables.rules
+iptables-restore < /etc/iptables.rules
+
+# 保存iptables规则，规则写在/etc/iptables.rules
+iptables-save > /etc/iptables.rules
+
+```
+
+需要注意的是Debian/Ubuntu上iptables是不会保存规则的。
+
+需要按如下步骤进行，让网卡关闭是保存iptables规则，启动时加载iptables规则：
+
+创建/etc/network/if-post-down.d/iptables 文件，添加如下内容：
+
+```bash
+#!/bin/bash
+iptables-save > /etc/iptables.rules
+```
+执行：chmod +x /etc/network/if-post-down.d/iptables 添加执行权限。
+
+创建/etc/network/if-pre-up.d/iptables 文件，添加如下内容：
+
+```bash
+#!/bin/bash
+iptables-restore < /etc/iptables.rules
+```
+执行：chmod +x /etc/network/if-pre-up.d/iptables 添加执行权限。
+
+iptables的一些常用规则：
+
+```bash
+#允许ping
+iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
+```
+
+VPS简单的ssh登陆设置
+-----------------------
+
+初次使用VPS，不懂得安全的重要性，直到扣款时候才心疼，这个时候，弱口令，密码登陆什么的，还是都放弃吧，只用ssh登陆，并且换一个自己的端口。[参考链接](https://imququ.com/post/bandwagon-vps-and-basicly-usage.html)
+
+简单来说，任何一台主机想登陆VPS的主机都需要有本身的ssh公钥私钥
+
+```bash
+cd ~/.ssh/
+ssh-keygen -t rsa -C "username@gmail.com"
+```
+然后复制~/.ssh/id_rsa.pub中的内容，就是本机的公钥。
+
+将公钥添加到VPS服务器的/home/username/.ssh/authorized_keys中，本机就能以username用户名登陆VPS了
+
+然后在/etc/ssh/sshd_config中禁用禁用 VPS 的密码登录和 root 帐号登录，将以下两项改为no
+
+```bash
+PasswordAuthentication no
+PermitRootLogin no
+
+Port 11111
+
+```
+随后重启SSH服务
+
+```bash
+sudo service ssh restart
+```
+
+vim删除空行
+------------------------
+
+* 从网页上copy下代码后，发现很多情况下有不想要的空行，非常影响阅读，通过[vim的正则](http://bbs.chinaunix.net/thread-510754-1-1.html)可以解决
+    * Delete all blank lines (^ is start of line; \s* is zero or more whitespace characters; $ is end of line) 
+    * 删除所有空白行(^是行的开始，\s*是零个或者多个空白字符；$是行尾)
+
+```bash
+:g/^\s*$/d
+```
+
+ubuntu通过命令设置系统时间
+--------------------------------
+
+在嵌入式开发中，在pcduino或者rpi板子上安装好linux后，系统时间是UTC时间1970年，对于有些软件来说可能影响安装，所以需要命令行修改date
+
+```bash
+sudo date -s "13 DEC 2015 20:43"
+```
+
+ubuntu终端下中文设置
+----------------------------
+
+在安装完ubuntu系统后，我们发现中文支持的不好，主要体现在locale的错误，[解决方法：](http://www.linuxidc.com/Linux/2015-08/122501.htm)
+
+```bash
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LANGUAGE = (unset),
+	LC_ALL = (unset),
+	LC_PAPER = "zh_CN.UTF-8",
+	LC_ADDRESS = "zh_CN.UTF-8",
+	LC_MONETARY = "zh_CN.UTF-8",
+	LC_NUMERIC = "zh_CN.UTF-8",
+	LC_TELEPHONE = "zh_CN.UTF-8",
+	LC_IDENTIFICATION = "zh_CN.UTF-8",
+	LC_MEASUREMENT = "zh_CN.UTF-8",
+	LC_TIME = "zh_CN.UTF-8",
+	LC_NAME = "zh_CN.UTF-8",
+	LANG = "en_US.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+
+```
+
+这是因为中文包没有安装好的缘故，如下命令就可以解决：
+
+```bash
+添加简体中文支持
+sudo apt-get -y install language-pack-zh-hans language-pack-zh-hans-base
+
+添加繁体中文支持
+sudo apt-get -y install language-pack-zh-hant language-pack-zh-hant-base
+
+```
+
+如果还不行，先观察下locale的配置
+
+
+```bash
+huang@localhost:~$ locale
+locale: Cannot set LC_CTYPE to default locale: No such file or directory
+locale: Cannot set LC_MESSAGES to default locale: No such file or directory
+locale: Cannot set LC_ALL to default locale: No such file or directory
+LANG=en_US.UTF-8
+LANGUAGE=
+LC_CTYPE="en_US.UTF-8"
+LC_NUMERIC=zh_CN.UTF-8
+LC_TIME=zh_CN.UTF-8
+LC_COLLATE="en_US.UTF-8"
+LC_MONETARY=zh_CN.UTF-8
+LC_MESSAGES="en_US.UTF-8"
+LC_PAPER=zh_CN.UTF-8
+LC_NAME=zh_CN.UTF-8
+LC_ADDRESS=zh_CN.UTF-8
+LC_TELEPHONE=zh_CN.UTF-8
+LC_MEASUREMENT=zh_CN.UTF-8
+LC_IDENTIFICATION=zh_CN.UTF-8
+LC_ALL=
+```
+再重新配置下语言包
+
+```bash
+huang@localhost:~$  sudo locale-gen "en_US.UTF-8"
+Generating locales...
+  en_US.UTF-8... done
+Generation complete.
+huang@localhost:~$ sudo  pip install shadowsocks^C
+huang@localhost:~$  sudo locale-gen "zh_CN.UTF-8"
+Generating locales...
+  zh_CN.UTF-8... done
+Generation complete.
+huang@localhost:~$ sudo dpkg-reconfigure locales
+Generating locales...
+  en_US.UTF-8... done
+  zh_CN.UTF-8... up-to-date
+  zh_HK.UTF-8... done
+  zh_SG.UTF-8... done
+  zh_TW.UTF-8... done
+Generation complete.
+```
+
+一般就都能解决
+
+Linux终端下的颜色设置输出
+------------------------------
+
+Linux终端下，如果有一个彩色的终端，可以明显提升人的阅读兴趣，通过printf的简单设置即可[实现彩色输出](http://www.w2bc.com/Article/39141)
+
+```bash
+\033[显示方式;前景色;背景色m
+
+    显示方式、前景色、背景色至少一个存在即可。
+    格式：\033[显示方式;前景色;背景色m
+```
+
+```bash
+前景色  背景色  颜色
+30  40  黑色
+31  41  红色
+32  42  绿色
+33  43  黃色
+34  44  蓝色
+35  45  紫红色
+36  46  青蓝色
+37  47  白色
+
+
+显示方式    意义
+0   终端默认设置
+1   高亮显示
+4   使用下划线
+5   闪烁
+7   反白显示
+8   不可见
+
+```
+
+```bash
+\033[1;31;40m    <!--1-高亮显示 31-前景色红色  40-背景色黑色-->
+\033[0m          <!--采用终端默认设置，即取消颜色设置-->
+
+printf("\033[1;31;40m");
+printf("\033[0m");
+```
+
 tsar监控系统负载和nginx运行情况
 ------------------------------------------
 [tsar](https://github.com/alibaba/tsar)是阿里巴巴发布的一款能够实时监控系统状态的命令行工具，并且支持第三方模块扩展，其中比较注明的是nginx模块。使用tsar时，可以将系统负载和nginx运行情况同步同时打出，可以用来定位系统瓶颈，所以广受好评。
@@ -218,3 +577,5 @@ tcpdump -ni any port 9001 and 'tcp[13] & 4 != 0 ' -s0  -w rst.cap -vvv
     * rsz是实际占用内存，单位是KB
 
 * pmap -d pid
+
+

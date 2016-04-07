@@ -131,3 +131,15 @@ tcpdump -ni any port 9001 and 'tcp[13] & 3 != 0 ' -s0  -w syn_fin.cap -vvv
 tcpdump -ni any port 9001 and 'tcp[13] & 4 != 0 ' -s0  -w rst.cap -vvv
 ```
 [参考链接](http://babyhe.blog.51cto.com/1104064/1395489)
+
+六、redis内部监测工具 redis-faina
+-------------------------------------------
+
+[redis-faina](https://github.com/facebookarchive/redis-faina)是facebook出品的，用于监控redis内部情况统计的一个工具。使用方法是：
+
+
+```bash
+redis-cli  -p 6379 MONITOR | head -n 100000 | ./redis-faina/redis-faina.py
+```
+
+七、压测过程中发现lua获取用户特征时，如果用户特征不存在，比如headers中的UID参数，事实上它是处于ngx.req.get_headers()函数返回值(table类型)中，如果lua提取用户特征时，找不到UID，则会扩大范围去上一级里找，此时性能会大大下降
