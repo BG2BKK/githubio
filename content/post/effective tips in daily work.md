@@ -5,6 +5,75 @@ title = "effective tips in daily work"
 
 +++
 
+ubuntu操作、挂载、格式化SD卡
+-----------------------------------
+
+玩树莓派等板子的时候，需要从host机器将os镜像烧进sd卡，然后启动。那么ubuntu如何操作呢？
+
+fdisk -l命令可以用来查看系统中的存储硬件
+
+```bash
+
+
+Disk /dev/sda: 111.8 GiB, 120034123776 bytes, 234441648 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: C27256BB-CE04-48C2-96F4-8F79FAE2AE87
+
+Device     Start       End   Sectors   Size Type
+/dev/sda1   2048 234440703 234438656 111.8G Linux filesystem
+
+
+Disk /dev/sdb: 167.7 GiB, 180045766656 bytes, 351651888 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x42b438a2
+
+Device     Boot     Start       End   Sectors  Size Id Type
+/dev/sdb1  *         2048 105887743 105885696 50.5G  7 HPFS/NTFS/exFAT
+/dev/sdb2       105887744 187807665  81919922 39.1G 83 Linux
+/dev/sdb3       187807744 228767743  40960000 19.5G  7 HPFS/NTFS/exFAT
+/dev/sdb4       228769790 351649791 122880002 58.6G  f W95 Ext'd (LBA)
+/dev/sdb5       228769792 351649791 122880000 58.6G  7 HPFS/NTFS/exFAT
+
+
+Disk /dev/sdc: 14.9 GiB, 16021192704 bytes, 31291392 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x00000000
+
+Device     Boot Start      End  Sectors  Size Id Type
+/dev/sdc1        8192 31291391 31283200 14.9G  c W95 FAT32 (LBA)
+
+```
+
+如果sd卡（tf卡）通过usb 读卡器接入电脑，则会显示为 /dev/sdc
+
+如果是标准sd卡（大卡），则会显示为 /dev/mmblck0
+
+```bash
+
+Disk /dev/mmcblk0: 14.9 GiB, 16021192704 bytes, 31291392 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x00000000
+
+Device         Boot Start      End  Sectors  Size Id Type
+/dev/mmcblk0p1       8192 31291391 31283200 14.9G  c W95 FAT32 (LBA)
+
+```
+
+推荐使用USB读卡器，速度较为快一些。
+
+
 Lua库文件的加载路径
 ---------------------------
 

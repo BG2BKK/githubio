@@ -2,14 +2,14 @@
 date = "2016-02-29T15:33:32+08:00"
 draft = false
 title = "VFS虚拟文件系统"
-tags = ["linux kerel"]
+tags = ["linux kenrel"]
 categories = ["source code"]
 series = ["read kernel code"]
 
 +++
 
 虚拟文件系统
-===================
+-----------------
 
 * 虚拟文件系统为用户空间程序提供了文件和文件系统的接口
 * 通过VFS，程序可以通过标准的UNIX系统调用操作不同的文件系统和介质，包括各种软硬件设备

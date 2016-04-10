@@ -3,9 +3,13 @@ date = "2016-02-27T09:49:41+08:00"
 draft = false
 title = "pipe在内核中的实现"
 
+tags = ["linux kenrel"]
+categories = ["source code"]
+series = ["read kernel code"]
 +++
 
-## pipe在linux内核中的实现
+pipe在linux内核中的实现
+-----------------------------
 
 在之前关于linux shell多线程并发数控制的[博文](https://bg2bkk.github.io/post/shell%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AE%9E%E8%B7%B5/)中，我们使用了fifo作为token池，通过读写fifo实现token分发控制，进而实现了控制线程数的目的。 
 我对pipe这个*** *NIX ***系统中最常用的组件（|）产生了兴趣 

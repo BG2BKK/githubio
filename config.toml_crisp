@@ -2,7 +2,3 @@ baseurl = "https://bg2bkk.github.io"
 languageCode = ""
 title = "BG2BKK Site"
 
-[taxonomies]
-tag = "tags"
-category = "categories"
-series = "series"

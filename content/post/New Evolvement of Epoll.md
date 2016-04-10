@@ -1,12 +1,15 @@
 +++
 date = "2016-03-22T01:48:41+08:00"
 draft = false
-title = "Epoll在Linux Kernel中的新发展"
+title = "New evolvement of Epoll"
 
+tags = ["linux kenrel"]
+categories = ["source code"]
+series = ["read kernel code"]
 +++
 
 EPOLL在linux 内核中的新发展
-==============================
+------------
 
 Epoll是linux专有的系统调用，用于快速地高效轮询大规模文件描述符fd。这个API在kernel-2.5版本时就已经合并，并使用至今。即使如此，epoll和其他接口一样，仍然有提升空间。现在有两个patch为epoll系列系统调用添加了新的功能。
 
