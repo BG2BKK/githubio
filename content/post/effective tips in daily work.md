@@ -5,6 +5,59 @@ title = "effective tips in daily work"
 
 +++
 
+编译openssl 1.0.2g
+-----------------------------------------
+
+```bash
+./config shared -fPIC zlib-dynamic && make depend -j   && make -j
+```
+
+编译nginx/tengine: CPP模块
+-----------------------------
+
+```bash
+./configure --add-module=../cpp_module  --with-ld-opt="-lstdc++"
+```
+
+curl -i 和 -I的区别
+----------------------------------
+
+man page:
+
+```bash
+	-i, --include
+		(HTTP) Include the HTTP-header in the output. The HTTP-header includes things like server-name, date of the document, HTTP-version and more...
+		
+	-I, --head
+		(HTTP/FTP/FILE) Fetch the HTTP-header only! HTTP-servers feature the command HEAD which this uses to get nothing but the header of a document. When used on an FTP or FILE file, curl displays the file size and last modification time only.
+```
+
+-i选项会打印出HTTP头部的一些信息，这个选项是curl软件的选项，这些信息本来就是存在的
+
+-I选项会发送HEAD请求，获取信息
+
+linux系统如何将父子进程一起kill掉
+---------------------------------
+
+对于普通进程而言，kill掉父进程将会连带着把子进程kill掉；而对于daemon等类型进程而言，kill掉父进程，子进程会被daemon接管，所以如果想父子一起kill掉的话，不能直接kill父进程。
+
+有[两种方法](http://blog.csdn.net/lalaguozhe/article/details/11142855)
+
+* kill -- -PPID
+	* PPID前面有***-***号，可以将父子进程kill掉
+
+* 使用exec或者xargs来kill掉他们
+
+dns查询中，域名是否可以有多个cname呢？
+-----------------------------------------
+
+不可以
+	* http://serverfault.com/questions/574072/can-we-have-multiple-cnames-for-a-single-name
+
+git代理访问
+--------------------
+git config --global http.proxy 10.8.0.1:8118
+
 ubuntu操作、挂载、格式化SD卡
 -----------------------------------
 

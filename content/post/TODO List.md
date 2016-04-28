@@ -28,6 +28,9 @@ title = "TODO List"
     * adnroid develop
     * stm32 with st-link
     * stm32 with sb on linux
+	* stm32 qemu-system-arm
+	* stm32 Makefile
+	* stm32 Hal
 
 * 7. ngx_lua waf
     * kong
