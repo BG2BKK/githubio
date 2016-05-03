@@ -5,6 +5,16 @@ title = "effective tips in daily work"
 
 +++
 
+git修改默认分支名
+--------------------------
+在develop分支改动太大了，导致merge 到master分支时非常被动，这个时候我想，干脆将develop分支作为分支好了。还好碰到[stackoverflow的一个帖子](http://stackoverflow.com/questions/1485578/change-a-git-remote-head-to-point-to-something-besides-master)
+
+* git branch -m master oldmaster
+* git branch -m develop master
+* git push -f origin master
+
+另一个方法是从github的[项目主页上更改](https://help.github.com/articles/setting-the-default-branch/)
+
 编译openssl 1.0.2g
 -----------------------------------------
 
