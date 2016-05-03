@@ -1,15 +1,15 @@
 +++
 date = "2016-03-25T20:16:51+08:00"
-draft = true
+draft = false
 title = "nginx gdb utils的编译 安装和使用"
 
 +++
 
 
-1、想用[nginx-gdb-utils](https://github.com/openresty/nginx-gdb-utils)来监控ngx_lua的内存使用情况
-2、在CentOS 6.5上，gdb为7.2，python为2.6，没有一个符合的，想强上，没上了，只能在7上搞
-3、CentSO 7的gdb是7.6，版本也很老，对于nginx-gdb-utils来说。python倒是2.7，可以搞
-4、[gdb](http://www.linuxfromscratch.org/blfs/view/svn/general/gdb.html)需要编译安装，首先下载gdb-7.11
+* 1、想用[nginx-gdb-utils](https://github.com/openresty/nginx-gdb-utils)来监控ngx_lua的内存使用情况
+* 2、在CentOS 6.5上，gdb为7.2，python为2.6，没有一个符合的，想强上，没上了，只能在7上搞
+* 3、CentSO 7的gdb是7.6，版本也很老，对于nginx-gdb-utils来说。python倒是2.7，可以搞
+* 4、[gdb](http://www.linuxfromscratch.org/blfs/view/svn/general/gdb.html)需要编译安装，首先下载gdb-7.11
 
 ```bash
     cd gdb-7.11
