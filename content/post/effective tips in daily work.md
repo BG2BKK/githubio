@@ -646,6 +646,7 @@ git比较两次commit的差异
 
 * git log
     * 查看commit历史
+
 ```bash
 commit 2279c3f4a8a42e696a0f34e6e9b6289487da92c1
 Author: bg2bkk <bg2bkk@gmail.com>
@@ -658,11 +659,11 @@ Author: bg2bkk <bg2bkk@gmail.com>
 Date:   Sat Mar 12 01:16:00 2016 +0800
 
     add 采用二级指针实现单链表操作 单链表翻转 删除单链表结点
-
 ```
 
 * git diff commit 2279c3f4a8a42e696a0f34e6e9b6289487da92c1 2b9d85f8427c5ca9e4f9c128c22acd280eb94405
-    
+
+
 git返回强制返回某次提交
 ----------------------------
 

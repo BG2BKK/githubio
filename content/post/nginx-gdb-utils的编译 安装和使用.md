@@ -37,7 +37,7 @@ title = "nginx gdb utils的编译 安装和使用"
 
 ```
 
-5、将nginx-gdb-utils写入gdb初始化文件中，这样以后就不用每次加载py文件了
+* 5、将nginx-gdb-utils写入gdb初始化文件中，这样以后就不用每次加载py文件了
 
 ```bash
 vim ~/.gdbinit
@@ -56,13 +56,14 @@ set python print-stack full
 
 但其实一般而言我们都是用root用户的，所以在sudo或者直接是root用户下时，需要重新写~/.gdbinit，这时应该是在/root/.gdbinit了
 
-6、/usr/local/bin/gdb -p 12345
-7、lgcstat
+* 6、/usr/local/bin/gdb -p 12345
+
+* 7、lgcstat
 
 发现报一些函数或者变量找不到，比如Lgref找不到，这个原因是相关软件没有把用 -g 选项把符号编译进去
 
-8、对于LuaJit而言，make CCDEBUG=-g -B -j8
-9、对于lua-cjson而言，make CCDEBUG=-g -B -j8
-10、对于tengine、nginx或者openresty而言，CFLAGS="-g -O2" ./configure 
-
-11、自此就可以愉快的玩耍了。这些工具还是很有意思的。
+* 8、对于LuaJit而言，make CCDEBUG=-g -B -j8
+* 9、对于lua-cjson而言，make CCDEBUG=-g -B -j8
+* 10、对于tengine、nginx或者openresty而言，CFLAGS="-g -O2" ./configure 
+* 
+* 11、自此就可以愉快的玩耍了。这些工具还是很有意思的。
