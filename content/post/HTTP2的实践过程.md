@@ -39,7 +39,7 @@ title = "HTTP2的实践过程"
 而在线下调试时，如果需要配置https，则需要自建和签发证书。
 [基于openssl自建证书](http://segmentfault.com/a/1190000002569859)
 
-###在CentOS系统上自建证书
+### 在CentOS系统上自建证书
 
 1.自建CA，颁发证书
 
