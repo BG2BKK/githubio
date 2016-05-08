@@ -5,6 +5,117 @@ title = "effective tips in daily work"
 
 +++
 
+ubuntu关闭键盘和触摸板的方法
+---------------------------
+
+家里的猫就是喜欢趴在笔记本键盘上看你干活，我只能再买一个键盘，然后笔记本键盘留给猫大爷了。
+
+然而它还喜欢在键盘上跳舞，这样太影响输入了，只能想办法把笔记本键盘关掉。
+
+在ubuntu下，键盘鼠标触控板都属于xinput设备，可以通过以下命令查看：
+
+```bash
+
+$ xinput  --list
+⎡ Virtual core pointer                    	id=2	[master pointer  (3)]
+⎜   ↳ Virtual core XTEST pointer              	id=4	[slave  pointer  (2)]
+⎜   ↳ SynPS/2 Synaptics TouchPad              	id=16	[slave  pointer  (2)]
+⎜   ↳ Rapoo Rapoo Gaming Keyboard             	id=11	[slave  pointer  (2)]
+⎜   ↳ RAPOO Rapoo 2.4G Wireless Device        	id=12	[slave  pointer  (2)]
+⎜   ↳ Wacom ISDv4 E6 Pen stylus               	id=13	[slave  pointer  (2)]
+⎜   ↳ Wacom ISDv4 E6 Finger touch             	id=14	[slave  pointer  (2)]
+⎜   ↳ Wacom ISDv4 E6 Pen eraser               	id=18	[slave  pointer  (2)]
+⎜   ↳ TPPS/2 IBM TrackPoint                   	id=19	[slave  pointer  (2)]
+⎣ Virtual core keyboard                   	id=3	[master keyboard (2)]
+    ↳ Virtual core XTEST keyboard             	id=5	[slave  keyboard (3)]
+    ↳ Power Button                            	id=6	[slave  keyboard (3)]
+    ↳ Video Bus                               	id=7	[slave  keyboard (3)]
+    ↳ Sleep Button                            	id=8	[slave  keyboard (3)]
+    ↳ Integrated Camera                       	id=9	[slave  keyboard (3)]
+    ↳ Rapoo Rapoo Gaming Keyboard             	id=10	[slave  keyboard (3)]
+    ↳ AT Translated Set 2 keyboard            	id=15	[slave  keyboard (3)]
+    ↳ ThinkPad Extra Buttons                  	id=17	[slave  keyboard (3)]
+```
+
+可以看到笔记本键盘是
+
+```bash
+    ↳ AT Translated Set 2 keyboard            	id=15	[slave  keyboard (3)]
+```
+
+而触控板是
+
+```bash
+⎜   ↳ SynPS/2 Synaptics TouchPad              	id=16	[slave  pointer  (2)]
+```
+
+他们的id分别是 15和 16，所以采用以下命令关掉就可以
+
+```bash
+sudo sudo xinput set-prop 15 "Device Enabled" 0
+sudo sudo xinput set-prop 16 "Device Enabled" 0
+```
+
+
+
+小于1024的保留端口都有哪些
+--------------------------
+
+我们会遇到如下情况：
+
+```bash
+$ sudo tcpdump -i any port 1080
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on any, link-type LINUX_SLL (Linux cooked), capture size 262144 bytes
+15:08:42.421693 IP localhost.55092 > localhost.socks: Flags [.], ack 1960200857, win 342, options [nop,nop,TS val 4687328 ecr 4676064], length 0
+```
+
+我想监听1080端口，tcpdump为什么不乖乖显示1080，而是出现个socks呢？（可以通过***-n***参数解决）为什么1080是socks，而不是别的呢？
+
+这是因为低于1024的保留端口大多有自己的名字，他们[由IANA分配](http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)，通常用于系统进程，而我们可以在***/etc/services***文件中找到：
+
+```bash
+#
+# From ``Assigned Numbers'':
+#
+#> The Registered Ports are not controlled by the IANA and on most systems
+#> can be used by ordinary user processes or programs executed by ordinary
+#> users.
+#
+#> Ports are used in the TCP [45,106] to name the ends of logical
+#> connections which carry long term conversations.  For the purpose of
+#> providing services to unknown callers, a service contact port is
+#> defined.  This list specifies the port used by the server process as its
+#> contact port.  While the IANA can not control uses of these ports it
+#> does register or list uses of these ports as a convienence to the
+#> community.
+#
+socks		1080/tcp			# socks proxy server
+socks		1080/udp
+proofd		1093/tcp
+proofd		1093/udp
+rootd		1094/tcp
+rootd		1094/udp
+openvpn		1194/tcp
+openvpn		1194/udp
+rmiregistry	1099/tcp			# Java RMI Registry
+rmiregistry	1099/udp
+kazaa		1214/tcp
+kazaa		1214/udp
+nessus		1241/tcp			# Nessus vulnerability
+nessus		1241/udp			#  assessment scanner
+lotusnote	1352/tcp	lotusnotes	# Lotus Note
+lotusnote	1352/udp	lotusnotes
+ms-sql-s	1433/tcp			# Microsoft SQL Server
+ms-sql-s	1433/udp
+ms-sql-m	1434/tcp			# Microsoft SQL Monitor
+ms-sql-m	1434/udp
+ingreslock	1524/tcp
+ingreslock	1524/udp
+prospero-np	1525/tcp			# Prospero non-privileged
+
+```
+
 git修改默认分支名
 --------------------------
 在develop分支改动太大了，导致merge 到master分支时非常被动，这个时候我想，干脆将develop分支作为分支好了。还好碰到[stackoverflow的一个帖子](http://stackoverflow.com/questions/1485578/change-a-git-remote-head-to-point-to-something-besides-master)
