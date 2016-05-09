@@ -16,3 +16,6 @@ title = "github 上那些令我感到惊艳又实用的项目"
 
 * https://github.com/cmus/cmus
 	* 命令行式的音乐播放器，依赖的解码库较多
+
+* [wangle](https://code.facebook.com/posts/215466732167400/wangle-an-asynchronous-c-networking-and-rpc-library/)
+	* facebook的RPC框架

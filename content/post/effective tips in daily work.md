@@ -5,6 +5,11 @@ title = "effective tips in daily work"
 
 +++
 
+文件操作的线程安全相关（待续）
+------------------------
+
+http://stackoverflow.com/questions/29981050/concurrent-writing-to-a-file
+
 ubuntu关闭键盘和触摸板的方法
 ---------------------------
 
