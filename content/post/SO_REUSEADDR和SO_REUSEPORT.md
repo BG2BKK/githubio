@@ -1,6 +1,6 @@
 +++
-date = "2016-03-12T01:10:56+08:00"
-draft = true
+date = "2016-05-09T16:55:42+08:00"
+draft = false
 title = "SO_REUSEADDR和SO_REUSEPORT"
 
 +++
@@ -9,10 +9,13 @@ title = "SO_REUSEADDR和SO_REUSEPORT"
 ------------------
     
     1. SO_REUSEPORT用于多个socket监听同一个TCP链接
-    2. SO_REUSEADDR与其区别是，前者是，后者是。
+    2. SO_REUSEADDR可用于多个进程bind同一端口，但需要TCP连接的四元组不一样。
+	3. SO_REUSEPORT比SO_REUSEADDR更加扩展，但是也带来了隐患，需要额外注意
+
+引言
+------------------------
 
 nginx 1.9.1引入了 SO_REUSEPORT选项，在高版本（linux kernel 3.9以上）系统上可用。该选项允许多个socket监听同一个IP:PORT组合，
-
 
 * SO_REUSEPORT可以[简化服务器编程](http://freeprogrammersblog.vhex.net/post/linux-39-introdued-new-way-of-writing-socket-servers/2)
 * prefork模式：master预先分配进程池，每一个client连接用一个进程处理
@@ -25,18 +28,31 @@ nginx 1.9.1引入了 SO_REUSEPORT选项，在高版本（linux kernel 3.9以上�
 听听linux kernle[维护者怎么说](https://lwn.net/Articles/542629/)
 --------------------------------------------------------------------
 
-    * 允许多个进程绑定host上的同一端口
-    * 只需要第一个绑定端口的进程指定SO_REUSEPORT选项，后继者都可以绑定该端口，所以需要担心的是端口劫持，不希望恶意程序能accept该端口的连接。
-    * 方法是后继者要与第一次绑定端口的进程的USER ID一样，比如用root和普通用户启动程序绑定同一个端口，会报address already in use
-    * TCP和UDP都可以用
+* 允许多个进程绑定host上的同一端口
+* 只需要第一个绑定端口的进程指定SO_REUSEPORT选项，后继者都可以绑定该端口，所以需要担心的是端口劫持，不希望恶意程序能accept该端口的连接。
+* 方法是后继者要与第一次绑定端口的进程的USER ID一样，比如用root和普通用户启动程序绑定同一个端口，会报address already in use
+* SO_REUSEPORT的负载均衡性能更好
+<!--		* 这里的负载均衡可能指的不是主动分配的，而是当多个线程监听同一端口时，如果某个线程在忙，那么新来的请求自然会被load较低的线程处理，间接的达到均衡效果 -->
+* TCP和UDP都可以用
+	* UDP场景中，在DNS server的应用比较有意义，可以负载均衡的处理dns请求
+	* 作者指出，SO_REUSEADDR虽然也能让UDP连接绑定同一端口，但是SO_REUSEPORT可以防止劫持，并能将请求均衡的分配给监听的线程
 
-* 传统多线程的工作模式
-    * 1. 传统的多线程server都是有一个listener线程绑定端口并接受所有的请求，然后传递给其他线程，而这个listener往往会成为瓶颈
-    * 2. master绑定端口，每个slave轮流accept从该端口获取连接（nginx）
-        * 缺点是有可能导致每个slave不能平均的处理连接，unblanced；有的slave处理的过多，有的slave处理的过少，导致cpu资源不能充分利用
-        * SO_REUSEPORT的实现可以使请求平均的分配给堵塞在accept上的各个进程
+传统多线程的工作模式
+----------------------------
 
-* SO_REUSEPORT 和 SO_REUSEADDR
-    * 前者可以防止端口被恶意进程劫持
-    * 前者可以使请求平均分配给各个进程
+* 1. 传统的多线程server都是有一个listener线程绑定端口并接受所有的请求，然后传递给其他线程，而这个listener往往会成为瓶颈
+* 2. master绑定端口，每个slave轮流accept从该端口获取连接（nginx）
+    * 缺点是有可能导致每个slave不能平均的处理连接，unblanced；有的slave处理的过多，有的slave处理的过少，导致cpu资源不能充分利用
+    * SO_REUSEPORT的实现可以使请求平均的分配给堵塞在accept上的各个进程
 
+SO_REUSEPORT 和 SO_REUSEADDR 对比（待续）
+-------------------------------------
+
+* 前者可以防止端口被恶意进程劫持
+* 前者可以使请求平均分配给各个进程
+
+参考链接
+----------------------
+
+* [lwn: the SO_REUSEPORT socket option](https://lwn.net/Articles/542629/)
+* [topic on so_reuseaddr and so_reuseport on stackoverflow](http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t)
