@@ -30,4 +30,4 @@ TFO与2.6.34内核合并到主线，[lwn通告地址](https://lwn.net/Articles/5
 * [TFO简介](http://www.pagefault.info/?p=282)
 * [tfo的golang实现(github)](https://github.com/bradleyfalzon/tcp-fast-open)
 * [上一行项目的作者bradley falzon](https://bradleyf.id.au/nix/shaving-your-rtt-wth-tfo/)
-* [google关于tfo的论文]()
+* [google关于tfo的论文](http://static.googleusercontent.com/external_content/untrusted_dlcp/research.google.com/zh-CN/us/pubs/archive/37517.pdf)
