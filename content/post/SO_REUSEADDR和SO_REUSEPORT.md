@@ -37,13 +37,70 @@ nginx 1.9.1引入了 SO_REUSEPORT选项，在高版本（linux kernel 3.9以上�
 	* UDP场景中，在DNS server的应用比较有意义，可以负载均衡的处理dns请求
 	* 作者指出，SO_REUSEADDR虽然也能让UDP连接绑定同一端口，但是SO_REUSEPORT可以防止劫持，并能将请求均衡的分配给监听的线程
 
-传统多线程的工作模式
+传统多线程的工作模式的缺点
 ----------------------------
 
 * 1. 传统的多线程server都是有一个listener线程绑定端口并接受所有的请求，然后传递给其他线程，而这个listener往往会成为瓶颈
 * 2. master绑定端口，每个slave轮流accept从该端口获取连接（nginx）
     * 缺点是有可能导致每个slave不能平均的处理连接，unblanced；有的slave处理的过多，有的slave处理的过少，导致cpu资源不能充分利用
     * SO_REUSEPORT的实现可以使请求平均的分配给堵塞在accept上的各个进程
+
+SO_REUSEPORT的应用举例
+---------------------------
+
+* server.py
+
+```python
+import socket
+import os
+
+SO_REUSEPORT = 15
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, SO_REUSEPORT, 1)
+s.bind(('', 10000))
+s.listen(1)
+while True:
+    conn, addr = s.accept()
+    print('Connected to {}'.format(os.getpid()))
+    data = conn.recv(1024)
+    conn.send(data)
+    conn.close()
+```
+
+启动两个进程，都绑定10000端口；使用nc作为client
+
+```bash
+$ python server.py&
+[1] 12649
+$ python server.py&
+[2] 12650
+$ echo data | nc localhost 10000
+Connected to 12649
+data
+$ echo data | nc localhost 10000
+Connected to 12650
+data
+$ echo data | nc localhost 10000
+Connected to 12649
+data
+$ echo data | nc localhost 10000
+Connected to 12650
+data
+```
+
+再启动一个新的进程显然也是可以的
+
+```bash
+$ python server.py&
+[3] 14021
+$ echo data | nc localhost 10000
+Connected to 12650
+data
+$ echo data | nc localhost 10000
+Connected to 14021
+data
+```
 
 SO_REUSEPORT 和 SO_REUSEADDR 对比（待续）
 -------------------------------------
@@ -56,3 +113,4 @@ SO_REUSEPORT 和 SO_REUSEADDR 对比（待续）
 
 * [lwn: the SO_REUSEPORT socket option](https://lwn.net/Articles/542629/)
 * [topic on so_reuseaddr and so_reuseport on stackoverflow](http://stackoverflow.com/questions/14388706/socket-options-so-reuseaddr-and-so-reuseport-how-do-they-differ-do-they-mean-t)
+
