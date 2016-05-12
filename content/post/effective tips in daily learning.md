@@ -5,6 +5,24 @@ title = "effective tips in daily learning"
 
 +++
 
+一致性哈希 consistent hashing
+----------------------------------
+
+* http://www.codeproject.com/Articles/56138/Consistent-hashing
+* http://blog.huanghao.me/?p=14
+* http://blog.csdn.net/sparkliang/article/details/5279393
+并发编程
+----------------
+* [volatile](http://hedengcheng.com/?p=725)
+* [并发编程](http://blogread.cn/it/article/7282?f=wb)
+
+nginx配置文件
+---------------------
+
+* rewrite: 
+	* http://www.xiehaichao.com/articles/428.html
+	* http://seanlook.com/2015/05/17/nginx-location-rewrite/
+
 HTTP
 --------------------------
 * HTTP/0.9
@@ -18,7 +36,7 @@ HTTP
 	* 引入Range头，可以只下载一部分内容
 	* 默认长链接 keepalive
 
-* HTTP/2
+* HTTP/2:
 	* 革命性的更新，压缩头部，stream和frame等机制
 
 * HTTP request 请求

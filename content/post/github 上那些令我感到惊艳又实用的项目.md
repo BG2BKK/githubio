@@ -22,3 +22,6 @@ title = "github 上那些令我感到惊艳又实用的项目"
 	* 所依赖的一些异步库，比如[folly](https://github.com/facebook/folly)
 	* github主页看起来非常清爽，代码质量十分之高，而且不是那种为了kpi而造轮子的，每个项目都有用处，高层项目构建于基础项目
 	* facebook主页可以多看看
+
+* https://github.com/cyfdecyf/spinlock
+	* [自旋锁专业研究](http://locklessinc.com/articles/locks/)

@@ -20,7 +20,7 @@ title = "resume"
 
  - 男/1990 
  - 硕士/哈工大深圳研究生院计算机系 
- - 工作年限：1年
+ - 工作年限：14个月
  - 英语水平：CET-6
  - 技术博客：http://bg2bkk.github.io
  - Github：http://github.com/bg2bkk
@@ -28,12 +28,18 @@ title = "resume"
 教育背景
 --------------------
 
-- 2012.09 ~ 2015.01 哈尔滨工业大学 计算机 硕士
-- 2008.09 ~ 2012.06 哈尔滨工程大学 计算机 学士 
+	- 2012.09 ~ 2015.01 哈尔滨工业大学 计算机 硕士
+	- 2008.09 ~ 2012.06 哈尔滨工程大学 计算机 学士 
 
 ---
 
 工作经历
+-----------------
+
+	- 2015.01 ~ NOW		 新浪微博				系统开发工程师 
+	- 2013.09 ~ 2014.05	 极光推送				后台开发实习生 
+
+项目经历
 -----------------
 
 #### 新浪微博 系统开发工程师 （ 2015年1月 ~ 2016年3月 ）
@@ -44,11 +50,15 @@ title = "resume"
 		* 系统资源的动态伸缩
 		* 用户请求的动态分流
 		* 产品服务的灰度发布
-
-	* 基于nginx和ngx_lua开发
-		* 开发 **灰度发布系统** [ABTestingGateway](https://github.com/CNSRE/ABTestingGateway)
-		* 参与开发 **nginx动态upstream模块**[ngx-lua-upstream-module](https://github.com/CNSRE/lua-upstream-nginx-module)
-
+	* dygateway作为7层服务时：
+		* 动态分流子系统 [ABTestingGateway](https://github.com/CNSRE/ABTestingGateway)
+			* 根据用户请求的特征和分流策略将请求转发至不同的后端upstream；
+			* 动态设置分流策略，实时生效；
+			* 支持单级分流和多级分流。
+			* 基于ngx_lua 和 redis 开发
+		* 动态upstream模块[lua-upstream-nginx-module](https://github.com/CNSRE/lua-upstream-nginx-module)
+			* 该模块可以实时修改nginx的upstream列表，增减upstream，增减upstream中的member成员，实现动态伸缩。
+			* nginx模块开发
 	* 目前应用于手机微博、微博头条等产品线
 
 <!--
@@ -58,20 +68,15 @@ title = "resume"
 
 ------------
 
-* 其他项目
-
-    * 手机微博 HTTP DNS 服务端开发
-		* 一期：nginx + edns server松耦合实现
-			* 参与开发nginx的http dns模块
-			* 对项目进行压测和评估，目前已灰度上线
-
-		* 二期：golang + edns查询
-			* 参与golang server的架构设计及系统开发
-			* 开发golang 版本的edns查询模块
-
-	* 手机微博MAPI团队的HTTP/2升级
-		* HTTP/2 server的[评估与压测](https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/)
-		* 协助移动端团队评估HTTP/2性能
+* 手机微博 HTTP DNS 服务端开发
+	* 手机微博httpdns项目用于解决客户端恶意劫持的问题，并能够实现节点的智能调度。
+	* 一期：nginx + edns server松耦合实现
+		* 参与开发nginx的http dns模块
+		* 对项目进行压测和评估，目前已灰度上线
+	* 二期：golang + edns查询
+		* 参与golang server的架构设计及系统开发
+		* 开发golang 版本的edns查询模块
+	* httpdns server端一期已上线，手机微博客户端采用渠道包灰度；二期已完成edns查询模块。
  
 #### 极光推送(jpush.cn) 后台开发实习生（ 2013年9月 ~ 2014年5月 ）
 
@@ -91,7 +96,7 @@ title = "resume"
 技能清单
 -------------------
 * c/lua/python/golang/shell/vhdl
-* nginx/ngx_lua
+* nginx/ngx_lua/redis
 * linux kernel/ performance profiling
 * embedded system && IOT: ble/mqtt/elua
 * microprocessor: stm32 51 avr FPGA

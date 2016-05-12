@@ -20,3 +20,15 @@ title = "coroutine and goroutine"
 * lua的c runtime stack和lua runtime stack是[什么样子的](https://techsingular.org/2013/07/14/programming-in-lua%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%8Dcontinuation/)
 
 * lua的[gc](https://techsingular.org/2013/10/27/lua-%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/)
+
+* man getcontext
+
+* man swapcontext
+
+* man setjmp
+
+* man longjmp
+
+* https://github.com/cloudwu/coroutine
+
+* http://www.colaghost.net/os/unix_linux/321
