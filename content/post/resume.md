@@ -33,11 +33,33 @@ title = "resume"
 
 ---
 
+技能清单
+-------------------
+
+* c/ lua/ python/ golang/ shell/ vhdl
+* nginx/ ngx_lua/ redis
+* linux kernel/ performance profiling
+* 算法、数据结构和设计模式
+* linux系统编程、多线程编程、网络编程
+* embedded system && IOT: ble/mqtt/elua
+* microprocessor: stm32 51 avr FPGA
+
+---
+
+自我评价
+-------------------
+
+* 热爱计算机，热爱编程，热爱程序员这个工作
+* 刨根问底，都想搞明白，所以很爱看源码
+* 兴趣广泛，从安卓开发到Linux服务端开发，从kernel源码到lua源码，从单片机开发到FPGA开发，我都有兴趣:)
+
+---
+
 工作经历
 -----------------
 
-	- 2015.01 ~ NOW		 新浪微博				系统开发工程师 
-	- 2013.09 ~ 2014.05	 极光推送				后台开发实习生 
+	- 2015.01 ~ NOW		 新浪微博	系统开发工程师 
+	- 2013.09 ~ 2014.05	 极光推送	后台开发实习生 
 
 项目经历
 -----------------
@@ -93,19 +115,32 @@ title = "resume"
 
 ---
 
-技能清单
--------------------
-* c/lua/python/golang/shell/vhdl
-* nginx/ngx_lua/redis
-* linux kernel/ performance profiling
-* embedded system && IOT: ble/mqtt/elua
-* microprocessor: stm32 51 avr FPGA
-
----
-
 项目 演讲和讲义
 ----------------------
 
  - [ABTestingGateway](https://github.com/WEIBOMSRE/ABTestingGateway)：手机微博七层动态调度系统中关于灰度发布和动态分流的子项目，660+ stars。
  - 2015年OSC源创会运维专场：[基于动态策略的灰度发布系统](https://github.com/WEIBOMSRE/ABTestingGateway/blob/master/doc/%E5%9F%BA%E4%BA%8E%E5%8A%A8%E6%80%81%E7%AD%96%E7%95%A5%E7%9A%84%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83%E7%B3%BB%E7%BB%9F.pdf)
+
+---
+
+个人项目
+-----------------------
+
+* [MyDict](https://github.com/BG2BKK/MyDict)
+	* 一个离线词典
+	* 原作者采用trie树对离线词库生成索引，我采用三向单词查找树(Ternary search tries TSTs)实现
+	* 数据结构解决实际问题，体现程序员的价值
+
+* [NFA_By_Python](https://github.com/BG2BKK/NFA_by_Python)
+	* 《计算理论》专业课作业，内容是将使用NFA解析正则表达式，并将其可视化。
+	* python分析正则表达式，自动生成dot代码，通过graphviz画图并生成pdf
+	* 这恐怕是我离计算机科学最近的一次了:)
+	* 其实想想，计算理论还是非常有趣的，而我也无比热爱这门科学
+
+* [img_process_vhdl](https://github.com/BG2BKK/img_process_vhdl)
+	* 纯VHDL写的通用图像处理框架，在FPGA进行图像卷积运算，进而可以实现滤波、开闭等操作
+	* 考虑到github上好像逻辑工程师不多，我就不写README了。
+	* 以后再也不碰FPGA了，VHDL这种逻辑语言其实没必要人肉来写
+
+
 
