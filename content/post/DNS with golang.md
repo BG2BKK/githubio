@@ -1,30 +1,27 @@
 +++
-date = "2016-05-05T20:13:45+08:00"
-draft = true
+date = "2016-04-13T11:37:24+08:00"
+draft = false
 title = "DNS with golang"
 
 +++
 
-* Record Tyeps
-    * [Record Types](DNS Management: Record Types and When To Use Them)
+* [DNS消息格式](http://www.cnblogs.com/cobbliu/archive/2013/04/02/2996333.html)
+* [EDNS详解](http://www.cnblogs.com/cobbliu/p/3188632.html)
+* [rfc6891](https://tools.ietf.org/html/rfc6891)
+* [edns_client_subnet draft](https://www.ietf.org/id/draft-ietf-dnsop-edns-client-subnet-08.txt)
+* [小米的ends实践](http://noops.me/?p=653)
+	
+```bash
+6. respond时也需要增加一个Additional RRs区域，直接把请求的Additional内容发过去就可以(如果支持source netmask，将请求中的source netmask复制到scope netmask中，OpenDNS要求必须支持scope netmask)
+```
+	* 意思是非OpenDNS就可以不支持scope netmask吗？目前新浪的仍然不支持
 
-    * A records:    A 记录
-
-    * CNAME
-
-    * MX Record
-
-    
-* miekg/dns
-
+* [miekg/dns: golang lib](https://github.com/miekg/dns)
 * dig with edns
 	* https://www.gsic.uva.es/~jnisigl/dig-edns-client-subnet.html
 	* http://xmodulo.com/geographic-location-ip-address-command-line.html
-	* curl ipinfo.io/23.66.166.151
-	* 
+	* 在线查询：curl ipinfo.io/23.66.166.151
 
-* 发现UDP和TCP发出的包，效果大不同
-	* 急需DNS抓包工具
 
 * DNS报文格式
 	* IP packet
@@ -34,14 +31,16 @@ title = "DNS with golang"
 			* UDP Data: DNS
 				* DNS Header 12 bytes
 				* DNS Data: RR
-					* RR: Question
-					* RR: Answer
-					* RR: Authority
-					* RR: Additional
+					* RR: Question[]
+					* RR: Answer[]
+					* RR: Authority[]
+					* RR: Additional[]
 					* RR
 						* QName
 						* QType
 						* QClass
+						* RDLENGTH
+						* RDATA
 					* RR OPT
 						* QName null
 						* QType OPT=41
@@ -64,97 +63,14 @@ title = "DNS with golang"
 
 
 <!-- http://www.tcpipguide.com/free/index.htm -->
-
-<div align="center"><table border="3" cellpadding="4" cellspacing="2"><caption align="top"><p align="center"><font face="Arial"><b>Table 147: UDP Message Format </b></font></p></caption>
-<tbody><tr>
-<td bgcolor="#CCCCFF"><p align="center"><font face="Arial"><b>Field 
-Name</b></font></p>
-</td>
-<td bgcolor="#CCCCFF"><p align="center"><font face="Arial"><b>Size (bytes)</b></font></p>
-</td>
-<td align="left" bgcolor="#CCCCFF"><p align="left"><font face="Arial"><b>Description</b></font></p>
-</td>
-</tr>
-<tr>
-<td align="center"><p align="center"><font face="Arial"><b><i>Source 
-Port</i></b></font></p>
-</td>
-<td align="center"><p align="center"><font face="Arial">2</font></p>
-</td>
-<td><p align="left"><font face="Arial"><b><i>Source Port:</i></b> The 
-16-bit port number of the process that originated the UDP message on 
-the source device. This will normally be an ephemeral (client) port 
-number for a request sent by a client to a server, or a well-known/registered 
-(server) port number for a reply sent by a server to a client. </font><a href="t_TCPIPTransportLayerProtocolTCPandUDPAddressingPort.htm"><font face="Arial" color="#0101C0">See 
-the section describing port numbers for details</font></a><font face="Arial">.</font></p>
-</td>
-</tr>
-<tr>
-<td align="center" bgcolor="#E1E1FF"><p align="center"><font face="Arial"><b><i>Destination 
-Port</i></b></font></p>
-</td>
-<td align="center" bgcolor="#E1E1FF"><p align="center"><font face="Arial">2</font></p>
-</td>
-<td bgcolor="#E1E1FF"><p align="left"><font face="Arial"><b><i>Destination 
-Port:</i></b> The 16-bit port number of the process that is the ultimate 
-intended recipient of the message on the destination device. This will 
-usually be a well-known/registered (server) port number for a client 
-request, or an ephemeral (client) port number for a server reply. Again, 
-</font><a href="t_TCPIPTransportLayerProtocolTCPandUDPAddressingPort.htm"><font face="Arial" color="#0101C0">see 
-the section describing port numbers for details</font></a><font face="Arial">.</font></p>
-</td>
-</tr>
-<tr>
-<td align="center"><p align="center"><font face="Arial"><b><i>Length</i></b></font></p>
-</td>
-<td align="center"><p align="center"><font face="Arial">2</font></p>
-</td>
-<td><p align="left"><font face="Arial"><b><i>Length:</i></b> The length 
-of the entire UDP datagram, including both header and <i>Data</i> fields.</font></p>
-</td>
-</tr>
-<tr>
-<td align="center" bgcolor="#E1E1FF"><p align="center"><font face="Arial"><b><i>Checksum</i></b></font></p>
-</td>
-<td align="center" bgcolor="#E1E1FF"><p align="center"><font face="Arial">2</font></p>
-</td>
-<td bgcolor="#E1E1FF"><p align="left"><font face="Arial"><b><i>Checksum:</i></b> 
-An optional 16-bit checksum computed over the entire UDP datagram plus 
-a special “pseudo header” of fields. See below for more information. 
-</font></p>
-</td>
-</tr>
-<tr>
-<td align="center"><p align="center"><font face="Arial"><b><i>Data</i></b></font></p>
-</td>
-<td align="center"><p align="center"><font face="Arial">Variable</font></p>
-</td>
-<td><p align="left"><font face="Arial"><b><i>Data:</i></b> The encapsulated 
-higher-layer message to be sent.</font></p>
-</td>
-</tr>
-</tbody></table>
-
-<br><a name="Figure_200"></a></div>
-
 <style type="text/css">
-div.l-f table{width:100%;padding:4px;}
-
-table {margin: 0 auto;}
-table.t-m-n > tbody > tr > td {border:1px solid #ccc;padding:4px;}
-table.t-m-s > tbody > tr > td {border:1px solid #ccc;padding:4px;}
-table.p-m-n > tbody > tr > td {padding:4px;border-collapse:collapse;}
-table.p-m-s > tbody > tr > td {padding:4px;border-collapse:collapse;}
-tr {vertical-align:top;}
-/* end tag modifiers - Printer friendly */
-
-
 div.t-h:hover > div {display:block;}
 .t-m-s {font-size:80%;border: 2px solid #ccc;border-spacing:0;border-collapse:collapse;}
 .g-h-s {background:#9bf;color:#339;padding:4px; font-size:80%;font-weight:normal;border:1px solid #ccc;}
 </style>
 
 <table class="t-m-s">
+<div align="center"><table border="3" cellpadding="4" cellspacing="2"><caption align="top"><p align="center"><font face="Arial"><b>TCP Message Format </b></font></p></caption>
 <tbody><tr class="g-h-s">
 <td>Octet</td>
 <td>Bits</td>
@@ -244,4 +160,6 @@ bit 5 (FIN) sender finished</td>
 <tr class="t-c">
 <td colspan="5">TCP data</td>
 </tr>
-</tbody></table>
+</tbody>
+</div>
+</table>

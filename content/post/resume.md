@@ -11,7 +11,6 @@ title = "resume"
 联系方式
 --------------------
 
-- 手机：15010359288
 - Email：bg2bkk # gmail.com 
 - 微博：[@bg2bkk](http://weibo.com/BG2BKK)
 
@@ -50,8 +49,6 @@ title = "resume"
 -------------------
 
 * 热爱计算机，热爱编程，热爱程序员这个工作
-* 刨根问底，都想搞明白，所以很爱看源码
-* 兴趣广泛，从安卓开发到Linux服务端开发，从kernel源码到lua源码，从单片机开发到FPGA开发，我都有兴趣:)
 
 ---
 
@@ -120,6 +117,24 @@ title = "resume"
 
  - [ABTestingGateway](https://github.com/WEIBOMSRE/ABTestingGateway)：手机微博七层动态调度系统中关于灰度发布和动态分流的子项目，660+ stars。
  - 2015年OSC源创会运维专场：[基于动态策略的灰度发布系统](https://github.com/WEIBOMSRE/ABTestingGateway/blob/master/doc/%E5%9F%BA%E4%BA%8E%E5%8A%A8%E6%80%81%E7%AD%96%E7%95%A5%E7%9A%84%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83%E7%B3%BB%E7%BB%9F.pdf)
+
+
+---
+
+兴趣点
+-------------------
+* 兴趣广泛，从Linux服务端开发到安卓开发，从单片机开发到FPGA开发，从kernel源码到lua源码，我都有兴趣:)
+
+* 对所使用的软件或服务，愿意并有能力进行深入理解，从设计思路到源码实现着手
+	- TCP/ DNS/ HTTP
+	- Linux/ Nginx/ Redis/ Lua/ 
+* 对动态追踪和性能优化尤其有兴趣
+	- linux/nginx的配置参数调优
+	- 通过perf或者systemtap分析性能瓶颈
+* Linux kernel
+	- tcp/ip stack 
+	- epoll
+	- memory management
 
 ---
 
