@@ -35,30 +35,20 @@ title = "coroutine and goroutine"
 
 
 * http://courses.cs.vt.edu/~cs3214/spring2016/examples/threads/coroutines.c
-	* man getcontext and setcontext
-
-
-	* man makecontext and swapcontext
+	* man getcontext
+	* man makecontext
 
 ```bash
+```
        In  a  System  V-like  environment,  one has the type ucontext_t defined in <ucontext.h> and the four functions getcontext(3), setcontext(3), makecontext() and swapcontext() that allow user-level context switching between multiple threads of control within a
        process.
-
-       在类System V环境下，结构体ucontext_t和四个函数 getcontext、setcontext、makecontext和swapcontext提供了在一个进程内通过用户级上下文切换的方式实现多线程的方式
 
        For the type and the first two functions, see getcontext(3).
 
        The makecontext() function modifies the context pointed to by ucp (which was obtained from a call to getcontext(3)).  Before invoking makecontext(), the caller must allocate a new stack for this context and assign its address to ucp->uc_stack, and  define  a
        successor context and assign its address to ucp->uc_link.
 
-       makecontext函数将修改ucp指向的 ucontext_t（必须是从getcontext获得的对象），在调用makecontext前，调用者必须为改上下文分配一个新的栈，并将ucp->uc_stack指向栈的地址，同时将ucp->uc_link指向下一个context
-
        When  this  context  is  later activated (using setcontext(3) or swapcontext()) the function func is called, and passed the series of integer (int) arguments that follow argc; the caller must specify the number of these arguments in argc.  When this function
        returns, the successor context is activated.  If the successor context pointer is NULL, the thread exits.
 
-       当该context稍后被激活(通过setcontext或者swapcontext)，makecontext函数参数中的func将被调用，同时向func传递argc个参数。当func返回时，下一个context将被激活调用。如果下一个context是null的话，该线程结束。
-
        The swapcontext() function saves the current context in the structure pointed to by oucp, and then activates the context pointed to by ucp.
-
-       swapcontext函数将当前context保存在oucp结构体，同时激活ucp指向的context。
-```
