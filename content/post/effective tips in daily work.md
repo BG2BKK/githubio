@@ -437,6 +437,14 @@ iptables的一些常用规则：
 iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
 ```
 
+如果想清空的话，先执行
+
+	/sbin/iptables -P INPUT ACCEPT
+
+然后执行
+
+	/sbin/iptables -F
+
 VPS简单的ssh登陆设置
 -----------------------
 

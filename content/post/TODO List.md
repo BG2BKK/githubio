@@ -13,13 +13,20 @@ title = "TODO List"
 
 * 2. xv6 lecture and homework
     * cs635
+	* http://cs.usfca.edu/~cruse/cs635/
+	* http://www.cs.usfca.edu/~cruse/
+
+* 2.1. 6.824 mit 
 
 * 3. Programming In Lua. en version. edition 3
     * coroutine and goroutine
+		* 协程
 
 * 4. compile linux kernel and boot from qemu
     * busybox
     * buildroot
+* 4.1.  linux mm
+	* linux device driver
     
 * 5. build a image file for rpi and boot
 
@@ -38,10 +45,17 @@ title = "TODO List"
 * 8. 彻底用明白git
 
 * 9. nginx的upstream模块，以及nginx plus的dynamic upstream模块的实现
+	* upstream init
+	* upstream [ip_hash] [consistent hash] [least_conn]
+	* nginx源码
 
 * 10. leetcode
 
 * 11. 编程之美——编程珠玑——算法——算法导论
 
 * 12. 简历以及准备面试
+
+* 13. 设计模式
+
+* 14. HTTP/ TCP/ RFC
 
