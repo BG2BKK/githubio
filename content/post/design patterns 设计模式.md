@@ -1,0 +1,30 @@
++++
+date = "2016-05-17T11:33:10+08:00"
+draft = false
+title = "design patterns 设计模式"
+
++++
+
+UML类图
+------------------------
+* [认真读图](http://design-patterns.readthedocs.io/zh_CN/latest/read_uml.html)
+
+单例模式
+--------------------------
+
+* [单例模式](http://marcio.io/2015/07/singleton-pattern-in-go/)
+	* http://tengj.top/2016/04/06/sjms4singleton/
+	* http://liuxp0827.blog.51cto.com/5013343/1354360
+
+工厂模式
+----------------
+
+* [简单工厂模式](http://tengj.top/2016/04/02/sjms1simpleFactory/)
+	* [design pattern in GO](http://www.oschina.net/code/snippet_1469272_34383)
+	* interface　相当于是　abstract class
+
+* [工厂方法模式](http://tengj.top/2016/04/03/sjms2factorymethod/)
+	* 工厂方法模式的用意是定义一个创建产品对象的工厂接口，将实际创建工作推迟到子类中。
+
+* [抽象工厂模式](http://tengj.top/2016/04/04/sjms3abstractfactory/)
+	* 抽象工厂模式可以向客户端提供一个接口，使得客户端在不必指定产品的具体类型的情况下，创建多个产品族中的产品对象。这就是抽象工厂的用意。
