@@ -102,6 +102,8 @@ Connected to 14021
 data
 ```
 
+* [SO_REUSEPORT在golang中的实践](https://github.com/kavu/go_reuseport)
+
 SO_REUSEPORT 和 SO_REUSEADDR 对比（待续）
 -------------------------------------
 

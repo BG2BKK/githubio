@@ -102,10 +102,14 @@ j = 20, func = 20
 	* 当function调用次数超过十次后，每次进入function函数内部时，由switch分发到LABEL1；执行完循环体后，对i增1，然后进行判断是否 i < 10，发现不满足，退出程序
 	* 可能我们会比较纠结function程序在 i > 10后不再执行return i语句，为什么还会返回自增后的结果呢？
 		* 说实话我也并不能很好解释。我通过查看汇编代码，发现仍然会执行将i值转到ecx寄存器，我们的function返回值就从ecx拿到的。
+	* return在这里并不是返回的意思，而是yield的意思
 
 * 仍然有两种更优化的写法: [左耳朵耗子的例子](http://coolshell.cn/articles/10975.html)和[上例](http://www.hawkwithwind.net/blog/2011/02/18/%E5%8D%8F%E7%A8%8B%E7%9A%84c%E5%AE%9E%E7%8E%B0/)的来源都是天才程序员  [imon Tatham](http://www.chiark.greenend.org.uk/~sgtatham/)对[协程做的尝试](http://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
 
 * [协程实现的基础](http://www.colaghost.net/os/unix_linux/341)
+	* makecontext函数将context的eip设置为func参数的地址，所以当该context得以执行时，func函数就开始执行了。
+	* http://blog.csdn.net/ylyuanlu/article/details/18947951
+	* http://blog.csdn.net/yxysdcl/article/details/5569351
 
 * 推荐的一些协程库
 	* [protothread](http://dunkels.com/adam/pt/)
@@ -501,6 +505,12 @@ main()
 }
 ```
 
+* [another demo](http://1234n.com/?post/aukxju)
+	* [lib](http://1234n.com/?post/4vzsvm)
+
+* [gnu portable threads](https://www.gnu.org/software/pth/) 
+	* [pt](http://www.ossp.org/pkg/lib/pth/)
+* [libtask](https://swtch.com/libtask/)
 * [云风的实现](https://github.com/cloudwu/coroutine) 
 
 * 其他一些应用
