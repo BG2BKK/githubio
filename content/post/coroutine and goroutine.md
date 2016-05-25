@@ -29,6 +29,8 @@ title = "coroutine and goroutine"
 	
 协程有关的四个概念：[coroutine](https://en.wikipedia.org/wiki/Coroutine)、[yield](https://en.wikipedia.org/wiki/Yield_(multithreading)、[Continuation](https://en.wikipedia.org/wiki/Continuation)、[cooperative multitasking](https://en.wikipedia.org/wiki/Cooperative_multitasking)
 
+[call stack](https://en.wikipedia.org/wiki/Call_stack#Unwinding)
+
 * [Coroutines in C](http://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
 	* [给你一个直观的认识](http://www.hawkwithwind.net/blog/2011/02/18/%E5%8D%8F%E7%A8%8B%E7%9A%84c%E5%AE%9E%E7%8E%B0/)
 
@@ -104,7 +106,7 @@ j = 20, func = 20
 		* 说实话我也并不能很好解释。我通过查看汇编代码，发现仍然会执行将i值转到ecx寄存器，我们的function返回值就从ecx拿到的。
 	* return在这里并不是返回的意思，而是yield的意思
 
-* 仍然有两种更优化的写法: [左耳朵耗子的例子](http://coolshell.cn/articles/10975.html)和[上例](http://www.hawkwithwind.net/blog/2011/02/18/%E5%8D%8F%E7%A8%8B%E7%9A%84c%E5%AE%9E%E7%8E%B0/)的来源都是天才程序员  [imon Tatham](http://www.chiark.greenend.org.uk/~sgtatham/)对[协程做的尝试](http://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
+* 仍然有两种更优化的写法: [左耳朵耗子的例子](http://coolshell.cn/articles/10975.html)和[上例](http://www.hawkwithwind.net/blog/2011/02/18/%E5%8D%8F%E7%A8%8B%E7%9A%84c%E5%AE%9E%E7%8E%B0/)的来源都是天才程序员  [imon Tatham](http://www.chiark.greenend.org.uk/~sgtatham/)对[协程做的尝试](http://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)，以及关于swtich-case写法的duff机器的[讨论](http://bbs.chinaunix.net/thread-1833313-1-1.html)
 
 * [协程实现的基础](http://www.colaghost.net/os/unix_linux/341)
 	* makecontext函数将context的eip设置为func参数的地址，所以当该context得以执行时，func函数就开始执行了。
@@ -511,6 +513,7 @@ main()
 * [gnu portable threads](https://www.gnu.org/software/pth/) 
 	* [pt](http://www.ossp.org/pkg/lib/pth/)
 * [libtask](https://swtch.com/libtask/)
+	* [libtask的coroutine](http://www.cnblogs.com/foxmailed/p/3509359.html)
 * [云风的实现](https://github.com/cloudwu/coroutine) 
 
 * 其他一些应用
@@ -533,16 +536,71 @@ Lua的协程
 
 * lua的c runtime stack和lua runtime stack是[什么样子的](https://techsingular.org/2013/07/14/programming-in-lua%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%8Dcontinuation/)
 
+* https://www.zhihu.com/question/21483863
+
+* [lua协程调度](https://www.zhihu.com/question/30133749	)
+	* lua内部
+		* 当resume的时候，就切换lua_state环境，然后setjmp，紧接着由于pc指向新地址，所以会直接跳转到该位置
+		* 当yield时，直接回复环境，然后longjmp到该resume点
+	* lua with C
+		* 当在C函数内入yield时，会恢复环境，longjmp到resume点，之后再次resume的时候，会因为环境被破坏，导致resume出错，此时lua会调用k系列函数，让resume继续下去
+	
+* [lua实现调度器](http://www.ibm.com/developerworks/cn/opensource/os-cn-python-yield/)
 
 * [consumer-producer](https://www.lua.org/pil/9.2.html)
 
+* [lua yield 和 resume](http://www.lua.org/manual/5.2/manual.html#2.6)
+	* http://www.lua.org/manual/5.2/manual.html#pdf-coroutine.resume
+
+```lua
+-- http://my.oschina.net/wangxuanyihaha/blog/186401
+
+function foo(a)
+    print("foo", a)
+    return coroutine.yield(2 * a)
+end
+
+co = coroutine.create(function ( a, b )
+    print("co-body", a, b)
+    local r = foo(a + 1)
+    print("co-body", r)
+    local r, s = coroutine.yield(a + b, a - b)
+    print("co-body", r, s)
+    return b, "end"
+end)
+
+print("main", coroutine.resume(co, 1, 10))
+print("main", coroutine.resume(co, "m"))	-- resume的参数 'm' 是在调用yield传入的，所以本次是在第5行 return m
+print("main", coroutine.resume(co, "x", "y"))
+print("main", coroutine.resume(co, "x", "y"))
+```
+
+```bash
+co-body	1	10
+foo	2
+main	true	4
+co-body	m
+main	true	11	-9
+co-body	x	y
+main	true	10	end
+main	false	cannot resume dead coroutine
+```
+
+python的协程(待续)
+-----------------------
+
+* http://www.ibm.com/developerworks/cn/opensource/os-cn-python-yield/
+
 golang的协程(待续)
 -----------------------
+
+* http://stackoverflow.com/questions/13107958/what-exactly-does-runtime-gosched-do
 
 stm32/ contiki/ coroutine
 ----------------------------
 
 [stm32上的协程实现](http://wiki.csie.ncku.edu.tw/embedded/Lab2)
 	* http://blog.linux.org.tw/~jserv/archives/001848.html
+
 
 

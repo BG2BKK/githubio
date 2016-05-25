@@ -28,3 +28,15 @@ UML类图
 
 * [抽象工厂模式](http://tengj.top/2016/04/04/sjms3abstractfactory/)
 	* 抽象工厂模式可以向客户端提供一个接口，使得客户端在不必指定产品的具体类型的情况下，创建多个产品族中的产品对象。这就是抽象工厂的用意。
+
+
+设计模式的不同实现
+-------------------
+
+* [lua](https://github.com/dabing1022/LuaAndLove2dLearningTest/tree/master/DesignPattern)
+* [java](http://www.qiuzhufu.com/archives/tag/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F)
+* [cpp](http://www.jellythink.com/archives/878)
+
+* [java](https://github.com/iluwatar/java-design-patterns)
+
+* [book](http://design-patterns.readthedocs.io/zh_CN/latest/index.html#)

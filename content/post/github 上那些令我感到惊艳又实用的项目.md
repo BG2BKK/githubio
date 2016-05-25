@@ -25,3 +25,14 @@ title = "github 上那些令我感到惊艳又实用的项目"
 
 * https://github.com/cyfdecyf/spinlock
 	* [自旋锁专业研究](http://locklessinc.com/articles/locks/)
+
+* [vdsotest](https://github.com/nlynch-mentor/vdsotest)
+	* vdso研究学习
+
+* google
+	* [googletest](https://github.com/google/googletest)
+	* [gperftool](https://github.com/gperftools/gperftools)
+
+* c gui lib
+	* https://github.com/vurtun/nuklear
+	* https://github.com/andlabs/libui

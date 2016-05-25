@@ -5,6 +5,11 @@ title = "openresty学习过程中的一些tips"
 
 +++
 
+openresty中如何写redis或者mysql的wraper
+--------------------------------------
+
+* [参考资料](http://zivn.me/2013/08/05/Something-about-Openresty/)
+
 ngx_lua获取post字段参数
 -------------------------------------
 

@@ -1,9 +1,30 @@
 +++
 date = "2016-05-06T11:39:48+08:00"
-draft = true
+draft = false
 title = "effective tips in daily learning"
 
 +++
+
+分布式存储
+--------------------------
+
+* [知识体系](http://wuchong.me/blog/2014/08/07/distributed-storage-system-knowledge/)
+	* [B-Tree](http://taop.marchtea.com/03.02.html)
+
+分布式ID生成
+----------------------
+
+* [ID](http://mp.weixin.qq.com/s?__biz=MjM5ODYxMDA5OQ==&mid=403837240&idx=1&sn=ae9f2bf0cc5b0f68f9a2213485313127&scene=21#wechat_redirect)
+	* 方案一： 常规数据库的auto increment服务
+		* 改进：可以将ID划均分给若干数据库，每个数据库自增的起点不一样，可以保证各库生成ID不同
+			* 缺点是非强一致性
+	* 方案二： 单点批量生成；ID生成服务每次从数据库预定一定容量的ID，然后派发；可以成倍降低数据库压力；
+		* 缺点：单点服务、可能造成空洞；
+		* 改进：找备胎，一旦主ID服务挂掉，备胎立刻备上；通过vip+keepalived实现
+	* 方案三：uuid
+	* 方案四：当前毫秒数；缺点是每个毫秒容量有限，也可能重复
+	* 方案五：将64bit数字作为ID，分别包含字段：毫秒数、业务线、机房、机器、以及毫秒内序列号；根据业务来规划容量；毫秒数可以保证ID是趋势自增的
+* [ID](http://www.cnblogs.com/heyuquan/archive/2013/08/16/global-guid-identity-maxId.html)
 
 分布式锁
 -------------------
@@ -36,6 +57,44 @@ nginx配置文件
 Lua的学习、使用和源码精读
 --------------------------
 
+## lua的元表
+
+* http://lua-users.org/wiki/MetamethodsTutorial
+	* 元表用来扩展lua对象的功能，元表的含义在于生来就有，lua对象本身会带有这个表，所以称为元表
+	* metatable也是普通的lua table，包含一系列元方法metamethods，每个元方法有对应的events触发；比如[算术运算符、\_\_index 等操作](http://lua-users.org/wiki/MetatableEvents)
+	* \_\_index
+
+
+
+* http://lua-users.org/wiki/MetatableEvents
+	<ul>
+	<li> <strong>__index</strong> - Control 'prototype' inheritance. When accessing "myTable[key]" and the key does not appear in the table, but the metatable has an __index property:
+	<ul>
+	<li> if the value is a function, the function is called, passing in the table and the key; the return value of that function is returned as the result.
+	</li><li> if the value is another table, the value of the key in that table is asked for and returned
+	<ul>
+	<li> <em>(and if it doesn't exist in <strong>that</strong> table, but that table's metatable has an __index property, then it continues on up)</em>
+	</li></ul>
+	</li><li> <em>Use "rawget(myTable,key)" to skip this metamethod.</em>
+	</li></ul>
+	</li></ul>
+
+	* 控制类型继承；当访问myTable[key]，而table中没有key域时，如果元表有\_\_index项：
+		* 如果\_\_index是函数，则调用该函数
+		* 如果\_\_index是table，返回这个table中key域的值；如果\_\_index是table并且该table没有key域，但是该table有\_\_index，则继续查找(calls fallback function or fallback table)
+		* 使用rawget(myTable, key)可以跳过metatable
+
+	* \_\_index是一个应用广泛并用处很大的元方法metamethod
+		* 如果想获取table中的元素key，而key在table中没有找到，该方法可以定义为函数或者一个table，来寻找key。
+			* 如果\_\_index是函数，该函数的第一个参数是没有找到key的这个table，第二个参数是key； 
+			* 如果\_\_index是table，那么将在该table中寻找key，如果没有找到，可以继续从这个table的\_\_index寻找，因此你可以通过\_\_index进行一整个链条的查找。
+
+
+	* \_\_metatable
+		* 用于隐藏metatable，当调用getmetatable(myTable)时，如果该域不为空，则返回这个域的值，而不是metatable
+	
+	* [sample code](http://lua-users.org/wiki/LuaClassesWithMetatable)
+
 ## Lua源码精读
 
 * Lua的全局和状态，以及初始化
@@ -57,9 +116,78 @@ Lua的学习、使用和源码精读
 
 * http://if-yu.info/lua-notes.html
 
+## list和nil
+	* https://techsingular.org/2012/12/22/programming-in-lua%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%8D-nil-%E5%92%8C-list/
+	* nil不但不是无的意思，反而在list中起到占位和有的意思。
+
+## [lua的first class](https://techsingular.org/2012/12/22/programming-in-lua%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%8D-nil-%E5%92%8C-list/)
+	
+* 可以被赋值给变量；
+* 可以作为参数；
+* 可以作为返回值；
+* 可以作为数据结构的构成部分。( 注意 nil 并不完全符合这个要求，但是可以通过某个 field 的缺失来表示 nil。)
+
 ## Lua的GC
 	* lua的[gc](https://techsingular.org/2013/10/27/lua-%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/)
-	
+
+## lua的table
+	* https://facepunch.com/showthread.php?t=1306348
+
+> I don't believe this is correct. It was my understanding that Lua tables are implemented as a two-part data structure whereby dense non-negative integer keys are stored as a simple array and are therefore indexed by a simple pointer addition and dereference, which is O(1). All other keys (non-integer, negative and sparse integer) are stored in a hashmap as a chained scatter table which stores key-values pairs as a flat array indexed by the hash of the key. Collisions are resolved by storing pointers to the next element with the same hash alongside this (essentially a linked list of colliding elements). At worst case, where all elements collide, the complexity of this implementation is O(n), however it is expected that on average the number of collisions per element is 1 and the maximum is 2; this means that the average complexity is O(1).
+
+> The implementation of Lua tables is such that, even with a huge number of elements, lookup is as quick as possible.
+
+## lua函数使用
+
+* setmetatable
+	* https://www.lua.org/manual/5.2/manual.html
+	* setmetatable(table, metatable)
+		* 将metatable设置为table的元表，（在Lua中只能设置table的元表，其他类型的对象不行，除非使用C）。如果metatable为nil，则参数cable的元表被清除；如果该table的__metatable不为空，则抛出异常
+	* 该函数返回table
+
+* collectgarbage("count")
+	* 垃圾回收函数
+
+* [lua yield 和 resume](http://www.lua.org/manual/5.2/manual.html#2.6)
+	* http://www.lua.org/manual/5.2/manual.html#pdf-coroutine.resume
+
+```lua
+-- http://my.oschina.net/wangxuanyihaha/blog/186401
+
+function foo(a)
+    print("foo", a)
+    return coroutine.yield(2 * a)
+end
+
+co = coroutine.create(function ( a, b )
+    print("co-body", a, b)
+    local r = foo(a + 1)
+    print("co-body", r)
+    local r, s = coroutine.yield(a + b, a - b)
+    print("co-body", r, s)
+    return b, "end"
+end)
+
+print("main", coroutine.resume(co, 1, 10))
+print("main", coroutine.resume(co, "m"))	-- resume的参数 'm' 是在调用yield传入的，所以本次是在第5行 return m
+print("main", coroutine.resume(co, "x", "y"))
+print("main", coroutine.resume(co, "x", "y"))
+```
+
+```bash
+co-body	1	10
+foo	2
+main	true	4
+co-body	m
+main	true	11	-9
+co-body	x	y
+main	true	10	end
+main	false	cannot resume dead coroutine
+```
+
+
+## lua编码的陷阱
+	* [字符串拼接导致垃圾产生](http://tech.uc.cn/?p=1131)
 
 golang
 --------------------------
