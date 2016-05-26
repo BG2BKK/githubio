@@ -36,3 +36,7 @@ title = "github 上那些令我感到惊艳又实用的项目"
 * c gui lib
 	* https://github.com/vurtun/nuklear
 	* https://github.com/andlabs/libui
+
+* redis-lua bloom filter
+	* https://github.com/erikdubbelboer/redis-lua-scaling-bloom-filter
+	* redis实现的布隆过滤器

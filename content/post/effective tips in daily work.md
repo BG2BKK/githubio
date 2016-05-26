@@ -5,6 +5,55 @@ title = "effective tips in daily work"
 
 +++
 
+C语言中short、int、long内存占用
+--------------------------------
+
+随着工作年限的增加，很多基本功反而落了下来，甚至开始怀疑short等类型的内存占用问题了呵呵。印象里一直记得int和long类型都是4字节大小啊
+
+```cpp
+#include <stdio.h>
+#include <stdlib.h>
+
+struct test{
+	char *ch1;
+	int i;
+	long ch2;
+} aa;
+
+int main()
+{
+	printf("Linux-64Bit-platform\n");
+	printf("	%lu\n", (unsigned long)sizeof(aa));
+	printf("	sizeof short : %d\n", sizeof(short));
+	printf("	sizeof int   : %d\n", sizeof(int));
+	printf("	sizeof long  : %d\n", sizeof(long));
+	
+}
+
+```
+
+```bash
+
+Linux-64Bit-platform
+	24
+	sizeof short : 2
+	sizeof int   : 4
+	sizeof long  : 8
+
+```
+
+```bash
+
+Linux-32Bit-platform
+	24
+	sizeof short : 2
+	sizeof int   : 4
+	sizeof long  : 4
+
+```
+
+看来，long和int大小一样已经是32位机器的老黄历了，基础知识还是应该常用常新啊
+
 文件操作的线程安全相关（待续）
 ------------------------
 
@@ -835,5 +884,6 @@ tcpdump -ni any port 9001 and 'tcp[13] & 4 != 0 ' -s0  -w rst.cap -vvv
     * rsz是实际占用内存，单位是KB
 
 * pmap -d pid
+
 
 
