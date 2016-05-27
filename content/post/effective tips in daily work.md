@@ -5,6 +5,39 @@ title = "effective tips in daily work"
 
 +++
 
+Linux获取系统调度时间片长度
+---------------------------
+
+```cpp
+#define _GNU_SOURCE
+#include <sched.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <assert.h>
+
+	int
+main(int argc, char *argv[])
+{
+	int ret, i;  
+	struct timespec tp;  
+	ret = sched_rr_get_interval(0, &tp);  
+	if(ret == -1)  
+		printf("sched_rr_get_interval error.\n");  
+	printf("The time is %ds:%ldns.\n", (int)tp.tv_sec, tp.tv_nsec);  
+	return 0;  
+}
+
+```
+
+```bash
+$ ./cpu_time_slice.o 
+The time is 0s:16000000ns.
+```
+
+可见Ubuntu-16.04 64bit的系统进程时间片是16ms
+
+
 C语言中short、int、long内存占用
 --------------------------------
 
@@ -884,6 +917,7 @@ tcpdump -ni any port 9001 and 'tcp[13] & 4 != 0 ' -s0  -w rst.cap -vvv
     * rsz是实际占用内存，单位是KB
 
 * pmap -d pid
+
 
 
 

@@ -55,6 +55,11 @@ int main() {
         return 0;
 }
 
+```bash
+$ ./sa_restart.o 
+^cgot signal		-- 这里按下Crtl+C，发送SIGINT信号
+>>> read call was interrupted
+read character: 
 ```
 
 TODO LIST
@@ -62,4 +67,9 @@ TODO LIST
 
 * O_CLOEXEC
 * [EPOLLEXCLUSIVE](https://lkml.org/lkml/2016/3/10/515)
+
+$ ./sa_restart.o 
+^cgot signal
+>>> read call was interrupted
+read character: 
 
