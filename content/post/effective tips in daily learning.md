@@ -5,6 +5,11 @@ title = "effective tips in daily learning"
 
 +++
 
+linux socket编程样例
+---------------------------
+
+* http://alas.matf.bg.ac.rs/manuals/lspe/snode=106.html
+
 分布式存储
 --------------------------
 
@@ -94,6 +99,10 @@ Lua的学习、使用和源码精读
 		* 用于隐藏metatable，当调用getmetatable(myTable)时，如果该域不为空，则返回这个域的值，而不是metatable
 	
 	* [sample code](http://lua-users.org/wiki/LuaClassesWithMetatable)
+
+## Lua面向对象
+
+* http://dabing1022.github.io/2014/03/18/multiple-inheritance-understand-lua/
 
 ## Lua源码精读
 

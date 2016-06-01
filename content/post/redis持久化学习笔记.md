@@ -76,3 +76,4 @@ title = "redis持久化学习笔记"
 ```
 
 
+* [持久化和RDB文件格式](http://blog.nosqlfan.com/html/4039.html)

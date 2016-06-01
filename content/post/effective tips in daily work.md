@@ -5,6 +5,16 @@ title = "effective tips in daily work"
 
 +++
 
+vim下以16进制查看文本文件
+----------------------------
+
+vim的功能实在是太强大了，[可以以16进制查看文本信息](http://blog.sina.com.cn/s/blog_4c451e0e0100h4nl.html)：
+
+	十六进制显示
+	:%!xxd
+	正常显示
+	:%!xxd -r
+
 Linux获取系统调度时间片长度
 ---------------------------
 

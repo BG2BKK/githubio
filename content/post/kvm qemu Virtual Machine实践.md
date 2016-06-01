@@ -10,3 +10,7 @@ title = "kvm qemu Virtual Machine实践"
 	* 创建磁盘：qemu-img create -f qcow2 server_01.img 10G
 	* 启动虚拟机：qemu-system-x86_64 -m 512 -enable-kvm server_01.img -cdrom ./mini.iso
 * [克隆虚拟机](http://blog.csdn.net/csfreebird/article/details/8878808)
+
+* http://blog.csdn.net/csfreebird/article/details/8878808
+
+* http://www.ilanni.com/?p=6173

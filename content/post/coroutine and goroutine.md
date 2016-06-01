@@ -590,6 +590,8 @@ python的协程(待续)
 -----------------------
 
 * http://www.ibm.com/developerworks/cn/opensource/os-cn-python-yield/
+	* 简单地讲，yield 的作用就是把一个函数变成一个 generator，带有 yield 的函数不再是一个普通函数，Python 解释器会将其视为一个 generator
+	* 产生一个iterable对象
 
 golang的协程(待续)
 -----------------------
