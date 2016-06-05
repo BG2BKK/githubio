@@ -1,6 +1,6 @@
 +++
 date = "2016-05-30T13:58:17+08:00"
-draft = false
+draft = true
 title = "effective tips about tcp ip on Linux"
 
 +++

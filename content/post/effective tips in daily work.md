@@ -153,6 +153,23 @@ sudo sudo xinput set-prop 15 "Device Enabled" 0
 sudo sudo xinput set-prop 16 "Device Enabled" 0
 ```
 
+附送shell脚本
+
+```bash
+#!/bin/bash
+
+keyboard=`xinput --list | grep AT | awk -F'=' '{print $2}' | awk '{print $1}'`
+touchpad=`xinput --list | grep Synaptics | awk -F'=' '{print $2}' | awk '{print $1}'`
+
+function doit() {
+	echo '关闭  笔记本键盘'
+	`sudo xinput set-prop $keyboard "Device Enabled" 0`			
+	echo '关闭  笔记本触摸板'
+	`sudo xinput set-prop $touchpad "Device Enabled" 0`
+}
+
+doit 
+```
 
 
 小于1024的保留端口都有哪些
