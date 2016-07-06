@@ -17,6 +17,7 @@ title = "TODO List"
 	* http://www.cs.usfca.edu/~cruse/
 
 * 2.1. 6.824 mit 
+* 2.2 computer operating system
 
 * 3. Programming In Lua. en version. edition 3
     * coroutine and goroutine

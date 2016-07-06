@@ -5,6 +5,30 @@ title = "effective tips in daily work"
 
 +++
 
+docker 设置代理下载镜像
+--------------------------
+
+
+[在systemd中设置](http://stackoverflow.com/questions/23111631/cannot-download-docker-images-behind-a-proxy)
+
+1. mkdir /etc/systemd/system/docker.service.d<p>
+2. touch /etc/systemd/system/docker.service.d/http-proxy.conf<p>
+3. 在文件中添加：<p>[Service]<p>Environment="HTTP_PROXY=http://proxy.example.com:80/"<p>
+4. 重启daemon：<p>sudo systemctl daemon-reload<p>
+5. 查看设置状态：<p>sudo systemctl show docker --property Environment<p>
+6. 重启docker：<p>sudo systemctl restart docker<p>
+
+tested on Ubuntu 16.04
+
+用ps查看进程的执行时间
+----------------------------
+
+```bash
+ps -eo pid,tty,user,comm,stime,etime | grep main
+```
+
+可以打印进程的开始时间和执行时间
+
 vim下以16进制查看文本文件
 ----------------------------
 

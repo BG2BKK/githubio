@@ -104,6 +104,14 @@ data
 
 * [SO_REUSEPORT在golang中的实践](https://github.com/kavu/go_reuseport)
 
+* [SO_REUSEADDR的使用场景](http://www.microhowto.info/howto/listen_on_a_tcp_port_with_connections_in_the_time_wait_state.html)
+	* 在某tcp连接处于 TIME_WAIT状态时，它所占用的port不能被立刻使用
+	* 例如server端服务挂掉后需要重启，重启时发现需要bind的端口处于TIME_WAIT状态，不能立刻使用，错误码为EADDRINUSE，glibc将这个错误码渲染为 "Address already in use"
+	* TIME_WAIT状态持续时间为2MSL，一个MSL通常是30s到2min，所以该状态时长为1min到4min；这是不可忍受的
+	* SO_REUSEADDR可以使得进程能够绑定处于TIME_WAIT状态的端口，在服务重启的时候很有用
+	* SO_REUSEADDR同样可以使得进程能够绑定处于ESTABLISHED状态的连接
+	* 无论如何，SO_REUSEADDR不允许相同ip和port的四元组存在
+
 SO_REUSEPORT 和 SO_REUSEADDR 对比（待续）
 -------------------------------------
 

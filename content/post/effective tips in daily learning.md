@@ -5,6 +5,33 @@ title = "effective tips in daily learning"
 
 +++
 
+awk 
+-------------------------------
+* http://blog.sina.com.cn/s/blog_4a033b090100xo2b.html
+* http://blog.csdn.net/junjieguo/article/details/7525794
+
+postgre
+-------------------------------
+
+* [修改表结构](http://blog.51yip.com/pgsql/1528.html)，[postgre_wiki](https://wiki.postgresql.org/wiki/ALTER_TABLE)
+* [插入数据](http://www.ruanyifeng.com/blog/2013/12/getting_started_with_postgresql.html)、[postgre_wiki](https://wiki.postgresql.org/wiki/9.1%E7%AC%AC%E5%85%AD%E7%AB%A0)
+* [清楚pg_xlog](http://my.oschina.net/Kenyon/blog/101432)
+
+
+python
+-------------------------------
+
+* python魔术方法
+	* [指南](http://pycoders-weekly-chinese.readthedocs.io/en/latest/issue6/a-guide-to-pythons-magic-methods.html#id19)
+	* [入门](http://blog.csdn.net/wklken/article/details/8126381)
+
+[http协议]
+----------------------
+http协议301和302的区别
+
+* http://www.cnblogs.com/caiyuanzai/archive/2012/04/24/2469013.html
+* http://blog.csdn.net/qmhball/article/details/7838989
+
 linux socket编程样例
 ---------------------------
 
@@ -58,6 +85,8 @@ nginx配置文件
 * rewrite: 
 	* http://www.xiehaichao.com/articles/428.html
 	* http://seanlook.com/2015/05/17/nginx-location-rewrite/
+
+* [nginx配置使用用户自定义错误页面](http://stackoverflow.com/questions/13621915/nginx-error-pages-one-location-rule-to-fit-them-all)
 
 Lua的学习、使用和源码精读
 --------------------------
@@ -240,6 +269,8 @@ golang
 		}()
 	}
 ```
+
+* [golang的底层数据结构](http://my.oschina.net/goal/blog/196891)
 
 
 * [golang多协程channel同步](https://www.chenwang.net/2015/12/12/%E5%AE%8C%E6%95%B4%E7%9A%84golang-%E5%A4%9A%E5%8D%8F%E7%A8%8B%E4%BF%A1%E9%81%93-%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86%E7%A4%BA%E4%BE%8B/)	
