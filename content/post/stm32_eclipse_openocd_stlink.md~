@@ -68,6 +68,4 @@ title = "stm32_eclipse_openocd_stlink"
  
 ```bash
 openocd -f ../../openocd-0.9.0/tcl/board/stm32f429discovery.cfg   -c "init"    -c "reset halt"    -c "sleep 100"    -c "wait_halt 2"    -c "echo \"--- Writing elua_lua_stm32f4discovery.bin\""    -c "flash write_image erase elua_lua_stm32f4discovery.bin 0x08000000"    -c "sleep 100"    -c "echo \"--- Verifying\""    -c "verify_image elua_lua_stm32f4discovery.bin 0x08000000"    -c "sleep 100"    -c "echo \"--- Done\""    -c "resume"    -c "shutdown"
-
-st-flash --reset write elua_lua_stm32f4discovery.bin 0x8000000
 ```
