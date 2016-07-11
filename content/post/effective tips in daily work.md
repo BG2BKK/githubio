@@ -5,6 +5,27 @@ title = "effective tips in daily work"
 
 +++
 
+unix获取时间戳
+----------------------
+
+```bash
+date '+%s'
+
+export timestamp=`date '+%s'`; echo $timestamp
+
+# 标准时间格式转unix时间戳
+date -d "2011-03-02 15:00" +%s
+
+# unix时间戳转为标准格式
+date -d '1970-01-01 UTC 1299049200 seconds'
+
+# 或者
+
+date -d "@1279592730" 
+
+```
+[链接](http://blog.csdn.net/hittata/article/details/7640974)中提到了各种各样的格式，以后写shell脚本就不担心时间戳问题了
+
 docker 设置代理下载镜像
 --------------------------
 
