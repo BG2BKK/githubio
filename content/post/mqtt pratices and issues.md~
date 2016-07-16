@@ -19,7 +19,6 @@ title = "mqtt pratices and issues"
 	* [js](http://blog.csdn.net/leytton/article/details/51896951)
 
 
-* [mqtt协议](https://github.com/mcxiaoke/mqtt)
 * [mqtt c lib](https://www.eclipse.org/paho/clients/c/)
 * [eclipse mqtt server](http://iot.eclipse.org/getting-started#sandboxes)
 * [公共mqtt服务](https://github.com/mqtt/mqtt.github.io/wiki/public_broker)
