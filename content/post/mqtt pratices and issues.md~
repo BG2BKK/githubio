@@ -19,9 +19,16 @@ title = "mqtt pratices and issues"
 	* [js](http://blog.csdn.net/leytton/article/details/51896951)
 
 
+* [mqtt协议](https://github.com/mcxiaoke/mqtt)
 * [mqtt c lib](https://www.eclipse.org/paho/clients/c/)
 * [eclipse mqtt server](http://iot.eclipse.org/getting-started#sandboxes)
 * [公共mqtt服务](https://github.com/mqtt/mqtt.github.io/wiki/public_broker)
 * [mqtt软件](https://github.com/mqtt/mqtt.github.io/wiki/software?id=software)
 	* [mqtt库client](https://github.com/mqtt/mqtt.github.io/wiki/libraries)
 	* [mqtt server 方案](https://github.com/mqtt/mqtt.github.io/wiki/servers)
+
+* mosquitto 用法
+	* mosquitto -d
+	* mosquitto_sub -d -h 192.168.2.163 -p 1883 -t /bg2bkk
+	* mosquitto_pub -d -h 192.168.2.163 -p 1883 -t /bg2bkk -m huang
+

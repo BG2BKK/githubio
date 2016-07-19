@@ -26,3 +26,10 @@ title = "mqtt pratices and issues"
 * [mqtt软件](https://github.com/mqtt/mqtt.github.io/wiki/software?id=software)
 	* [mqtt库client](https://github.com/mqtt/mqtt.github.io/wiki/libraries)
 	* [mqtt server 方案](https://github.com/mqtt/mqtt.github.io/wiki/servers)
+
+* mosquitto 用法
+	* mosquitto -d
+	* mosquitto_sub -d -h 192.168.2.163 -p 1883 -t /bg2bkk
+	* mosquitto_pub -d -h 192.168.2.163 -p 1883 -t /bg2bkk -m huang
+	* [配置文件释义](http://blog.csdn.net/shagoo/article/details/7910598)
+
