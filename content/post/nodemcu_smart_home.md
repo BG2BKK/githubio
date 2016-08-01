@@ -30,3 +30,13 @@ title = "nodemcu_smart_home"
 
 * [物联网的协议和标准](http://postscapes.com/internet-of-things-protocols)
 * [websocket官网](http://websocket.org/)
+
+* [mqtt](http://blog.csdn.net/leytton)
+
+* [esp8266的smartconfig](http://nodemcu.readthedocs.io/en/master/en/modules/wifi/#wifistagetap)
+	* [示例](http://blog.csdn.net/txf1984/article/details/51188561)
+* [例子](http://www.jianshu.com/p/a852d5ca6a44)
+
+* [sming hub](https://github.com/SmingHub)
+* [Rock solid esp8266 wifi mqtt, restful client for arduino](http://tuanpm.net/rock-solid-esp8266-wifi-mqtt-restful-client-for-arduino/)
+* [8266 mcu](http://blog.nyl.io/esp8266-led-arduino/)

@@ -5,6 +5,17 @@ title = "effective tips in daily learning"
 
 +++
 
+前端开发
+-------------------
+
+* 如何使textarea的大小随着其内容增加而变化呢？
+
+* 解决方法
+	* 1、http://audi.tw/Blog/Javascript/javascript.textarea.autogrow.asp
+	* 2、http://www.cnblogs.com/xmmcn/archive/2012/12/18/2822968.html
+	* 3、jquery 插件: https://bobscript.com/archives/419/
+
+
 awk 
 -------------------------------
 * http://blog.sina.com.cn/s/blog_4a033b090100xo2b.html

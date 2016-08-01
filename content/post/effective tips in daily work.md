@@ -1,9 +1,25 @@
 +++
-date = "2016-03-24T16:36:33+08:00"
+date = "2016-07-24T16:36:33+08:00"
 draft = false
 title = "effective tips in daily work"
 
 +++
+
+redis批量删除key
+----------------------
+
+手动清理redis中的key时，很想通过 ***del keys**** 的方式实现批量删除，而redis却没有提供这样的选项，因此需要借助外部工具
+
+* 1、sehll 命令行
+	*  redis-cli keys ip:* | xargs redis-cli del
+
+* 2、lua脚本
+	* redis-cli eval "redis.call('del', unpack(redis.call('keys','ip*')))" 0  
+	* 这种方式受限于lua的unpack函数，一次删除的key不能太多
+
+* 3、借助客户端
+	* [php](http://www.redisfans.com/?p=71)
+	* [jedis](http://blog.csdn.net/tuposky/article/details/45364107)
 
 unix获取时间戳
 ----------------------
