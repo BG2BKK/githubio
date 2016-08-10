@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux Kenrel on BG2BKK Site</title>
-    <link>http://bg2bkk.github.io/tags/linux-kenrel/</link>
+    <link>https://bg2bkk.github.io/tags/linux-kenrel/</link>
     <description>Recent content in Linux Kenrel on BG2BKK Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Tue, 22 Mar 2016 01:48:41 +0800</lastBuildDate>
-    <atom:link href="http://bg2bkk.github.io/tags/linux-kenrel/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://bg2bkk.github.io/tags/linux-kenrel/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>New evolvement of Epoll</title>
-      <link>http://bg2bkk.github.io/post/New%20Evolvement%20of%20Epoll/</link>
+      <link>https://bg2bkk.github.io/post/New%20Evolvement%20of%20Epoll/</link>
       <pubDate>Tue, 22 Mar 2016 01:48:41 +0800</pubDate>
       
-      <guid>http://bg2bkk.github.io/post/New%20Evolvement%20of%20Epoll/</guid>
+      <guid>https://bg2bkk.github.io/post/New%20Evolvement%20of%20Epoll/</guid>
       <description>
 
 &lt;h2 id=&#34;epoll在linux-内核中的新发展:b489f0f2178b22438ad2d1ac9c25dd2c&#34;&gt;EPOLL在linux 内核中的新发展&lt;/h2&gt;
@@ -120,10 +120,10 @@
     
     <item>
       <title>VFS虚拟文件系统</title>
-      <link>http://bg2bkk.github.io/post/VFS%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/</link>
+      <link>https://bg2bkk.github.io/post/VFS%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/</link>
       <pubDate>Mon, 29 Feb 2016 15:33:32 +0800</pubDate>
       
-      <guid>http://bg2bkk.github.io/post/VFS%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/</guid>
+      <guid>https://bg2bkk.github.io/post/VFS%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/</guid>
       <description>
 
 &lt;h2 id=&#34;虚拟文件系统:33c34adef684867bc26f32ab644d7c6f&#34;&gt;虚拟文件系统&lt;/h2&gt;
@@ -349,10 +349,10 @@
     
     <item>
       <title>pipe在内核中的实现</title>
-      <link>http://bg2bkk.github.io/post/pipe%E5%9C%A8%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/</link>
+      <link>https://bg2bkk.github.io/post/pipe%E5%9C%A8%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/</link>
       <pubDate>Sat, 27 Feb 2016 09:49:41 +0800</pubDate>
       
-      <guid>http://bg2bkk.github.io/post/pipe%E5%9C%A8%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/</guid>
+      <guid>https://bg2bkk.github.io/post/pipe%E5%9C%A8%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/</guid>
       <description>
 
 &lt;h2 id=&#34;pipe在linux内核中的实现:eef8af46b03027cdd30025ef9f062910&#34;&gt;pipe在linux内核中的实现&lt;/h2&gt;
