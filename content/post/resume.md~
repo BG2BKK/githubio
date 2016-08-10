@@ -118,7 +118,7 @@ title = "resume"
 	* 二期：golang + edns查询
 		* 参与golang server的架构设计及系统开发
 		* 开发golang 版本的edns查询模块和并发更新模块
-			* 全量并发更新域名对应IP的DNS记录，每个域名对应26万段IP，更新时间低于3分钟
+			* 并发更新
 	* httpdns server端一期已上线，手机微博客户端采用渠道包灰度；二期已完成edns查询模块。
  
 #### 极光推送(jpush.cn) 后台开发实习生（ 2013年9月 ~ 2014年5月 ）

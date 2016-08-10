@@ -25,9 +25,8 @@ redis过期清除和淘汰机制
 	* 此外，每秒还会抽取volatile keys进行抽样，处理删除过期键
 
 * [过期键删除策略种类](http://www.marser.cn/archives/87/)
-	* 事件删除
+	* 定时删除
 		* 每个键都有一个定时器，到期时触发处理事件，在事件中删除
-		* 缺点是需要为每个key维护定时器，key的量大时，cpu消耗较大
 	* 惰性删除
 		* 每次访问时才检查，如果没过期，正常返回，否则删除该键并返回空
 	* 定期删除
@@ -36,7 +35,7 @@ redis过期清除和淘汰机制
 	* redis采用后两种结合的方式
 		* 读写一个key时，触发惰性删除策略
 		* 惰性删除策略不能及时处理冷数据，因此redis会定期主动淘汰一批已过期的key
-		* 内存超过maxmemory时，触发主动清理
+		* 内存超过maxmemory时，触发删除操作
 
 * http://blueswind8306.iteye.com/blog/2240088
 * http://www.cnblogs.com/chenpingzhao/p/5022467.html
