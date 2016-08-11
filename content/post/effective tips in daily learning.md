@@ -5,6 +5,12 @@ title = "effective tips in daily learning"
 
 +++
 
+内存管理
+--------------------
+
+* http://blog.jobbole.com/103993/
+* http://blog.jobbole.com/88673/
+
 前端开发
 -------------------
 

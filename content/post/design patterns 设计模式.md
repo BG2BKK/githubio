@@ -30,6 +30,12 @@ UML类图
 	* 抽象工厂模式可以向客户端提供一个接口，使得客户端在不必指定产品的具体类型的情况下，创建多个产品族中的产品对象。这就是抽象工厂的用意。
 
 
+观察者模式
+--------------------
+
+* http://www.runoob.com/design-pattern/observer-pattern.html
+* http://www.cnblogs.com/java-my-life/archive/2012/05/16/2502279.html
+
 设计模式的不同实现
 -------------------
 
@@ -40,3 +46,4 @@ UML类图
 * [java](https://github.com/iluwatar/java-design-patterns)
 
 * [book](http://design-patterns.readthedocs.io/zh_CN/latest/index.html#)
+
