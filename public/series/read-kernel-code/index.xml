@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Read Kernel Code on BG2BKK Site</title>
+    <link>https://bg2bkk.github.io/series/read-kernel-code/</link>
+    <description>Recent content in Read Kernel Code on BG2BKK Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Tue, 22 Mar 2016 01:48:41 +0800</lastBuildDate>
+    <atom:link href="https://bg2bkk.github.io/series/read-kernel-code/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>New evolvement of Epoll</title>
+      <link>https://bg2bkk.github.io/post/New%20Evolvement%20of%20Epoll/</link>
+      <pubDate>Tue, 22 Mar 2016 01:48:41 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/New%20Evolvement%20of%20Epoll/</guid>
+      <description>
+
+&lt;h2 id=&#34;epoll在linux-内核中的新发展:b489f0f2178b22438ad2d1ac9c25dd2c&#34;&gt;EPOLL在linux 内核中的新发展&lt;/h2&gt;
+
+&lt;p&gt;Epoll是linux专有的系统调用，用于快速地高效轮询大规模文件描述符fd。这个API在kernel-2.5版本时就已经合并，并使用至今。即使如此，epoll和其他接口一样，仍然有提升空间。现在有两个patch为epoll系列系统调用添加了新的功能。&lt;/p&gt;
+
+&lt;h2 id=&#34;epoll概述:b489f0f2178b22438ad2d1ac9c25dd2c&#34;&gt;epoll概述&lt;/h2&gt;
+
+&lt;p&gt;epoll的功能与select或者poll类似，但是epoll在应对轮询处理大规模文件描述符时拥有更灵活的选项和更高的性能。每次调用select和poll，都会将被轮询的fd集合复制，生成新的fd集合，所以内核需要检查每一个描述符是否合法，是否IO就绪，然后将执行监听的进程添加到相应的唤醒等待队列。但实际上，一般情况下，在两次select或者poll调用之间，有事件产生的fd并不多，所以对每个fd都进行前述流程实际上有很多不必要的重复性操作。Epoll将设置被监听fd和轮询fd是否就绪这两个任务分开，从而解决这一问题。&lt;/p&gt;
+
+&lt;p&gt;使用epoll的话，必须首先新建epoll fd用于轮询，新建epfd通过如下调用：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    #include &amp;lt;sys/poll.h&amp;gt;
+
+    int epoll_create(int size);
+    int epoll_create1(int flags);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;两者都返回epoll fd，而epoll_create()的size参数已经不再有意义，epoll_create1()的flag参数可以设置epfd的CLOSE_ON_EXEC标志。&lt;/p&gt;
+
+&lt;p&gt;第二步是添加所有被监听的fd，通过调用：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;参数op是EPOLL_CTL_ADD时，fd将被添加进epfd轮询的fd集合中，event参数用于指定哪个类型的事件被轮询，读事件、写事件或者其他事件，详情参考&lt;a href=&#34;http://man7.org/linux/man-pages/man2/epoll_ctl.2.html&#34;&gt;man page&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;最后，等待集合中fd是否就绪的工作由以下函数实现：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+    int epoll_pwait(int epfd, struct epoll_event *events, int maxevents, 
+                                                int timeout, const sigset_t *sigmask);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有事件发生时，epoll_wait将返回，产生的时间存在参数events中，最多maxevents个事件。如果timeout时间内没有事件发生，epoll_wait也将返回，timeout的单位是ms。epoll_pwait可以使用信号集sigmask来屏蔽特定信号，可以使应用程序安全的等待fd就绪或者捕获信号。二者的关系和select与pselect关系一样。&lt;/p&gt;
+
+&lt;h2 id=&#34;patch-1-epoll-ctl-batch-和-epoll-pwait1:b489f0f2178b22438ad2d1ac9c25dd2c&#34;&gt;patch 1：epoll_ctl_batch() 和 epoll_pwait1()&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://lwn.net/Articles/633195/&#34;&gt;Fam Zheng为epoll引入了两个新的系统调用&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;Fam的第一个系统调用是&lt;strong&gt;&lt;em&gt;epoll_ctl_batch&lt;/em&gt;&lt;/strong&gt;，用来解决一个性能问题：每次调用epoll_ctl，都只能添加、修改和删除一个fd，如果有大量fd需要修改，那么需要调用相应次数的epoll_ctl来实现，这会导致大量系统调用发生，而这个场景却是经常发生的。Fam引入的epoll_ctl_batch()通过在一个系统调用中添加多个fd来解决这个问题：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    int epoll_ctl_batch(int epfd, int flags, int ncmds, struct epoll_ctl_cmd *cmds);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;结构体epoll_ctl_cmd用于描述一个待添加的事件，可以看作是epoll_ctl参数的一次打包：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct epoll_ctl_cmd {
+      /* Reserved flags for future extension, must be 0. */
+      int flags;
+      /* The same as epoll_ctl() op parameter. */
+      int op;
+      /* The same as epoll_ctl() fd parameter. */
+      int fd;
+      /* The same as the &amp;quot;events&amp;quot; field in struct epoll_event. */
+      uint32_t events;
+      /* The same as the &amp;quot;data&amp;quot; field in struct epoll_event. */
+      uint64_t data;
+      /* Output field, will be set to the return code after this
+       * command is executed by kernel */
+      int result;
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;将一个epoll_ctl_cmd数组cmds传入，则epoll_ctl_batch可以在一次系统调用中添加多个fd。&lt;/p&gt;
+
+&lt;p&gt;Fam的第二个系统调用是&lt;strong&gt;&lt;em&gt;epoll_pwait1&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    struct epoll_wait_params{
+        int clockid;
+        struct timespec timeout;
+        sigset_t *sigmask;
+        size_t sigsetsize;
+    }
+
+    int epoll_pwait(int epfd, int flags, struct epoll_event *events, int maxevents, 
+                                                struct epoll_wait_params *params);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;本版本的epoll_pwait1()添加了一个flags参数，但是并未定义任何flag值，所以flags置为0即可。其他参数，包括时间控制、信号屏蔽设置，都写在params参数中，目的是为应用程序提供更精细的时间控制。对于epoll_wait()来说，毫秒级的时钟分辨率已经被证明在一些场景中过于粗糙，新的系统供调用提供了纳秒级别的精度，解决了这个问题。&lt;/p&gt;
+
+&lt;h2 id=&#34;patch2-多线程环境下更好的性能-解决-惊群-问题:b489f0f2178b22438ad2d1ac9c25dd2c&#34;&gt;patch2: 多线程环境下更好的性能，解决“惊群”问题&lt;/h2&gt;
+
+&lt;p&gt;Jason Baron（Akamai公司）主要解决一个相对来说不那么常见的场景下，epoll现有的一个问题。通常情况下，一个给定的fd只被一个进程轮询，但是在Jason的场景中，会有多个进程轮询同一个fd集合。在这个场景设定下，一个fd有事件产生时将会唤醒所有监听进程，即使最后只有一个进程能够得到处理该事件的机会，这就是所谓的“惊群”问题。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://lwn.net/Articles/632590/&#34;&gt;Jason的解决方案&lt;/a&gt;是通过epoll_ctl向被轮询的fd再添加两个新的flag，第一个是&lt;strong&gt;&lt;em&gt;EPOLLEXCLUSIVE&lt;/em&gt;&lt;/strong&gt;，保证只有一个进程能被唤醒然后处理事件。该flag使得，有事件发生时，简单的用add_wait_queue_exclusive()代替add_wait_queue()，互斥的将进程放入等待队列中。很明显，所有轮询同一个fd的进程都要使用互斥模式来实现只有一个进程唤醒的效果。&lt;/p&gt;
+
+&lt;p&gt;不过，这个变化没有完全解决问题，因为这会导致当有事件发生时，唤醒的都是同一个进程。由于Epoll存在的一个原因是，在两次epoll_wait()调用之间,，进程能留在epfd的等待唤醒队列中，处于等待队列头部的进程仍然在队列头部，所以这个进程将被唤醒并处理所有互斥模式的fd（这句翻译我有疑问）。但是我们的目的是，多个进程轮询同一fd集合时，能够散开执行，而每次都唤醒的是同一个进程与此相悖。为解决这个问题，Jason添加了另一个flag，叫做 EPOLLROUNDROBIN，使得内核按顺序处理唤醒每个进程。&lt;/p&gt;
+
+&lt;p&gt;引入一个新的等待队列函数用来支持实现这种方式&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    void add_wait_queue_rr(wait_queue_head_t *q, wait_queue_t *wait);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用该函数后，当wait返回时，只有一个进程被唤醒，效果和add_wait_queue_exclusive()一样。但是，这个被唤醒的进程，将被从队列头移到队列尾，直到它前面的所有进程都得到唤醒机会后，才能再次被唤醒。&lt;/p&gt;
+
+&lt;p&gt;Jason的提交patch的同时也提交了一个用于压测的程序，压测结果显示，互斥模式使得执行时间降低了50%，当有大量的唤醒发生时，“惊群”效应带来的性能损耗就不会发生了。&lt;/p&gt;
+
+&lt;h2 id=&#34;结语:b489f0f2178b22438ad2d1ac9c25dd2c&#34;&gt;结语&lt;/h2&gt;
+
+&lt;p&gt;以上提到的两个patch已经被多次review和comments，Fam的patch自从&lt;a href=&#34;https://lwn.net/Articles/630097/&#34;&gt;1月份提出&lt;/a&gt;后进行了多次修改。现在的编辑们对API相关的patch投入了越来越多的关注和审视，这是对的，因为API将会长期有效，(API lives forever),甚至是永远有效。所以最好在向用户推出之前就搞定所有bug，以提供永久支持的态度提交。这些patch目前看来已经接近就绪，可能将会在下一个窗口中合并。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>VFS虚拟文件系统</title>
+      <link>https://bg2bkk.github.io/post/VFS%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/</link>
+      <pubDate>Mon, 29 Feb 2016 15:33:32 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/VFS%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/</guid>
+      <description>
+
+&lt;h2 id=&#34;虚拟文件系统:33c34adef684867bc26f32ab644d7c6f&#34;&gt;虚拟文件系统&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;虚拟文件系统为用户空间程序提供了文件和文件系统的接口&lt;/li&gt;
+&lt;li&gt;通过VFS，程序可以通过标准的UNIX系统调用操作不同的文件系统和介质，包括各种软硬件设备&lt;/li&gt;
+&lt;li&gt;Linux等现代操作系统引入VFS作为抽象层，极大方便系统调用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;unix文件系统:33c34adef684867bc26f32ab644d7c6f&#34;&gt;Unix文件系统&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;UNIX系统使用了四种和文件系统相关的抽象概念: 文件、目录项、索引结点和挂载点。&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;将文件的相关信息和文件加以区分&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;em&gt;文件相关信息&lt;/em&gt;&lt;/strong&gt;单独存储在&lt;strong&gt;&lt;em&gt;索引结点&lt;/em&gt;&lt;/strong&gt;中，又称为元数据，包括文件的控制权限、文件大小、属主和创建与访问时间等&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;em&gt;文件相关信息&lt;/em&gt;&lt;/strong&gt;和&lt;strong&gt;&lt;em&gt;文件系统&lt;/em&gt;&lt;/strong&gt;的相关信息密不可分，后者存储在&lt;strong&gt;&lt;em&gt;超级块(super block)&lt;/em&gt;&lt;/strong&gt;中，超级块是包含文件系统信息的数据结构。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;em&gt;文件&lt;/em&gt;&lt;/strong&gt;按照索引结点存储在单独的块中，文件系统的控制信息存在超级块中&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;VFS中有四个主要对象类型&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;超级块对象，代表一个具体的已安装的文件系统&lt;/li&gt;
+&lt;li&gt;索引结点对象，代表一个具体文件
+
+&lt;ul&gt;
+&lt;li&gt;inode才代表具体文件&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;目录项对象，代表一个目录项，是路径的组成部分
+
+&lt;ul&gt;
+&lt;li&gt;目录项不是目录，而是一个文件。不存在目录对象&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;文件对象，代表由进程打开的文件
+
+&lt;ul&gt;
+&lt;li&gt;每个进程都有自己的打开文件列表，文件对象是一个动态生成动态销毁的对象&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;超级块&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;超级块对象 super block
+
+&lt;ul&gt;
+&lt;li&gt;用于存储特定文件系统的信息&lt;/li&gt;
+&lt;li&gt;通常放在磁盘的&lt;a href=&#34;https://support.microsoft.com/zh-cn/kb/100108&#34;&gt;特定扇区&lt;/a&gt;中，所以被称为超级块对象&lt;/li&gt;
+&lt;li&gt;并非基于磁盘的文件系统，内核会现场创建，并保存在内存中&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;超级块操作
+
+&lt;ul&gt;
+&lt;li&gt;super_operations&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;!--   * 超级块操作 super_operations
+        * inode的分配、销毁、读写
+        * 文件系统的挂载、删除--&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;索引结点&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;索引结点对象 inode
+
+&lt;ul&gt;
+&lt;li&gt;索引结点对象包含了内核在操作文件或目录时的所有信息&lt;/li&gt;
+&lt;li&gt;索引结点对象都是在内存中创建的，不会写回硬盘的&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;索引结点操作
+
+&lt;ul&gt;
+&lt;li&gt;inode_operations&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;目录项&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;目录项对象
+
+&lt;ul&gt;
+&lt;li&gt;VFS把目录当做文件对待，解析目录时，将路径中的每个组成部分都是一个索引结点对象，比如&amp;rdquo;/bin/ls&amp;rdquo;中的‘/’、‘bin’和‘ls’。进行路径查找和解析是比较耗时的，为了方便操作，VFS引入了目录项dentry的概念，每个dentry都是路径的组成部分&lt;/li&gt;
+&lt;li&gt;目录项对象都是根据字符串形式现场创建的，并没有保存在磁盘&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;目录项状态
+
+&lt;ul&gt;
+&lt;li&gt;被使用
+
+&lt;ul&gt;
+&lt;li&gt;被使用的dentry对应一个有效的inode，即dentry结构体中d_inode指向的inode&lt;/li&gt;
+&lt;li&gt;该对象的引用计数d_count为正，至少有一个使用者，不能随意丢弃&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;未被使用
+
+&lt;ul&gt;
+&lt;li&gt;未被使用的dentry，其d_inode也指向一个inode，但是d_count为0&lt;/li&gt;
+&lt;li&gt;此时该dentry仍然在缓存中，可能会再次使用。不会立刻被释放，但如果系统要回收内存的话，可以被释放回收&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;负状态
+
+&lt;ul&gt;
+&lt;li&gt;负状态的dentry没有对应的有效inode，原因可能是inode已被删除，或者路径不再正确&lt;/li&gt;
+&lt;li&gt;此时将其缓存起来仍然有些用处，比如一个守护进程一直读一个不存在的文件，缓存dentry不至于让进程总是去搜索&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;目录项缓存
+
+&lt;ul&gt;
+&lt;li&gt;遍历路径名中所有元素并逐个解析成dentry，是非常费时费力的，所以内核引入目录项缓存dcache，将目录项对象都缓存起来&lt;/li&gt;
+&lt;li&gt;目录项缓存包括
+
+&lt;ul&gt;
+&lt;li&gt;&amp;ldquo;被使用的&amp;rdquo;目录项链表
+
+&lt;ul&gt;
+&lt;li&gt;该链表通过inode中的i_dentry指针连接相关inode&lt;/li&gt;
+&lt;li&gt;一个给定的inode可能有多个链接（软硬链接），所有就有可能有多个目录项对象，因此用一个链表链接&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&amp;ldquo;最近使用的&amp;rdquo;双向链表
+
+&lt;ul&gt;
+&lt;li&gt;该链表包含所有 未被使用的 和 负状态的 dentry&lt;/li&gt;
+&lt;li&gt;总是在表头添加元素，所以回收dentry时从最后开始回收&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;哈希表和相应的哈希函数
+
+&lt;ul&gt;
+&lt;li&gt;快速将给定路径解析为相关目录项对象&lt;/li&gt;
+&lt;li&gt;哈希表由dentry_hashtable数组表示，每个元素都指向一个具有相同键值的目录项对象链表指针&lt;/li&gt;
+&lt;li&gt;哈希函数d_hash()&lt;/li&gt;
+&lt;li&gt;查找函数d_lookup()&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;目录项操作
+
+&lt;ul&gt;
+&lt;li&gt;dentry_operation&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;文件&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;文件对象
+
+&lt;ul&gt;
+&lt;li&gt;表示进程已经打开的文件。文件对象是已打开的文件（物理文件）在内存中的表示&lt;/li&gt;
+&lt;li&gt;多个进程可以打开同一个物理文件，所以一个物理文件会有多个文件对象&lt;/li&gt;
+&lt;li&gt;文件对象指向目录项对象，目录项对象指向索引结点inode&lt;/li&gt;
+&lt;li&gt;具体而言，是文件对象filep中的f_dentry指向目录项对象，目录项对象的d_inode指向索引结点inode&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;文件操作
+
+&lt;ul&gt;
+&lt;li&gt;file_operations&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;相关数据结构&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;file_system_type
+
+&lt;ul&gt;
+&lt;li&gt;用于描述各种特定文件系统类型，用于支持不同文件系统&lt;/li&gt;
+&lt;li&gt;struct file_system_type {}
+
+&lt;ul&gt;
+&lt;li&gt;get_sb()  从磁盘读取超级块，并在文件系统安装时在内存中组装超级块对象&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;每个文件系统只有一个&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;vfsmount
+
+&lt;ul&gt;
+&lt;li&gt;系统挂载时，将有一个vfsmount结构体在挂载点创建，代表文件系统的实例&lt;/li&gt;
+&lt;li&gt;struct vfsmount {}
+
+&lt;ul&gt;
+&lt;li&gt;各种链表&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;和进程相关的数据结构&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;每个进程都有自己的一组打开爱的文件，比如根文件系统、当前工作目录、挂载点等&lt;/li&gt;
+&lt;li&gt;struct files_struct {}
+
+&lt;ul&gt;
+&lt;li&gt;该结构提由进程描述符中的files指向，一般都是current-&amp;gt;files&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;struct fs_struct {}
+
+&lt;ul&gt;
+&lt;li&gt;包含文件系统和进程相关的信息，由fs域指向，一般是current-&amp;gt;fs&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;struct namespace {}&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;使得每个进程在系统中能看到唯一的安装文件系统，mm-&amp;gt;namespace&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;每个进程都有指向自己的fs_struct和files_struct，多个进程可能指向同一个，比如通过带有CLONE_FILES和CLONE_FS标志创建的进程（其实是线程），所以这两个struct都有引用计数，以防出错&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;而对于namespace来说，除非使用CLONE_NEWS标志创建进程，会创建新的namespace结构体，否则所有进程共享一个namespace&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>pipe在内核中的实现</title>
+      <link>https://bg2bkk.github.io/post/pipe%E5%9C%A8%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/</link>
+      <pubDate>Sat, 27 Feb 2016 09:49:41 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/pipe%E5%9C%A8%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/</guid>
+      <description>
+
+&lt;h2 id=&#34;pipe在linux内核中的实现:eef8af46b03027cdd30025ef9f062910&#34;&gt;pipe在linux内核中的实现&lt;/h2&gt;
+
+&lt;p&gt;在之前关于linux shell多线程并发数控制的&lt;a href=&#34;https://bg2bkk.github.io/post/shell%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AE%9E%E8%B7%B5/&#34;&gt;博文&lt;/a&gt;中，我们使用了fifo作为token池，通过读写fifo实现token分发控制，进而实现了控制线程数的目的。
+我对pipe这个*** *NIX ***系统中最常用的组件（|）产生了兴趣&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;fifo和pipe是什么关系？&lt;/li&gt;
+&lt;li&gt;fifo或者pipe的使用方法？&lt;/li&gt;
+&lt;li&gt;pipe在linux kernel中的实现是怎样的？&lt;/li&gt;
+&lt;li&gt;fifo或者pipe的容量有多大，可以配置吗？&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;先说结论吧&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;fifo和pipe的区别
+
+&lt;ul&gt;
+&lt;li&gt;pipe是匿名管道，没有名字，只能用于两个拥有pipe读写两端fd的进程通信；&lt;/li&gt;
+&lt;li&gt;fifo在文件系统中有自己的名称，操作fifo与操作普通文件几无差别，可以用于两个没有关系的进程间通信&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;fifo和pipe在kernel层面上都实现在fs/pipe.c中，所以本质上二者是一个东西。&lt;/li&gt;
+&lt;li&gt;pipe作为linux文件系统的一部分，与epoll一样，都是在向kernel注册了自己的文件系统，可以使用VFS提供的通用接口，比如open、read和write等操作&lt;/li&gt;
+&lt;li&gt;pipe的容量不是无限大的，早期linux版本（kernel-2.4）中pipe容量只能是4KB大小，新版本可以在运行时根据需要扩大到64KB&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;本文主要基于linux-2.4.20内核中的pipe实现进行分析，理由是该版本的pipe实现与新版本kernel并没有太大差别，但是代码可读性要强很多，可以快速了解pipe的实际实现；从2.4.20内核中对pipe的架构有整体了解后，再阅读新版本(4.4.1)中的新feature，会比较顺遂。&lt;/p&gt;
+
+&lt;h3 id=&#34;pipe在fs-pipe-c中一些函数:eef8af46b03027cdd30025ef9f062910&#34;&gt;pipe在fs/pipe.c中一些函数&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;- new_inode()
+- register_filesystem()
+- get_empty_file
+- get_unused_fd()
+- do_pipe作为pipe系统调用函数，在/arch/i386/sys_i386.c中定义
+- pipe的module_init在initcall中调用，但是pipe.c是编译在fs.o中的，他的module_init是如何调用进去的，需要进一步查找
+- struct dentry在include/linux/dcache.h中定义
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;具体实现:eef8af46b03027cdd30025ef9f062910&#34;&gt;具体实现&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;* pipe文件系统初始化
+    * 注册pipefs
+        * register_filesystems
+
+* pipe系统调用
+    * pipe调用do_pipe
+    * do_pipe()
+        * f1&amp;amp;f2 get_empty_filep分配filep数据结构
+        * inode = get_pipe_inode()从pipe文件系统获得inode
+            * new_inode()
+            * pipe_new()新建pipe
+                * __get_free_pages(GFP_USER)为该pipe分配一页内存（4KB）
+                * inode-&amp;gt;i_pipe = kmalloc(sizeof(struct pipe_inde_info), GFP_KERNEL)分配pipe信息结构
+        * i&amp;amp;j = get_unused_fd()获取两个fd
+        * dentry = d_alloc()从pipefs分配dentry
+        * d_add(dentry, inode)将inode插入到dentry中
+        * 将f1设置成O_RDONLY，将f2设置成O_WRONLY
+        * 进程的files列表中，files[i] = f1, files[j] = f2
+
+* 实现函数
+    * pipe
+        * pipe_read
+        * pipe_write
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;tips&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;pipe不允许使用seek&lt;/li&gt;
+&lt;li&gt;低版本linux-2.4.20在pipe写的时候是固定大小，而高版本的是会按需分配直至64KB的。&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;高版本kernel内核中sysctl的配置参数&lt;strong&gt;&lt;em&gt;fs.pipe-max-size&lt;/em&gt;&lt;/strong&gt; 可以设置固定的pipe大小。但是也不能超过64KB大小，即使配置数据大于这个数字，pipe大小也会限制在64KB。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://unix.stackexchange.com/questions/11946/how-big-is-the-pipe-buffer&#34;&gt;测试代码&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
+test $# -ge 1 || { echo &amp;quot;usage: $0 write-size [wait-time]&amp;quot;; exit 1; }
+test $# -ge 2 || set -- &amp;quot;$@&amp;quot; 1
+bytes_written=$(
+{
+    exec 3&amp;gt;&amp;amp;1
+    {
+        perl -e &#39;
+            $size = $ARGV[0];
+            $block = q(a) x $size;
+            $num_written = 0;
+            sub report { print STDERR $num_written * $size, qq(\n); }
+            report; while (defined syswrite STDOUT, $block) {
+                $num_written++; report;
+            }
+        &#39; &amp;quot;$1&amp;quot; 2&amp;gt;&amp;amp;3
+    } | (sleep &amp;quot;$2&amp;quot;; exec 0&amp;lt;&amp;amp;-);
+} | tail -1
+)
+printf &amp;quot;write size: %10d; bytes successfully before error: %d\n&amp;quot; \
+    &amp;quot;$1&amp;quot; &amp;quot;$bytes_written&amp;quot;
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;* 测试结果
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;huang@ThinkPad-X220:~/workspace/cpp$ /bin/bash -c &#39;for p in {0..18}; do ./pipe.sh $((2 ** $p)) 0.5; done&#39;
+write size:          1; bytes successfully before error: 65536
+write size:          2; bytes successfully before error: 65536
+write size:          4; bytes successfully before error: 65536
+write size:          8; bytes successfully before error: 65536
+write size:         16; bytes successfully before error: 65536
+write size:         32; bytes successfully before error: 65536
+write size:         64; bytes successfully before error: 65536
+write size:        128; bytes successfully before error: 65536
+write size:        256; bytes successfully before error: 65536
+write size:        512; bytes successfully before error: 65536
+write size:       1024; bytes successfully before error: 65536
+write size:       2048; bytes successfully before error: 65536
+write size:       4096; bytes successfully before error: 65536
+write size:       8192; bytes successfully before error: 65536
+write size:      16384; bytes successfully before error: 65536
+write size:      32768; bytes successfully before error: 65536
+write size:      65536; bytes successfully before error: 65536
+write size:     131072; bytes successfully before error: 0
+write size:     262144; bytes successfully before error: 0
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;* 内核中64KB大小的限制在哪里设置的？(TO DO)
+    * 只有在高版本的pipe实现中才有64KB大小，低版本都是4KB的。
+    * ulimit -a 的结果中，&amp;quot;pipe size (512 bytes, -p) 8&amp;quot;，表示一个pipe拥有8个512KB的buffer，总共是4KB
+    * 在include/linux/fs_pipe_i.h中，#define PIPE_DEF_BUFFERS   16, 这里是[按buffer的数量分配的](http://home.gna.org/pysfst/tests/pipe-limit.html)。
+    * 在fs/pipe.c中，pipe_write和pipe_read是在运行时按页大小分配的
+    * sysctl中fs.max_pipe_size的设置，fs.pipe-max-size = 1048576，又会起什么作用
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;函数分析
+
+&lt;ul&gt;
+&lt;li&gt;init_pipe_fs向文件系统注册pipe组件&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static int __init init_pipe_fs(void)
+{
+	int err = register_filesystem(&amp;amp;pipe_fs_type);
+	if (!err) {
+		pipe_mnt = kern_mount(&amp;amp;pipe_fs_type);
+		err = PTR_ERR(pipe_mnt);
+		if (IS_ERR(pipe_mnt))
+			unregister_filesystem(&amp;amp;pipe_fs_type);
+		else
+			err = 0;
+	}
+	return err;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static DECLARE_FSTYPE(pipe_fs_type, &amp;quot;pipefs&amp;quot;, pipefs_read_super, FS_NOMOUNT);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#define DECLARE_FSTYPE(var,type,read,flags) \
+struct file_system_type var = { \
+	name:		type, \
+	read_super:	read, \
+	fs_flags:	flags, \
+	owner:		THIS_MODULE, \
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;* pipe源码（2.4的实现中实在没什么可讲的，比较有价值的是pipe_write和pipe_read中处理缓冲队列源码可以参考）
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;/*
+ * We use a start+len construction, which provides full use of the 
+ * allocated memory.
+ * -- Florian Coosmann (FGC)
+ * 
+ * Reads with count = 0 should always return 0.
+ * -- Julian Bradfield 1999-06-07.
+ */
+
+/* Drop the inode semaphore and wait for a pipe event, atomically */
+void pipe_wait(struct inode * inode)
+{
+	DECLARE_WAITQUEUE(wait, current);
+	current-&amp;gt;state = TASK_INTERRUPTIBLE;
+	add_wait_queue(PIPE_WAIT(*inode), &amp;amp;wait);
+	up(PIPE_SEM(*inode));
+	schedule();
+	remove_wait_queue(PIPE_WAIT(*inode), &amp;amp;wait);
+	current-&amp;gt;state = TASK_RUNNING;
+	down(PIPE_SEM(*inode));
+}
+
+static ssize_t
+pipe_read(struct file *filp, char *buf, size_t count, loff_t *ppos)
+{
+	struct inode *inode = filp-&amp;gt;f_dentry-&amp;gt;d_inode;
+	ssize_t size, read, ret;
+
+	/* Seeks are not allowed on pipes.  */
+	ret = -ESPIPE;
+	read = 0;
+	if (ppos != &amp;amp;filp-&amp;gt;f_pos)
+		goto out_nolock;
+
+	/* Always return 0 on null read.  */
+	ret = 0;
+	if (count == 0)
+		goto out_nolock;
+
+	/* Get the pipe semaphore */
+	ret = -ERESTARTSYS;
+	if (down_interruptible(PIPE_SEM(*inode)))
+		goto out_nolock;
+
+	if (PIPE_EMPTY(*inode)) {
+do_more_read:
+		ret = 0;
+		if (!PIPE_WRITERS(*inode))
+			goto out;
+
+		ret = -EAGAIN;
+		if (filp-&amp;gt;f_flags &amp;amp; O_NONBLOCK)
+			goto out;
+
+		for (;;) {
+			PIPE_WAITING_READERS(*inode)++;
+			pipe_wait(inode);
+			PIPE_WAITING_READERS(*inode)--;
+			ret = -ERESTARTSYS;
+			if (signal_pending(current))
+				goto out;
+			ret = 0;
+			if (!PIPE_EMPTY(*inode))
+				break;
+			if (!PIPE_WRITERS(*inode))
+				goto out;
+		}
+	}
+
+	/* Read what data is available.  */
+	ret = -EFAULT;
+	while (count &amp;gt; 0 &amp;amp;&amp;amp; (size = PIPE_LEN(*inode))) {
+		char *pipebuf = PIPE_BASE(*inode) + PIPE_START(*inode);
+		ssize_t chars = PIPE_MAX_RCHUNK(*inode);
+
+		if (chars &amp;gt; count)
+			chars = count;
+		if (chars &amp;gt; size)
+			chars = size;
+
+		if (copy_to_user(buf, pipebuf, chars))
+			goto out;
+
+		read += chars;
+		PIPE_START(*inode) += chars;
+		PIPE_START(*inode) &amp;amp;= (PIPE_SIZE - 1);
+		PIPE_LEN(*inode) -= chars;
+		count -= chars;
+		buf += chars;
+	}
+
+	/* Cache behaviour optimization */
+	if (!PIPE_LEN(*inode))
+		PIPE_START(*inode) = 0;
+
+	if (count &amp;amp;&amp;amp; PIPE_WAITING_WRITERS(*inode) &amp;amp;&amp;amp; !(filp-&amp;gt;f_flags &amp;amp; O_NONBLOCK)) {
+		/*
+		 * We know that we are going to sleep: signal
+		 * writers synchronously that there is more
+		 * room.
+		 */
+		wake_up_interruptible_sync(PIPE_WAIT(*inode));
+		if (!PIPE_EMPTY(*inode))
+			BUG();
+		goto do_more_read;
+	}
+	/* Signal writers asynchronously that there is more room.  */
+	wake_up_interruptible(PIPE_WAIT(*inode));
+
+	ret = read;
+out:
+	up(PIPE_SEM(*inode));
+out_nolock:
+	if (read)
+		ret = read;
+
+	UPDATE_ATIME(inode);
+	return ret;
+}
+
+static ssize_t
+pipe_write(struct file *filp, const char *buf, size_t count, loff_t *ppos)
+{
+	struct inode *inode = filp-&amp;gt;f_dentry-&amp;gt;d_inode;
+	ssize_t free, written, ret;
+
+	/* Seeks are not allowed on pipes.  */
+	ret = -ESPIPE;
+	written = 0;
+	if (ppos != &amp;amp;filp-&amp;gt;f_pos)
+		goto out_nolock;
+
+	/* Null write succeeds.  */
+	ret = 0;
+	if (count == 0)
+		goto out_nolock;
+
+	ret = -ERESTARTSYS;
+	if (down_interruptible(PIPE_SEM(*inode)))
+		goto out_nolock;
+
+	/* No readers yields SIGPIPE.  */
+	if (!PIPE_READERS(*inode))
+		goto sigpipe;
+
+	/* If count &amp;lt;= PIPE_BUF, we have to make it atomic.  */
+	free = (count &amp;lt;= PIPE_BUF ? count : 1);
+
+	/* Wait, or check for, available space.  */
+	if (filp-&amp;gt;f_flags &amp;amp; O_NONBLOCK) {
+		ret = -EAGAIN;
+		if (PIPE_FREE(*inode) &amp;lt; free)
+			goto out;
+	} else {
+		while (PIPE_FREE(*inode) &amp;lt; free) {
+			PIPE_WAITING_WRITERS(*inode)++;
+			pipe_wait(inode);
+			PIPE_WAITING_WRITERS(*inode)--;
+			ret = -ERESTARTSYS;
+			if (signal_pending(current))
+				goto out;
+
+			if (!PIPE_READERS(*inode))
+				goto sigpipe;
+		}
+	}
+
+	/* Copy into available space.  */
+	ret = -EFAULT;
+	while (count &amp;gt; 0) {
+		int space;
+		char *pipebuf = PIPE_BASE(*inode) + PIPE_END(*inode);
+		ssize_t chars = PIPE_MAX_WCHUNK(*inode);
+
+		if ((space = PIPE_FREE(*inode)) != 0) {
+			if (chars &amp;gt; count)
+				chars = count;
+			if (chars &amp;gt; space)
+				chars = space;
+
+			if (copy_from_user(pipebuf, buf, chars))
+				goto out;
+
+			written += chars;
+			PIPE_LEN(*inode) += chars;
+			count -= chars;
+			buf += chars;
+			space = PIPE_FREE(*inode);
+			continue;
+		}
+
+		ret = written;
+		if (filp-&amp;gt;f_flags &amp;amp; O_NONBLOCK)
+			break;
+
+		do {
+			/*
+			 * Synchronous wake-up: it knows that this process
+			 * is going to give up this CPU, so it doesn&#39;t have
+			 * to do idle reschedules.
+			 */
+			wake_up_interruptible_sync(PIPE_WAIT(*inode));
+			PIPE_WAITING_WRITERS(*inode)++;
+			pipe_wait(inode);
+			PIPE_WAITING_WRITERS(*inode)--;
+			if (signal_pending(current))
+				goto out;
+			if (!PIPE_READERS(*inode))
+				goto sigpipe;
+		} while (!PIPE_FREE(*inode));
+		ret = -EFAULT;
+	}
+
+	/* Signal readers asynchronously that there is more data.  */
+	wake_up_interruptible(PIPE_WAIT(*inode));
+
+	inode-&amp;gt;i_ctime = inode-&amp;gt;i_mtime = CURRENT_TIME;
+	mark_inode_dirty(inode);
+
+out:
+	up(PIPE_SEM(*inode));
+out_nolock:
+	if (written)
+		ret = written;
+	return ret;
+
+sigpipe:
+	if (written)
+		goto out;
+	up(PIPE_SEM(*inode));
+	send_sig(SIGPIPE, current, 0);
+	return -EPIPE;
+}
+
+
+/* No kernel lock held - fine */
+static unsigned int
+pipe_poll(struct file *filp, poll_table *wait)
+{
+	unsigned int mask;
+	struct inode *inode = filp-&amp;gt;f_dentry-&amp;gt;d_inode;
+
+	poll_wait(filp, PIPE_WAIT(*inode), wait);
+
+	/* Reading only -- no need for acquiring the semaphore.  */
+	mask = POLLIN | POLLRDNORM;
+	if (PIPE_EMPTY(*inode))
+		mask = POLLOUT | POLLWRNORM;
+	if (!PIPE_WRITERS(*inode) &amp;amp;&amp;amp; filp-&amp;gt;f_version != PIPE_WCOUNTER(*inode))
+		mask |= POLLHUP;
+	if (!PIPE_READERS(*inode))
+		mask |= POLLERR;
+
+	return mask;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,704 @@
+
+<!DOCTYPE html>
+<html lang="">
+
+    <head>
+
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <meta property="og:title" content=" HTTP2的实践过程 &middot;  BG2BKK Site" />
+        <meta property="og:site_name" content="BG2BKK Site" />
+        <meta property="og:url" content="https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/" />
+
+    
+        <meta property="og:type" content="article" />
+        <meta property="og:article:published_time" content="2016-03-12T16:17:52&#43;08:00" />
+        
+
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:site" content="@" />
+        <meta name="twitter:creator" content="@" />
+        <meta name="twitter:title" content="HTTP2的实践过程" />
+        <meta name="twitter:description" content="" />
+        <meta name="twitter:url" content="https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/" />
+    
+
+        <title> HTTP2的实践过程 &middot;  BG2BKK Site</title>
+
+    
+        <meta name="description" content="" />
+    
+        
+        <meta name="p:domain_verify" content="fc173d84e3a4de948ed4bda2908afd3e"/>
+        <meta name="HandheldFriendly" content="True" />
+        <meta name="MobileOptimized" content="320" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        
+          
+
+    
+        <link href="https://bg2bkk.github.io/index.xml" rel="alternate" type="application/rss+xml" title="BG2BKK Site" />
+    
+
+    
+        <link rel="canonical" href="https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/" />
+
+    
+    <script type="application/ld+json">
+    { 
+        "@context": "http://schema.org",
+        "@type": "Article",
+        "headline": "HTTP2的实践过程",
+        "author": {
+            "@type": "Person",
+            "name": "http://profiles.google.com/?rel=author"
+        },
+        "datePublished": "2016-03-12",
+        "description": "",
+        "wordCount":  1237 
+    }
+    </script>
+    
+    
+    <style>
+*{padding:0;margin:0}body,html{font-size:1em;line-height:1.65em;font-family:"Open Sans",sans-serif;font-weight:300;color:#444}html{height:100%}body{padding:2em 2.5em 1em 20em}header{border-right:1px #eee solid;padding:2em;position:fixed;top:0;left:0;height:100%;width:13.5em}#content{display:block;width:100%}footer{padding:1em 0 2.5em;font-size:.8em;line-height:1.5em;color:#888}article{border-bottom:.1em #eee solid;padding-bottom:1.7em;max-width:56em}h4,h5,h6,hr,p{margin-top:.9em;margin-bottom:.9em}h1,h2,h3,h4,h5,h6{font-family:"Microsoft Yahei",serif;font-weight:400!important}h1{font-size:2.5em;line-height:1.1em;margin-top:.6em;margin-bottom:.6em}h2{font-size:1.9em;line-height:1.2em;margin-top:.7em;margin-bottom:.7em}h3{font-size:1.4em;line-height:1.3em;margin-top:.8em;margin-bottom:.8em}h4{font-size:1.3em}h5{font-size:1.2em}h6{font-size:1.1em}iframe,img{max-width:100%}a{font-weight:700;text-decoration:none;color:#5cc265}a:hover{text-decoration:underline}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{font-weight:400!important}strong{font-weight:700}blockquote{border-left:.4em solid #eee;padding-left:1.2em;font-size:1.3em}hr{border:0;height:1px;background:#eee}ol,ul{margin-left:3em}code{font-size:1.4em;background:#eee}pre{font-size:.8em;line-height:2em;background:#eee;padding:1em;word-break:break-all;word-wrap:break-word;white-space:pre;white-space:-moz-pre-wrap;white-space:pre-wrap}input{font-size:1em;padding:.3em}header h1{font-size:1.9em;margin-top:.8em;margin-bottom:.6em}header h1 a{color:#444}header h1 a:hover{text-decoration:none}header #logo img{width:9em;height:9em;border-radius:4.5em;-moz-border-radius:4.5em;-webkit-border-radius:4.5em;border:none}#follow-icons{font-size:.7em;margin-top:-.7em;margin-bottom:1.5em}#follow-icons a{color:#ccc}#follow-icons span{vertical-align:top;margin-left:-.15em;margin-right:-.15em}#follow-icons span .fa-stack-1x{font-size:1.05em;line-height:1.9em}header h6{margin-top:.5em}article span.post-stamp{color:#888}h1.post-title{margin-top:.35em;margin-bottom:.6em}h3.post-title{margin-top:.4em;padding-bottom:.9em;border-bottom:1px solid #eee;font-size:1.2em;color:#444}.post-title time{font-size:0.5em}.post-title a{color:#494949;font-family:"Bree Serif",serif;}.post-title .feature-star{font-size:.9em}.feature-star,.separator,.taglist{color:#ccc}.taglist a{background-color:#ccc;color:#fff;display:inline-block;line-height:1.5em;padding:.3em .6em;vertical-align:20%;font-size:.5em;font-family:"Open Sans",sans-serif;font-weight:700!important;text-transform:uppercase;letter-spacing:.05em;border-radius:.25em;-moz-border-radius:.25em;-webkit-border-radius:.25em}#social-bar{margin-top:1.5em;background-color:#eee;padding:.5em}#comments{margin-top:.15em;padding-bottom:.2em;border-bottom:1px solid #eee}.pagination{margin-bottom:1em}footer a{font-weight:300;color:#888;text-decoration:underline}footer a:hover{color:#444;text-decoration:none}@media only screen and (min-width:1281px){body,html{font-size:1.1em}}@media only screen and (max-width:800px){body{padding:0}header{border-right:none;border-bottom:1px #eee solid;position:relative;height:auto;width:auto;text-align:center;padding-bottom:1em}#content{margin-left:0;padding:2em 2em 1em;width:auto}footer{padding:0 2.5em 2em}}@media only screen and (max-width:320px){#content,header{padding:1.2em 1.2em .6em}footer{padding:0 1.5em 1.2em}ol,ul{margin-left:2em}}
+</style>
+
+    </head>
+    <body>
+        <header id="header">
+            
+            <a id="logo" href="https://bg2bkk.github.io/"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/themes/crisp/images/eagle.jpg" alt="BG2BKK Site" /></a> 
+            <h1><a href="https://bg2bkk.github.io/">BG2BKK Site</a></h1>
+            <p></p>
+
+            <div id="follow-icons">
+	<a href="http://facebook.com/bg2bkk" rel="me"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="http://twitter.com/bg2bkk1" rel="me"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="http://github.com/bg2bkk" rel="me"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://github.com/bg2bkk" rel="me"><i class="fa fa-github-square fa-2x"></i></a>
+	<a href="http://plus.google.com/bg2bkk" rel="author"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://bg2bkk.github.io/index.xml" rel="me"><i class="fa fa-rss-square fa-2x"></i></a> 
+</div>  
+
+            <h6><a href="https://bg2bkk.github.io/post/resume/">About</a></h6>
+
+        </header>
+
+<main id="content">
+
+<article id="" class="post">
+    <div class="post-stamp">
+        <time datetime="2016-03-12T16:17:52&#43;08:00">
+            12 Mar 2016
+        </time>
+        <span class="taglist">
+        
+        </span>
+    </div>
+    <h1 class="post-title">HTTP2的实践过程</h1>
+    
+
+<h2 id="目录:7c9d76473bce6d4e5d302b3b042a765b">目录</h2>
+
+<ul>
+<li>前言</li>
+<li>基于openssl自建证书
+
+<ul>
+<li>CentOS</li>
+<li>Ubuntu</li>
+</ul></li>
+<li>nginx的支持HTTP/2的patch</li>
+<li>nghttp2安装，配置，使用
+
+<ul>
+<li>nghttpd作为http2 server</li>
+<li>nghttp作为http2 client</li>
+<li>nghttpx作为proxy，转向nginx后端</li>
+<li>h2load作为压测工具</li>
+</ul></li>
+</ul>
+
+<h2 id="前言:7c9d76473bce6d4e5d302b3b042a765b">前言</h2>
+
+<ul>
+<li>在研究HTTP/2协议时，常常和https协议混在一起，而二者之间的关系是怎样的呢？</li>
+<li>现有的http2 server中，nginx基于1.9.*有HTTP/2协议的patch，还有nghttp2 server，已经有人运行在个人博客做前端。</li>
+</ul>
+
+<p>只说实践过程，作为记录。</p>
+
+<p>关于涉及到的概念等，需要在别的文档中写。</p>
+
+<h2 id="基于openssl自建证书:7c9d76473bce6d4e5d302b3b042a765b">基于openssl自建证书</h2>
+
+<p>在线上配置HTTPS时，需要从权威CA申请证书，在nginx中配置证书crt和私钥key。</p>
+
+<pre><code>    listen 8443 ssl;
+    ssl_certificate  /usr/lib/ssl/nginx.crt;
+    ssl_certificate_key /usr/lib/ssl/nginx.key;
+</code></pre>
+
+<p>而在线下调试时，如果需要配置https，则需要自建和签发证书。
+<a href="http://segmentfault.com/a/1190000002569859">基于openssl自建证书</a></p>
+
+<h3 id="在centos系统上自建证书:7c9d76473bce6d4e5d302b3b042a765b">在CentOS系统上自建证书</h3>
+
+<p>1.自建CA，颁发证书</p>
+
+<pre><code class="language-bash">CA首先需要自建证书，作为颁发证书所用的根证书。CA的openssl配置文件/etc/pki/tls/openssl.cnf：
+
+####################################################################
+[ ca ]
+default_ca	= CA_default		# The default ca section
+
+####################################################################
+[ CA_default ]
+
+dir		= /etc/pki/CA		# Where everything is kept
+certs		= $dir/certs		# Where the issued certs are kept
+crl_dir		= $dir/crl		# Where the issued crl are kept
+database	= $dir/index.txt	# database index file.
+#unique_subject	= no			# Set to 'no' to allow creation of
+					# several ctificates with same subject.
+new_certs_dir	= $dir/newcerts		# default place for new certs.
+
+certificate	= $dir/cacert.pem 	# The CA certificate
+serial		= $dir/serial 		# The current serial number
+crlnumber	= $dir/crlnumber	# the current crl number
+					# must be commented out to leave a V1 CRL
+crl		= $dir/crl.pem 		# The current CRL
+private_key	= $dir/private/cakey.pem# The private key
+RANDFILE	= $dir/private/.rand	# private random number file
+
+x509_extensions	= usr_cert		# The extentions to add to the cert
+
+# Comment out the following two lines for the &quot;traditional&quot;
+# (and highly broken) format.
+name_opt 	= ca_default		# Subject Name options
+cert_opt 	= ca_default		# Certificate field options
+
+
+
+default_days	= 365			# how long to certify for
+default_crl_days= 30			# how long before next CRL
+default_md	= default		# use public key default MD
+preserve	= no			# keep passed DN ordering
+
+policy		= policy_match
+
+# For the CA policy
+[ policy_match ]
+countryName		= match
+stateOrProvinceName	= match
+organizationName	= match
+organizationalUnitName	= optional
+commonName		= supplied
+emailAddress		= optional
+...
+</code></pre>
+
+<p>其中我们可以看到根地址在/etc/pki/CA下，且指明了CA证书certificate是该目录下的cacert.pem，私钥在private/cakey.pem中，CA需要匹配countryName、stateOrProvinceName和organizationName，且commonName需要提供，这点比较重要。</p>
+
+<pre><code class="language-bash">在/etc/pki/CA下创建初始文件
+
+$ touch serial index.txt
+$ echo 01 &gt; serial
+
+</code></pre>
+
+<p>2.生成根密钥</p>
+
+<pre><code class="language-bash">$ cd /etc/pki/CA
+$ openssl genrsa -out private/cakey.pem 2048
+</code></pre>
+
+<p>3.生成根证书</p>
+
+<pre><code class="language-bash">使用req指令，通过私钥，生成自签证书
+$ openssl req -new -x509 -key private/cakey.pem -out cacert.pem
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:BeiJing
+Locality Name (eg, city) [Default City]:
+Organization Name (eg, company) [Default Company Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (eg, your name or your server's hostname) []:root
+Email Address []:
+</code></pre>
+
+<p>4.为nginx server生成密钥</p>
+
+<pre><code class="language-bash">$ mkdir /data/zhendong/nginx_ssl
+$ openssl genrsa -out nginx.key 2048
+</code></pre>
+
+<p>5.为nginx生成 证书签署请求</p>
+
+<pre><code class="language-bash">$ openssl req -new -key nginx.key -out nginx.csr
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:BeiJing
+Locality Name (eg, city) [Default City]:
+Organization Name (eg, company) [Default Company Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (eg, your name or your server's hostname) []:localhost
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+Common Name填成nginx server的server_name用来访问。
+在openssl.cnf中需要match的项目，一定要一样。
+</code></pre>
+
+<p>6.向CA请求证书</p>
+
+<pre><code class="language-bash">$ openssl ca -in nginx.csr -out nginx.crt
+
+如果失败，可以尝试以下命令
+
+$ openssl x509 -req -in nginx.csr -CA /etc/pki/CA/cacert.pem -CAkey /etc/pki/CA/private/cakey.pem -CAcreateserial -out nginx.crt
+</code></pre>
+
+<p>7.配置nginx</p>
+
+<pre><code class="language-bash">listen 8443 ssl ;
+ssl_certificate  /data1/zhendong/nginx_ssl/nginx.crt;
+ssl_certificate_key /data1/zhendong/nginx_ssl/nginx.key;
+</code></pre>
+
+<p>8.通过curl访问</p>
+
+<pre><code class="language-bash">$ curl --cacert /etc/pki/CA/cacert.pem https://localhost:8443/
+this is abtesting server
+
+$ curl --cacert /etc/pki/CA/cacert.pem https://127.0.0.1:8443/
+curl: (51) SSL: certificate subject name 'localhost' does not match target host name '127.0.0.1'
+</code></pre>
+
+<p>###在Ubuntu系统上自建证书</p>
+
+<p>Ubuntu系统与CentOS的不同之处在于软件包管理不同，当克服这部分不同后，就可以执行与CentOS系统一样的操作。</p>
+
+<p>首先Ubuntu的openssl目录在<strong>/usr/lib/ssl</strong>下，而实际上这是一个软链接。</p>
+
+<pre><code class="language-bash">huang@ThinkPad-X220:/usr/lib/ssl$ ll /usr/lib/ssl/ total 52
+drwxr-xr-x   3 root root  4096  8月 27 12:18 ./
+drwxr-xr-x 238 root root 40960  8月 26 11:18 ../
+lrwxrwxrwx   1 root root    14  2月  4  2015 certs -&gt; /etc/ssl/certs/
+drwxr-xr-x   2 root root  4096  7月  8 14:34 misc/
+lrwxrwxrwx   1 root root    20  6月 11 23:35 openssl.cnf -&gt; /etc/ssl/openssl.cnf
+lrwxrwxrwx   1 root root    16  2月  4  2015 private -&gt; /etc/ssl/private/
+</code></pre>
+
+<p>不管怎样，我们的工作将在<strong>/usr/lib/ssl</strong>进行。</p>
+
+<pre><code class="language-bash">/usr/lib/ssl/openssl.cnf内容如下：
+####################################################################
+[ ca ]
+default_ca	= CA_default		# The default ca section
+
+####################################################################
+[ CA_default ]
+
+dir		= ./demoCA		# Where everything is kept
+certs		= $dir/certs		# Where the issued certs are kept
+crl_dir		= $dir/crl		# Where the issued crl are kept
+database	= $dir/index.txt	# database index file.
+#unique_subject	= no			# Set to 'no' to allow creation of
+					# several ctificates with same subject.
+new_certs_dir	= $dir/newcerts		# default place for new certs.
+
+certificate	= $dir/cacert.pem 	# The CA certificate
+serial		= $dir/serial 		# The current serial number
+crlnumber	= $dir/crlnumber	# the current crl number
+					# must be commented out to leave a V1 CRL
+crl		= $dir/crl.pem 		# The current CRL
+private_key	= $dir/private/cakey.pem# The private key
+RANDFILE	= $dir/private/.rand	# private random number file
+
+x509_extensions	= usr_cert		# The extentions to add to the cert
+</code></pre>
+
+<p>从配置文件中看到，我们需要在<strong>/usr/lib/ssl</strong>下建立<strong>demoCA</strong>目录以及其他。</p>
+
+<pre><code class="language-bash">$ cd /usr/lib/ssl
+$ mkdir demoCA
+$ mkdir demoCA/newcerts
+$ mkdir demoCA/private
+</code></pre>
+
+<p>余下的操作将与在CentOS系统上没有区别。最后执行情况为：</p>
+
+<pre><code class="language-bash">$ curl --cacert /usr/lib/ssl/demoCA/cacert.pem https://localhost:8443
+this is abtesting server
+</code></pre>
+
+<h2 id="nginx的支持http-2的patch:7c9d76473bce6d4e5d302b3b042a765b">nginx的支持HTTP/2的patch</h2>
+
+<blockquote>
+<p>nginx目前已正式支持HTTP/2，包括tengine-2.1.2+ 和 openresty</p>
+</blockquote>
+
+<p>nginx在8月份的时候从1.9.3版本推出了支持HTTP/2的<a href="http://nginx.org/patches/http2/">patch</a>，使用时与标准nginx并无区别。</p>
+
+<pre><code class="language-bash">$ cd nginx-1.9.4/
+$ patch -p1 &lt; patch.http2-v3_1.9.4.txt  
+$ ./configure --with-http_v2_module --with-http_ssl_module
+$ make
+$ make install
+</code></pre>
+
+<p>支持http2的nginx关键配置为</p>
+
+<pre><code class="language-bash">	listen 8443 http2;
+</code></pre>
+
+<p>只需要在listen后加http2就可以了。目前curl在基于nghttp2提供的HTTP/2库后，可以支持访问http2的server，但是目前没有配置成功，所以对支持http2的nginx进行访问的工作，将在介绍完nghttp2后一并记录。</p>
+
+<h2 id="nghttp2安装-配置-使用:7c9d76473bce6d4e5d302b3b042a765b">nghttp2安装，配置，使用</h2>
+
+<p><a href="https://github.com/tatsuhiro-t/nghttp2">nghttp2</a>是由tatsuhiro开发的，之前的spdylay也是他开发的，一直走在http2.0的前列。nghttp2包括了HTTP/2.0的库，基于这个库tatsu实现了HTTP/2.0的server、client和压测工具h2load。</p>
+
+<p>由于nghttp2所依赖的库太新了，目前只在Ubuntu系统成功安装。安装过程：</p>
+
+<pre><code class="language-bash">$ autoreconf -i
+$ automake
+$ autoconf
+$ ./configure
+$ make
+```	
+
+其中**./configure**的结果非常重要
+
+```bash
+    Version:        1.2.2-DEV shared 14:8:0
+    Host type:      x86_64-unknown-linux-gnu
+    Install prefix: /usr/local
+    C compiler:     gcc
+    CFLAGS:         -g -O2
+    WARNCFLAGS:     
+    LDFLAGS:        
+    LIBS:           
+    CPPFLAGS:       
+    C preprocessor: gcc -E
+    C++ compiler:   g++
+    CXXFLAGS:       -g -O2 -std=c++11
+    CXXCPP:         g++ -E
+    Library types:  Shared=yes, Static=yes
+    Python:
+      Python:         /usr/bin/python
+      PYTHON_VERSION: 2.7
+      pyexecdir:      ${exec_prefix}/lib/python2.7/dist-packages
+      Python-dev:     yes
+      PYTHON_CPPFLAGS:-I/usr/include/python2.7
+      PYTHON_LDFLAGS: -L/usr/lib -lpython2.7
+      Cython:         cython
+    Test:
+      CUnit:          yes
+      Failmalloc:     yes
+    Libs:
+      OpenSSL:        yes
+      Libxml2:        yes
+      Libev:          yes
+      Libevent(SSL):  yes
+      Spdylay:        yes
+      Jansson:        yes
+      Jemalloc:       yes
+      Zlib:           yes
+      Boost CPPFLAGS: 
+      Boost LDFLAGS:  
+      Boost::ASIO:    
+      Boost::System:  
+      Boost::Thread:  
+    Features:
+      Applications:   yes
+      HPACK tools:    yes
+      Libnghttp2_asio:no
+      Examples:       yes
+      Python bindings:yes
+      Threading:      yes
+      Third-party:    yes
+</code></pre>
+
+<p>编译帮助文档</p>
+
+<pre><code class="language-bash">make html
+</code></pre>
+
+<h3 id="nghttpd作为http2-server:7c9d76473bce6d4e5d302b3b042a765b">nghttpd作为http2 server</h3>
+
+<p>http2-no-tls</p>
+
+<pre><code>nghttpd -v 8080   -n 24 --no-tls -d ~/workspace/Nginx_ABTesting/utils/html/ 
+</code></pre>
+
+<p>http2-with-tls</p>
+
+<pre><code>nghttpd -v 8080 -n 24 /usr/lib/ssl/nginx.key /usr/lib/ssl/nginx.crt -d ~/workspace/Nginx_ABTesting/utils/html/  
+</code></pre>
+
+<p>关于nghttpd的选项，其实可以与nginx配置做到一一对照的。目前对nghttpd的源码及实现了解的比较少，因其日本人的过于C++代码的风格实在晦涩难懂，所以很少做调优。</p>
+
+<h3 id="nghttp作为http2-client:7c9d76473bce6d4e5d302b3b042a765b">nghttp作为http2 client</h3>
+
+<p>http2-client-no-tls</p>
+
+<pre><code>nghttp http://127.0.0.1:8080
+</code></pre>
+
+<p>http2-client-with-tls</p>
+
+<pre><code>nghttp --cert /usr/lib/ssl/demoCA/cacert.pem https://127.0.0.1:8080
+
+nghttp https://127.0.0.1:8080
+</code></pre>
+
+<p>经过使用，nghttp也可以对nginx发出http2请求并成功返回。</p>
+
+<p>通过strace和阅读源码，nghttp（包括压测工具h2load）作为client时，会读取系统的证书/usr/lib/ssl/demoCA/cacert.pem，因此可以不用指定。</p>
+
+<h3 id="nghttpx作为proxy-转向nginx后端:7c9d76473bce6d4e5d302b3b042a765b">nghttpx作为proxy，转向nginx后端</h3>
+
+<p>client ——&gt; http2-proxy-no-tls ——&gt; http1.1 upstream(nginx):</p>
+
+<pre><code># nghttpx -f127.0.0.1,8080 -b127.0.0.1,8022 --frontend-no-tls
+
+# curl 127.0.0.1:8022
+this is beta3 server
+
+# nghttp http://127.0.0.1:8080
+this is beta3 server
+</code></pre>
+
+<p>client ——&gt; http2-proxy-with-tls ——&gt; http1.1 upstream(nginx):</p>
+
+<pre><code># nghttpx -f127.0.0.1,8080 -b127.0.0.1,8022 /usr/lib/ssl/nginx.key /usr/lib/ssl/nginx.crt
+
+# nghttp https://127.0.0.1:8080
+this is beta3 server
+</code></pre>
+
+<p>采用nginx-http2作为proxy，使用方法与nginx-http1.1没有区别。</p>
+
+<h3 id="h2load作为压测工具:7c9d76473bce6d4e5d302b3b042a765b">h2load作为压测工具</h3>
+
+<pre><code class="language-bash">$ h2load -n100 -c10 -t4  https://127.0.0.1:8080
+starting benchmark...
+spawning thread #0: 3 concurrent clients, 25 total requests
+spawning thread #1: 3 concurrent clients, 25 total requests
+spawning thread #2: 2 concurrent clients, 25 total requests
+spawning thread #3: 2 concurrent clients, 25 total requests
+Protocol: TLSv1.2
+Cipher: ECDHE-RSA-AES128-GCM-SHA256
+progress: 8% done
+progress: 16% done
+progress: 24% done
+progress: 32% done
+progress: 40% done
+progress: 48% done
+progress: 56% done
+progress: 64% done
+progress: 72% done
+progress: 80% done
+progress: 88% done
+progress: 96% done
+
+finished in 67.29ms, 1486 req/s, 111.02KB/s
+requests: 100 total, 100 started, 100 done, 100 succeeded, 0 failed, 0 errored
+status codes: 100 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 7650 bytes total, 3450 bytes headers, 2100 bytes data
+                     min         max         mean         sd        +/- sd
+time for request:      343us      8.76ms      1.40ms      1.49ms    91.00%
+</code></pre>
+
+<p>h2load的使用与wrk没有区别，参数都是一样的。</p>
+
+<p>根据不同配置，我们有以下几种场景：</p>
+
+<pre><code class="language-bash">server/proxy			https
+
+nginx-http/1.1			with-tls
+nginx-http/2			no-tls
+nghttpd
+</code></pre>
+
+<p>相结合，压测场景比较多。幸运的是，不论server是nginx还是nghttpd，其参数和调优都可以指定，比如线程数；不论wrk还是h2load，参数也可以指定，使用起来区别不大。</p>
+
+    <div id="social-bar">
+	<ul class="rrssb-buttons clearfix">
+      <li class="email">
+          <a href="mailto:?subject=HTTP2%e7%9a%84%e5%ae%9e%e8%b7%b5%e8%bf%87%e7%a8%8b&amp;body=https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/">
+              <span class="icon">
+                  <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+                      <path transform="scale(0.014,-0.014) translate(0,-1670)" d="M1792 826v-794q0 -66 -47 -113t-113 -47h-1472q-66 0 -113 47t-47 113v794q44 -49 101 -87q362 -246 497 -345q57 -42 92.5 -65.5t94.5 -48t110 -24.5h1h1q51 0 110 24.5t94.5 48t92.5 65.5q170 123 498 345q57 39 100 87zM1792 1120q0 -79 -49 -151t-122 -123 q-376 -261 -468 -325q-10 -7 -42.5 -30.5t-54 -38t-52 -32.5t-57.5 -27t-50 -9h-1h-1q-23 0 -50 9t-57.5 27t-52 32.5t-54 38t-42.5 30.5q-91 64 -262 182.5t-205 142.5q-62 42 -117 115.5t-55 136.5q0 78 41.5 130t118.5 52h1472q65 0 112.5 -47t47.5 -113z"/>
+                  </svg>
+              </span>
+              <span class="text">Email</span>
+          </a>
+      </li>
+      <li class="facebook">
+          <a href="https://www.facebook.com/sharer/sharer.php?u=https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/" class="popup">
+              <span class="icon">
+                  <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+                      <path d="M27.825,4.783c0-2.427-2.182-4.608-4.608-4.608H4.783c-2.422,0-4.608,2.182-4.608,4.608v18.434 c0,2.427,2.181,4.608,4.608,4.608H14V17.379h-3.379v-4.608H14v-1.795c0-3.089,2.335-5.885,5.192-5.885h3.718v4.608h-3.726 c-0.408,0-0.884,0.492-0.884,1.236v1.836h4.609v4.608h-4.609v10.446h4.916c2.422,0,4.608-2.188,4.608-4.608V4.783z"/>
+                  </svg>
+              </span>
+              <span class="text">Facebook</span>
+          </a>
+      </li>
+			<li class="twitter">
+          <a href="http://twitter.com/home?status=HTTP2%e7%9a%84%e5%ae%9e%e8%b7%b5%e8%bf%87%e7%a8%8b%20https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/" class="popup">
+              <span class="icon">
+                  <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+		                  <path d="M24.253,8.756C24.689,17.08,18.297,24.182,9.97,24.62c-3.122,0.162-6.219-0.646-8.861-2.32 c2.703,0.179,5.376-0.648,7.508-2.321c-2.072-0.247-3.818-1.661-4.489-3.638c0.801,0.128,1.62,0.076,2.399-0.155 C4.045,15.72,2.215,13.6,2.115,11.077c0.688,0.275,1.426,0.407,2.168,0.386c-2.135-1.65-2.729-4.621-1.394-6.965 C5.575,7.816,9.54,9.84,13.803,10.071c-0.842-2.739,0.694-5.64,3.434-6.482c2.018-0.623,4.212,0.044,5.546,1.683 c1.186-0.213,2.318-0.662,3.329-1.317c-0.385,1.256-1.247,2.312-2.399,2.942c1.048-0.106,2.069-0.394,3.019-0.851 C26.275,7.229,25.39,8.196,24.253,8.756z"/>
+                  </svg>
+              </span>
+              <span class="text">Twitter</span>
+          </a>
+      </li>
+			<li class="linkedin">
+          <a href="http://www.linkedin.com/shareArticle?mini=true&amp;url=https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/&amp;title=HTTP2%e7%9a%84%e5%ae%9e%e8%b7%b5%e8%bf%87%e7%a8%8b&amp;summary=%e7%9b%ae%e5%bd%95%20%e5%89%8d%e8%a8%80%20%e5%9f%ba%e4%ba%8eopenssl%e8%87%aa%e5%bb%ba%e8%af%81%e4%b9%a6%20CentOS%20Ubuntu%20nginx%e7%9a%84%e6%94%af%e6%8c%81HTTP%2f2%e7%9a%84patch%20nghttp2%e5%ae%89%e8%a3%85%ef%bc%8c%e9%85%8d%e7%bd%ae%ef%bc%8c%e4%bd%bf%e7%94%a8%20nghttpd%e4%bd%9c%e4%b8%bahttp2%20server%20nghttp%e4%bd%9c%e4%b8%bahttp2%20client%20nghttpx%e4%bd%9c%e4%b8%baproxy%ef%bc%8c%e8%bd%ac%e5%90%91nginx%e5%90%8e%e7%ab%af%20h2load%e4%bd%9c%e4%b8%ba%e5%8e%8b%e6%b5%8b%e5%b7%a5%e5%85%b7%20%e5%89%8d%e8%a8%80%20%e5%9c%a8%e7%a0%94%e7%a9%b6HTTP%2f2%e5%8d%8f%e8%ae%ae%e6%97%b6%ef%bc%8c%e5%b8%b8%e5%b8%b8%e5%92%8chttps%e5%8d%8f%e8%ae%ae%e6%b7%b7%e5%9c%a8%e4%b8%80%e8%b5%b7%ef%bc%8c%e8%80%8c%e4%ba%8c%e8%80%85%e4%b9%8b%e9%97%b4%e7%9a%84%e5%85%b3%e7%b3%bb%e6%98%af%e6%80%8e%e6%a0%b7%e7%9a%84%e5%91%a2%ef%bc%9f%20%e7%8e%b0%e6%9c%89%e7%9a%84http2%20server%e4%b8%ad%ef%bc%8cnginx%e5%9f%ba%e4%ba%8e1.9.%2a%e6%9c%89HTTP%2f2%e5%8d%8f%e8%ae%ae%e7%9a%84patch%ef%bc%8c%e8%bf%98%e6%9c%89nghttp2%20server%ef%bc%8c%e5%b7%b2%e7%bb%8f%e6%9c%89%e4%ba%ba%e8%bf%90%e8%a1%8c%e5%9c%a8%e4%b8%aa%e4%ba%ba%e5%8d%9a%e5%ae%a2%e5%81%9a%e5%89%8d%e7%ab%af%e3%80%82%20%e5%8f%aa%e8%af%b4%e5%ae%9e%e8%b7%b5%e8%bf%87%e7%a8%8b%ef%bc%8c%e4%bd%9c%e4%b8%ba%e8%ae%b0%e5%bd%95%e3%80%82%20%e5%85%b3%e4%ba%8e%e6%b6%89%e5%8f%8a%e5%88%b0%e7%9a%84%e6%a6%82%e5%bf%b5%e7%ad%89%ef%bc%8c%e9%9c%80%e8%a6%81%e5%9c%a8%e5%88%ab%e7%9a%84%e6%96%87%e6%a1%a3%e4%b8%ad%e5%86%99%e3%80%82%20%e5%9f%ba%e4%ba%8eopenssl%e8%87%aa%e5%bb%ba%e8%af%81%e4%b9%a6%20%e5%9c%a8%e7%ba%bf%e4%b8%8a%e9%85%8d%e7%bd%aeHTTPS%e6%97%b6%ef%bc%8c%e9%9c%80%e8%a6%81%e4%bb%8e%e6%9d%83%e5%a8%81CA%e7%94%b3%e8%af%b7%e8%af%81%e4%b9%a6%ef%bc%8c%e5%9c%a8nginx%e4%b8%ad%e9%85%8d%e7%bd%ae%e8%af%81%e4%b9%a6crt%e5%92%8c%e7%a7%81%e9%92%a5key%e3%80%82%20listen%208443%20ssl%3b%20ssl_certificate%20%2fusr%2flib%2fssl%2fnginx.crt%3b%20ssl_certificate_key%20%2fusr%2flib%2fssl%2fnginx.key%3b%20%e8%80%8c%e5%9c%a8%e7%ba%bf%e4%b8%8b%e8%b0%83%e8%af%95%e6%97%b6%ef%bc%8c%e5%a6%82%e6%9e%9c%e9%9c%80%e8%a6%81%e9%85%8d%e7%bd%aehttps%ef%bc%8c%e5%88%99%e9%9c%80%e8%a6%81%e8%87%aa%e5%bb%ba%e5%92%8c%e7%ad%be%e5%8f%91%e8%af%81%e4%b9%a6%e3%80%82%20%e5%9f%ba%e4%ba%8eopenssl%e8%87%aa%e5%bb%ba%e8%af%81%e4%b9%a6%20%e5%9c%a8CentOS%e7%b3%bb%e7%bb%9f%e4%b8%8a%e8%87%aa%e5%bb%ba%e8%af%81%e4%b9%a6%201.%e8%87%aa%e5%bb%baCA%ef%bc%8c%e9%a2%81%e5%8f%91%e8%af%81%e4%b9%a6%20CA%e9%a6%96%e5%85%88%e9%9c%80%e8%a6%81%e8%87%aa%e5%bb%ba%e8%af%81%e4%b9%a6%ef%bc%8c%e4%bd%9c%e4%b8%ba%e9%a2%81%e5%8f%91%e8%af%81%e4%b9%a6%e6%89%80%e7%94%a8%e7%9a%84%e6%a0%b9%e8%af%81%e4%b9%a6%e3%80%82CA%e7%9a%84openssl%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6%2fetc%2fpki%2ftls%2fopenssl.cnf%ef%bc%9a%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%20%5b%20ca%20%5d%20default_ca%20%3d%20CA_default%20%23%20The%20default%20ca%20section%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%20%5b%20CA_default%20%5d%20dir%20%3d%20%2fetc%2fpki%2fCA%20%23%20Where%20everything%20is%20kept%20certs%20%3d%20%24dir%2fcerts%20%23%20Where%20the%20issued%20certs%20are%20kept%20crl_dir%20%3d%20%24dir%2fcrl%20%23%20Where%20the%20issued%20crl%20are%20kept%20database%20%3d%20%24dir%2findex.txt%20%23%20database%20index%20file...." class="popup">
+              <span class="icon">
+                  <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+                      <path d="M25.424,15.887v8.447h-4.896v-7.882c0-1.979-0.709-3.331-2.48-3.331c-1.354,0-2.158,0.911-2.514,1.803 c-0.129,0.315-0.162,0.753-0.162,1.194v8.216h-4.899c0,0,0.066-13.349,0-14.731h4.899v2.088c-0.01,0.016-0.023,0.032-0.033,0.048 h0.033V11.69c0.65-1.002,1.812-2.435,4.414-2.435C23.008,9.254,25.424,11.361,25.424,15.887z M5.348,2.501 c-1.676,0-2.772,1.092-2.772,2.539c0,1.421,1.066,2.538,2.717,2.546h0.032c1.709,0,2.771-1.132,2.771-2.546 C8.054,3.593,7.019,2.501,5.343,2.501H5.348z M2.867,24.334h4.897V9.603H2.867V24.334z"/>
+                  </svg>
+              </span>
+              <span class="text">LinkedIn</span>
+          </a>
+      </li>
+      <li class="tumblr">
+					<script>
+						document.write('<a href="http://www.tumblr.com/share?v=3&amp;u=' + encodeURIComponent('https:\/\/bg2bkk.github.io\/post\/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B\/') + '&amp;t=HTTP2的实践过程" class="popup">');
+					</script>
+              <span class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+											<path d="M18.02 21.842c-2.029 0.052-2.422-1.396-2.439-2.446v-7.294h4.729V7.874h-4.71V1.592c0 0-3.653 0-3.714 0 s-0.167 0.053-0.182 0.186c-0.218 1.935-1.144 5.33-4.988 6.688v3.637h2.927v7.677c0 2.8 1.7 6.7 7.3 6.6 c1.863-0.03 3.934-0.795 4.392-1.453l-1.22-3.539C19.595 21.6 18.7 21.8 18 21.842z"/>
+									</svg>
+              </span>
+              <span class="text">Tumblr</span>
+          <script>document.write('</a>');</script>
+      </li>
+      <li class="reddit">
+          <a href="http://www.reddit.com/submit?url=https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/">
+              <span class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+											<g>
+													<path d="M11.794 15.316c0-1.029-0.835-1.895-1.866-1.895c-1.03 0-1.893 0.865-1.893 1.895s0.863 1.9 1.9 1.9 C10.958 17.2 11.8 16.3 11.8 15.316z"/>
+													<path d="M18.1 13.422c-1.029 0-1.895 0.864-1.895 1.895c0 1 0.9 1.9 1.9 1.865c1.031 0 1.869-0.836 1.869-1.865 C19.969 14.3 19.1 13.4 18.1 13.422z"/>
+													<path d="M17.527 19.791c-0.678 0.678-1.826 1.006-3.514 1.006c-0.004 0-0.009 0-0.014 0c-0.004 0-0.01 0-0.015 0 c-1.686 0-2.834-0.328-3.51-1.005c-0.264-0.265-0.693-0.265-0.958 0c-0.264 0.265-0.264 0.7 0 1 c0.943 0.9 2.4 1.4 4.5 1.402c0.005 0 0 0 0 0c0.005 0 0 0 0 0c2.066 0 3.527-0.459 4.47-1.402 c0.265-0.264 0.265-0.693 0.002-0.958C18.221 19.5 17.8 19.5 17.5 19.791z"/>
+													<path d="M27.707 13.267c0-1.785-1.453-3.237-3.236-3.237c-0.793 0-1.518 0.287-2.082 0.761c-2.039-1.295-4.646-2.069-7.438-2.219 l1.483-4.691l4.062 0.956c0.071 1.4 1.3 2.6 2.7 2.555c1.488 0 2.695-1.208 2.695-2.695C25.881 3.2 24.7 2 23.2 2 c-1.059 0-1.979 0.616-2.42 1.508l-4.633-1.091c-0.344-0.081-0.693 0.118-0.803 0.455l-1.793 5.7 C10.548 8.6 7.7 9.4 5.6 10.75C5.006 10.3 4.3 10 3.5 10.029c-1.785 0-3.237 1.452-3.237 3.2 c0 1.1 0.6 2.1 1.4 2.69c-0.04 0.272-0.061 0.551-0.061 0.831c0 2.3 1.3 4.4 3.7 5.9 c2.299 1.5 5.3 2.3 8.6 2.325c3.228 0 6.271-0.825 8.571-2.325c2.387-1.56 3.7-3.66 3.7-5.917 c0-0.26-0.016-0.514-0.051-0.768C27.088 15.5 27.7 14.4 27.7 13.267z M23.186 3.355c0.74 0 1.3 0.6 1.3 1.3 c0 0.738-0.6 1.34-1.34 1.34s-1.342-0.602-1.342-1.34C21.844 4 22.4 3.4 23.2 3.355z M1.648 13.3 c0-1.038 0.844-1.882 1.882-1.882c0.31 0 0.6 0.1 0.9 0.209c-1.049 0.868-1.813 1.861-2.26 2.9 C1.832 14.2 1.6 13.8 1.6 13.267z M21.773 21.57c-2.082 1.357-4.863 2.105-7.831 2.105c-2.967 0-5.747-0.748-7.828-2.105 c-1.991-1.301-3.088-3-3.088-4.782c0-1.784 1.097-3.484 3.088-4.784c2.081-1.358 4.861-2.106 7.828-2.106 c2.967 0 5.7 0.7 7.8 2.106c1.99 1.3 3.1 3 3.1 4.784C24.859 18.6 23.8 20.3 21.8 21.57z M25.787 14.6 c-0.432-1.084-1.191-2.095-2.244-2.977c0.273-0.156 0.59-0.245 0.928-0.245c1.035 0 1.9 0.8 1.9 1.9 C26.354 13.8 26.1 14.3 25.8 14.605z"/>
+											</g>
+									</svg>
+              </span>
+              <span class="text">Reddit</span>
+          </a>
+      </li>
+      <li class="googleplus">
+          <a href="https://plus.google.com/share?url=https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/" class="popup">
+              <span class="icon">
+                  <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+                      <g>
+                          <path d="M14.703,15.854l-1.219-0.948c-0.372-0.308-0.88-0.715-0.88-1.459c0-0.748,0.508-1.223,0.95-1.663 c1.42-1.119,2.839-2.309,2.839-4.817c0-2.58-1.621-3.937-2.399-4.581h2.097l2.202-1.383h-6.67c-1.83,0-4.467,0.433-6.398,2.027 C3.768,4.287,3.059,6.018,3.059,7.576c0,2.634,2.022,5.328,5.604,5.328c0.339,0,0.71-0.033,1.083-0.068 c-0.167,0.408-0.336,0.748-0.336,1.324c0,1.04,0.551,1.685,1.011,2.297c-1.524,0.104-4.37,0.273-6.467,1.562 c-1.998,1.188-2.605,2.916-2.605,4.137c0,2.512,2.358,4.84,7.289,4.84c5.822,0,8.904-3.223,8.904-6.41 c0.008-2.327-1.359-3.489-2.829-4.731H14.703z M10.269,11.951c-2.912,0-4.231-3.765-4.231-6.037c0-0.884,0.168-1.797,0.744-2.511 c0.543-0.679,1.489-1.12,2.372-1.12c2.807,0,4.256,3.798,4.256,6.242c0,0.612-0.067,1.694-0.845,2.478 c-0.537,0.55-1.438,0.948-2.295,0.951V11.951z M10.302,25.609c-3.621,0-5.957-1.732-5.957-4.142c0-2.408,2.165-3.223,2.911-3.492 c1.421-0.479,3.25-0.545,3.555-0.545c0.338,0,0.52,0,0.766,0.034c2.574,1.838,3.706,2.757,3.706,4.479 c-0.002,2.073-1.736,3.665-4.982,3.649L10.302,25.609z"/>
+                          <polygon points="23.254,11.89 23.254,8.521 21.569,8.521 21.569,11.89 18.202,11.89 18.202,13.604 21.569,13.604 21.569,17.004 23.254,17.004 23.254,13.604 26.653,13.604 26.653,11.89"/>
+                      </g>
+                  </svg>
+              </span>
+              <span class="text">Google+</span>
+          </a>
+      </li>
+      <li class="pinterest">
+          <script>
+						var imgurl = "https:\/\/bg2bkk.github.io\/logo.png";
+						var firstimg = document.getElementsByClassName("post")[0].getElementsByTagName("img")[0];
+						if (firstimg !== undefined) {
+							imgurl = firstimg.src;
+						}
+						document.write('<a href="http://pinterest.com/pin/create/button/?url=https:\/\/bg2bkk.github.io\/post\/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B\/&amp;media=' + imgurl + '&amp;description=HTTP2的实践过程" class="popup">');
+					</script>
+              <span class="icon">
+                  <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
+		                  <path d="M14.021,1.57C6.96,1.57,1.236,7.293,1.236,14.355c0,7.062,5.724,12.785,12.785,12.785c7.061,0,12.785-5.725,12.785-12.785 C26.807,7.294,21.082,1.57,14.021,1.57z M15.261,18.655c-1.161-0.09-1.649-0.666-2.559-1.219c-0.501,2.626-1.113,5.145-2.925,6.458 c-0.559-3.971,0.822-6.951,1.462-10.116c-1.093-1.84,0.132-5.545,2.438-4.632c2.837,1.123-2.458,6.842,1.099,7.557 c3.711,0.744,5.227-6.439,2.925-8.775c-3.325-3.374-9.678-0.077-8.897,4.754c0.19,1.178,1.408,1.538,0.489,3.168 C7.165,15.378,6.53,13.7,6.611,11.462c0.131-3.662,3.291-6.227,6.46-6.582c4.007-0.448,7.771,1.474,8.29,5.239 c0.579,4.255-1.816,8.865-6.102,8.533L15.261,18.655z"/>
+                  </svg>
+              </span>
+              <span class="text">Pinterest</span>
+          <script>document.write('</a>');</script>
+      </li>
+      <li class="pocket">
+          <a href="https://getpocket.com/save?url=https://bg2bkk.github.io/post/HTTP2%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%BF%87%E7%A8%8B/"  class="popup">
+              <span class="icon">
+                  <svg width="32px" height="28px" viewBox="0 0 32 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+                      <path d="M28.7817528,0.00172488695 C30.8117487,0.00431221738 31.9749312,1.12074529 31.9644402,3.10781507 C31.942147,6.67703739 32.1336065,10.2669583 31.8057648,13.8090137 C30.7147076,25.5813672 17.2181194,31.8996281 7.20714461,25.3808491 C2.71833574,22.4571656 0.196577202,18.3122624 0.0549495772,12.9357897 C-0.0342233715,9.5774348 0.00642900214,6.21519891 0.0300336062,2.85555035 C0.0405245414,1.1129833 1.21157517,0.0146615391 3.01995012,0.00819321302 C7.34746087,-0.00603710433 11.6775944,0.00431221738 16.0064164,0.00172488695 C20.2644248,0.00172488695 24.5237444,-0.00215610869 28.7817528,0.00172488695 L28.7817528,0.00172488695 Z M8.64885184,7.85611511 C7.38773662,7.99113854 6.66148108,8.42606978 6.29310958,9.33228474 C5.90114134,10.2969233 6.17774769,11.1421181 6.89875951,11.8276216 C9.35282156,14.161969 11.8108164,16.4924215 14.2976518,18.7943114 C15.3844131,19.7966007 16.5354102,19.7836177 17.6116843,18.7813283 C20.0185529,16.5495467 22.4070683,14.2982907 24.7824746,12.0327533 C25.9845979,10.8850542 26.1012707,9.56468083 25.1469132,8.60653379 C24.1361858,7.59255976 22.8449191,7.6743528 21.5890476,8.85191291 C19.9936451,10.3488554 18.3680912,11.8172352 16.8395462,13.3777945 C16.1342655,14.093159 15.7200114,14.0048744 15.0566806,13.3440386 C13.4599671,11.7484252 11.8081945,10.2060421 10.1262706,8.70001155 C9.65564653,8.27936164 9.00411403,8.05345704 8.64885184,7.85611511 L8.64885184,7.85611511 L8.64885184,7.85611511 Z"></path>
+                  </svg>
+              </span>
+              <span class="text">Pocket</span>
+          </a>
+      </li>
+  </ul>
+</div>
+
+    <div itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <h5>about the author</h5>
+  <section>
+
+	<p>如果关于本文您有兴趣，我们可以进一步探讨、交流和学习。我的email是 bg2bkk # gmail.com. 欢迎交流</p>
+  </section>
+</div>
+
+    <div id="comments">
+    
+    
+    
+    
+</div>
+
+</article>
+
+</main>
+		<footer id="footer">
+			<section id="footer-message">&copy; BG2BKK Site. All rights reserved. Powered by <a href="http://gohugo.io" target="_blank">Hugo</a>. <a href="https://github.com/kathyqian/crisp-ghost-theme" target="_blank">Crisp</a> theme by <a href="http://kathyqian.com" target="_blank">Kathy Qian</a>.</section>
+		</footer>
+
+    <script>
+      (function(c,f){asyncLoader=function(i,h){i.foreach(function(k,j){e(j,d(j),h)});if(typeof h.callback=="function"){var g=setInterval(function(){if(f.readyState==="complete"){clearInterval(g);h.callback()}},10)}};var d=function(g){var h=g.split(".");return h[h.length-1]},e=function(h,i,g){switch(i){case"js":a(h,g);break;case"css":b(h);break;default:break}},a=function(i,h){var g=document.createElement("script");g.type="text/javascript";g.async=true;g.src=i;document.getElementsByTagName("head")[0].appendChild(g)},b=function(g){var h=document.createElement("link");h.type="text/css";h.rel="stylesheet";h.href=g;document.getElementsByTagName("head")[0].appendChild(h)};Array.prototype.foreach=function(h){for(var g=0;g<this.length;g++){h(g,this[g])}}})(this,document);
+
+      var WebFontConfig={google:{families:["Open Sans:300italic,700italic,300,700","Bree+Serif"]}};
+      asyncLoader([
+        "//netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.css",
+        "//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js",
+        "//cdnjs.cloudflare.com/ajax/libs/webfont/1.5.16/webfontloader.js",
+        "//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/highlight.min.js"
+      ],{
+        callback:function(){
+          asyncLoader([
+            "https:\/\/bg2bkk.github.io\/css/rrssb.css",
+            "https:\/\/bg2bkk.github.io\/js/gist.min.js", 
+            "https:\/\/bg2bkk.github.io\/js/rrssb.min.js",
+            "//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.5/styles/default.min.css"
+          ], { callback:function() {
+              hljs.initHighlighting();
+          }});
+        }
+      });
+    </script>
+	
+	</body>
+</html>
