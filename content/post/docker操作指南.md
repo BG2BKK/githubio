@@ -42,3 +42,7 @@ docker学习操作
 * docker exec -t -i huang_ubuntu /bin/bash
 	* docker容器中执行程序，采用-t -i方式打开/bin/bash可以打开容器终端，能够附着在运行中容器里
 
+
+* [docker build](http://docs.daocloud.io/allen-docker/docker-build-cache)
+	* [mongoDB](http://www.heblug.org/chinese_docker/examples/mongodb.html)
+
