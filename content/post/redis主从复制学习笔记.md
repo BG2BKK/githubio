@@ -33,3 +33,31 @@ replication of redis
 [replication](http://redis.io/topics/replication)
 
 抓包发现，首次同步时，master将rdb文件整体发给slave，之后master有变动的话，master将会同步命令给salve，比如直接同步set key val命令。
+
+
+v2.8之后的redis增量复制
+-------------------------
+
+* redis slave有6个状态:
+	* REDIS_REPL_NONE
+		* 收到 slaveof host port，或者初始化进行主从同步时，进入下一状态
+	* REDIS_REPL_CONNECT
+		* redis会周期的执行replicationCron函数，而在该状态下，replicationCron函数将创建socket连接master，进入下一状态
+	* REDIS_REPL_CONNECTING
+		* 同步socket将发送PING消息给master，随后关闭该socket的写事件，进入下一状态
+	* REDIS_REPL_RECEIVE_PONG
+		* socket收到PONG后，进行redis认证，认证成功后发送SYNC命令请求同步；新建临时文件接收rdb文件；进入下一状态
+	* REDIS_REPL_TRANSFER
+		* socket读取rdb数据，写到rdb文件
+	* REDIS_REPL_CONNECTED
+		* 完全获取rdb文件后，进入CONNECTED状态；把master当做一个特殊的client，接收写命令
+
+* redis master 有4个状态
+	* REDIS_REPL_WAIT_BGSAVE_START
+	* REDIS_REPL_WAIT_BGSAVE_END_
+	* REDIS_REPL_WAIT_BGSAVE_BULK
+	* REDIS_REPL_WAIT_BGSAVE_ONLINE
+
+* 增量复制
+	* 增量复制的区别，同步时，客户端先做增量复制，不然时间太久也只能全量复制了。
+	* [rdb文件格式](https://github.com/sripathikrishnan/redis-rdb-tools/wiki/Redis-RDB-Dump-File-Format)
