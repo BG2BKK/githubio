@@ -198,11 +198,11 @@ site: http://blog.csdn.net/fireroll/article/details/18899285
     vlc rtmp://101.200.124.174:1935/live1/room1
 
     ffmpeg -loglevel verbose -re -i xxx.mp4 -vcodec libx264 -vprofile baseline -acodec libmp3lame -ar 44100 -ac 1 -f flv rtmp://101.200.124.174:1935/hls/movie
-    vlc http://101.200.124.174/hls/movie
+    vlc http://101.200.124.174/hls/movie.m3u8
 
     #v4l2读取摄像头，进行x264编码并将视频流发送至阿里云，进而进行hls播放
     ffmpeg -f video4linux2 -s 320x240 -i /dev/video0 -vcodec libx264 -f flv  rtmp://101.200.124.174:1935/hls/movie
-    vlc http://101.200.124.174/hls/movie
+    vlc http://101.200.124.174/hls/movie.m3u8
     手机浏览器打开也行
 
     #http config block
