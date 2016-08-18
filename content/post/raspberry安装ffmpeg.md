@@ -10,3 +10,6 @@ ffmpeg和opencv是我的老朋友了，读研的时候犯轴，非要自己编�
 树莓派是有opencv的apt-get软件包的，所以可以直接安装；ffmpeg麻烦点，不过也找到[有人打包好的](https://github.com/ccrisan/motioneye/wiki/Install-On-Raspbian)
 
 [树莓派model 1B+上手](http://www.pcworld.com/article/2598363/how-to-set-up-raspberry-pi-the-little-computer-you-can-cook-into-diy-tech-projects.html)，model 1B+是高于model 1低于model 2的奇葩版本，希望广大网民不要像我这样，买个奇葩的板子哈哈
+
+https://ubuntu-pi-flavour-maker.org/download/
+https://wiki.ubuntu.com/ARM/RaspberryPi
