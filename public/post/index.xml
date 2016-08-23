@@ -5,8 +5,281 @@
     <link>https://bg2bkk.github.io/post/</link>
     <description>Recent content in Posts on BG2BKK Site</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Sun, 14 Aug 2016 16:09:53 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 23 Aug 2016 19:52:25 +0800</lastBuildDate>
     <atom:link href="https://bg2bkk.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>C&#43;&#43;基础知识学习</title>
+      <link>https://bg2bkk.github.io/post/cpp_basis/</link>
+      <pubDate>Tue, 23 Aug 2016 19:52:25 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/cpp_basis/</guid>
+      <description>
+
+&lt;h2 id=&#34;static和const关键字各自的作用:2404ccd5838a6732564bda89dd9448a6&#34;&gt;static和const关键字各自的作用&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;static关键字&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;在函数体内，static变量只分配一次，作用域范围也在该函数体内；当下次调用该函数时，该值保持不变&lt;/li&gt;
+&lt;li&gt;模块内的static变量的作用域是模块内&lt;/li&gt;
+&lt;li&gt;类的static变量属于整个类，而不是某个对象，所有对象都共有这一份拷贝&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;const关键字&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;定义常量；首次定义必须初始化，之后不能赋值&lt;/li&gt;
+&lt;li&gt;函数声明时，用const修饰形参，可以保证不被函数体修改&lt;/li&gt;
+&lt;li&gt;可以修饰类的成员函数，保证其返回值不为“左值”&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;拷贝构造函数和赋值构造函数:2404ccd5838a6732564bda89dd9448a6&#34;&gt;拷贝构造函数和赋值构造函数&lt;/h2&gt;
+
+&lt;p&gt;C++的拷贝构造函数、重载赋值构造函数，以及析构函数，属于C++复制控制的范畴&lt;/p&gt;
+
+&lt;p&gt;如果没有手动实现，编译器会自动生成一个；编译器会自动生成以下四个成员函数&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1. 构造函数&lt;/li&gt;
+&lt;li&gt;2. 析构函数&lt;/li&gt;
+&lt;li&gt;3. 拷贝构造函数&lt;/li&gt;
+&lt;li&gt;4. 赋值构造函数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;
+class String {
+public:
+	String(const char *);			// 构造函数
+	String(const String &amp;amp;other);	// 拷贝构造函数
+	String &amp;amp; operator=( const String &amp;amp;other); // 赋值构造函数
+	~String();						// 析构函数
+private:
+	char *m_data;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果有手动实现，则会替代编译器的行为；除了析构函数，析构函数用于完成对象的释放操作，即使我们手动实现，编译器也会实现一份，这时析构函数可以让我们用来释放动态分配的内存.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;拷贝构造函数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;String::String(const String &amp;amp;other) {
+	int len = strlen(other.m_data);
+	m_data = new char[len + 1];
+	strcpy(m_data, other.m_data);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;* 如下几种情况下，拷贝构造函数被调用:
+    * 1. 定义新对象，并用已有对象初始化新对象：即 String obj = other，或者 String obj(other)时，此时String(const String &amp;amp;other)被调用
+    * 2. 对象作为参数传递时，函数将建立对象的临时拷贝
+    * 3. 对象作为函数的返回值时，函数建立临时拷贝，并将其返回
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;赋值构造函数&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;String &amp;amp; operator=(const String &amp;amp;other) {
+	if( this == &amp;amp;other)
+		return *this;
+	delete []m_data;
+
+	int len = strlen(other.m_data);
+	m_data = new char[len + 1];
+	strcpy(m_data, other.m_data);
+
+	return *this;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;* 赋值构造函数的用法
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;String obj;
+obj = other;
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;* 拷贝构造函数
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;String obj = other;   //或者
+String obj(other);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;而在前者的&lt;strong&gt;&lt;em&gt;obj = other&lt;/em&gt;&lt;/strong&gt; 和后者的&lt;strong&gt;&lt;em&gt;String obj=other&lt;/em&gt;&lt;/strong&gt;不同，前者表示obj是一个未初始化的对象，通过&lt;strong&gt;&lt;em&gt;=&lt;/em&gt;&lt;/strong&gt;进行赋值，后者中的&lt;strong&gt;&lt;em&gt;=&lt;/em&gt;&lt;/strong&gt;是使用other对obj进行初始化。&lt;/p&gt;
+
+&lt;p&gt;在赋值构造函数中，&lt;strong&gt;&lt;em&gt;=&lt;/em&gt;&lt;/strong&gt;缺省操作是将成员变量的值赋值，这时函数成员的旧值自然被丢弃，比如指针被赋予新值，旧值丢弃；然而指针旧值指向的内存却并未释放；因此包含动态分配成员的类提供拷贝构造函数外，还应该考虑重载&lt;strong&gt;&lt;em&gt;=&lt;/em&gt;&lt;/strong&gt;赋值操作符&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>esp8266开发</title>
+      <link>https://bg2bkk.github.io/post/esp8266%E5%BC%80%E5%8F%91/</link>
+      <pubDate>Mon, 22 Aug 2016 16:25:34 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/esp8266%E5%BC%80%E5%8F%91/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://suda-morris.github.io/blog/2015/12/06/esp8266/&#34;&gt;http://suda-morris.github.io/blog/2015/12/06/esp8266/&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>shutdown_vs_close_in_tcp</title>
+      <link>https://bg2bkk.github.io/post/shutdown_vs_close_in_tcp/</link>
+      <pubDate>Thu, 18 Aug 2016 19:40:53 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/shutdown_vs_close_in_tcp/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/jnu_simba/article/details/9068059&#34;&gt;http://blog.csdn.net/jnu_simba/article/details/9068059&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>redis client buffer</title>
+      <link>https://bg2bkk.github.io/post/redis_client_buffer/</link>
+      <pubDate>Thu, 18 Aug 2016 11:51:16 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/redis_client_buffer/</guid>
+      <description>
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://zhuoroger.github.io/2016/07/30/redis-client-two-buffers/&#34;&gt;redis客户端的两个buffer&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;query buffer
+
+&lt;ul&gt;
+&lt;li&gt;相当于redis为客户提供的输入buffer，不论用户执行get，还是set，都会将命令和参数写到该buffer&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;output buffer
+
+&lt;ul&gt;
+&lt;li&gt;相当于redis为客户提供的输出buffer，所以对客户的输出，不论大还是小，都会写到该buffer然后输出&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;查询redis client属性&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;redis命令：client list&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;10.13.112.54:6379&amp;gt; client list
+id=222464 addr=10.13.112.54:46957 fd=8 name= age=46008 idle=1 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=expire
+id=222543 addr=10.13.112.54:34158 fd=7 name= age=41737 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=select
+id=223496 addr=10.13.112.54:36934 fd=10 name= age=593 idle=2 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=expire
+id=223514 addr=10.75.12.239:60522 fd=26 name= age=32 idle=32 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=hincrby
+id=223505 addr=10.13.112.54:43949 fd=16 name= age=64 idle=64 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=hincrby
+id=223506 addr=10.13.112.54:44754 fd=17 name= age=61 idle=61 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=select
+id=223519 addr=172.16.193.186:32256 fd=31 name= age=22 idle=22 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=hincrby
+id=223504 addr=172.16.193.186:40687 fd=15 name= age=68 idle=33 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=hincrby
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;qbuf: query buffer 大小&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;qbuf-free: query free buffer 大小&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;obl: 定长 output buffer的使用字节数&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;oll: 可变 output buffer的对象个数&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;omem: 可变 output buffer的使用字节数&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;query-buffer:088024c5ecb992faa3cbd591778d5d78&#34;&gt;query buffer&lt;/h2&gt;
+
+&lt;p&gt;redis动态调整每个客户端的query buffer大小，范围0~1GB之间，当某个客户端query buffer使用超过1GB，redis会立刻关闭它，以防OOM&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;query buffer的大小限制是硬编码的：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;server.h#163
+/* Protocol and I/O related defines */
+#define PROTO_MAX_QUERYBUF_LEN  (1024*1024*1024) /* 1GB max query buffer. */
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;query buffer大小不受maxmemory限制
+
+&lt;ul&gt;
+&lt;li&gt;文章中作者模拟100个客户端，连续写入500MB的Key，此时内存占用43GB，而maxmemory限制为4GB，因此这相当于是一个bug。&lt;/li&gt;
+&lt;li&gt;虽然maxmemory不能限制该buffer，但是该buffer大小却会计入maxmemory，此时会触发redis的LRU淘汰机制，或者无法写入&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;output-buffer:088024c5ecb992faa3cbd591778d5d78&#34;&gt;output buffer&lt;/h2&gt;
+
+&lt;p&gt;客户端output buffer有两种：静态大小buffer和动态buffer&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;静态大小buffer
+
+&lt;ul&gt;
+&lt;li&gt;定长16KB，用于存储返回小结果&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;动态大小buffer
+
+&lt;ul&gt;
+&lt;li&gt;存储大的结果&lt;/li&gt;
+&lt;li&gt;redis提供配置动态output buffer的指令&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;client-output-buffer-limit normal 10mb 5mb 60	配置普通客户端的output buffer大小，硬限制是10mb，软限制为5mb/持续60s
+client-output-buffer-limit slave 256mb 64mb 60	配置redis从机的output buffer大小，硬限制是256mb，软限制为64mb/持续60s
+client-output-buffer-limit pubsub 32mb 8mb 60	配置pub/sub客户端的output buffer大小，硬限制是32mb，软限制为8mb/持续60s
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;client-output-buffer-limit的解读是，如果buffer大小超过硬限制，redis立刻断开客户端；如果buffer大小超过软限制，并且持续时长超过60s，则redis断开客户端连接&lt;/p&gt;
+
+&lt;p&gt;如果硬限制和软限制设置为0，则redis将不会主动断开，显然这是不安全的&lt;/p&gt;
+
+&lt;p&gt;redis主动断开的设置，在设置timeout时，如果设置为0，也不会主动断开客户，而是等待客户主动断开&lt;/p&gt;
+
+&lt;p&gt;由于每个客户端都会有大小不等的output buffer，所以当客户端总量很大时，占用内存也是非常客观的；因此开发时客户端应该节省使用redis，尽量使用小一点的key；限制slave的buffer大小，避免返回被杀；还有就是，如果监控redis发现 used memory 抖动严重，那么极有可能是client的大量来袭或者请求访问的动态变化导致。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>三斗大神在es上的三个问题</title>
+      <link>https://bg2bkk.github.io/post/%E4%B8%89%E6%96%97%E5%A4%A7%E7%A5%9E%E5%9C%A8es%E4%B8%8A%E7%9A%84%E4%B8%89%E4%B8%AA%E9%97%AE%E9%A2%98/</link>
+      <pubDate>Wed, 17 Aug 2016 20:00:25 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/%E4%B8%89%E6%96%97%E5%A4%A7%E7%A5%9E%E5%9C%A8es%E4%B8%8A%E7%9A%84%E4%B8%89%E4%B8%AA%E9%97%AE%E9%A2%98/</guid>
+      <description>&lt;p&gt;饶琛琳(251562081)  19:53:00
+哈哈。一个是es打开lucene索引的内存消耗较大，所以无法保存较长时间索引。现在是close掉，但是close状态的如果宕机是不会自动恢复的，如果连着挂就彻底废了。所以修改方向是钻研lucene源码，用很小的内存维护索引的打开状态，不用的信息只在真正查询到的时候才动态加载
+饶琛琳(251562081)  19:54:52
+另一个方向是利用snapshot API导出索引到HDFS上，但是不用restore回来查，而是针对es的snapshot格式开发一个hadoop的inputformat，可以直接在hdfs上查询
+饶琛琳(251562081)  19:57:18
+第三个是es目前各线程是抢cpu的，如果搜一个特别大的范围的结果，可能这一个请求就hang住整个集群其他所有任务，读写都死了，甚至节点掉线啥的。修改方向两种：利用cgroup机制限制每个search thread的资源占用；或者自动切分大请求成多个小请求。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>raspberry安装ffmpeg</title>
+      <link>https://bg2bkk.github.io/post/raspberry%E5%AE%89%E8%A3%85ffmpeg/</link>
+      <pubDate>Mon, 15 Aug 2016 08:00:14 +0800</pubDate>
+      
+      <guid>https://bg2bkk.github.io/post/raspberry%E5%AE%89%E8%A3%85ffmpeg/</guid>
+      <description>&lt;p&gt;ffmpeg和opencv是我的老朋友了，读研的时候犯轴，非要自己编译，每次编译好几个小时，在arm板子上。其实我需要的就是个库，先把应用写好，优化的事情可以以后再说，优先级不能变。因此现在我做应用，怎么省事怎么来，这是资源和时间的合理配置。能docker就都docker了，不能的话也要找apt-get，总之时间不能花费在编译这些库上，今天编译，下次还编译，这是很什么效率？&lt;/p&gt;
+
+&lt;p&gt;树莓派是有opencv的apt-get软件包的，所以可以直接安装；ffmpeg麻烦点，不过也找到&lt;a href=&#34;https://github.com/ccrisan/motioneye/wiki/Install-On-Raspbian&#34;&gt;有人打包好的&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.pcworld.com/article/2598363/how-to-set-up-raspberry-pi-the-little-computer-you-can-cook-into-diy-tech-projects.html&#34;&gt;树莓派model 1B+上手&lt;/a&gt;，model 1B+是高于model 1低于model 2的奇葩版本，希望广大网民不要像我这样，买个奇葩的板子哈哈&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://ubuntu-pi-flavour-maker.org/download/&#34;&gt;https://ubuntu-pi-flavour-maker.org/download/&lt;/a&gt;
+&lt;a href=&#34;https://wiki.ubuntu.com/ARM/RaspberryPi&#34;&gt;https://wiki.ubuntu.com/ARM/RaspberryPi&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>docker操作指南</title>
@@ -88,6 +361,12 @@
 &lt;ul&gt;
 &lt;li&gt;docker容器中执行程序，采用-t -i方式打开/bin/bash可以打开容器终端，能够附着在运行中容器里&lt;/li&gt;
 &lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://docs.daocloud.io/allen-docker/docker-build-cache&#34;&gt;docker build&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.heblug.org/chinese_docker/examples/mongodb.html&#34;&gt;mongoDB&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -124,8 +403,9 @@
 &lt;li&gt;接着初始化该连接：
 
 &lt;ul&gt;
+&lt;li&gt;src/event/ngx_event_accept.c&lt;/li&gt;
 &lt;li&gt;为该连接分配一个256B大小的内存池&lt;/li&gt;
-&lt;li&gt;初始化读写事件对应的处理和回调函数handler&lt;/li&gt;
+&lt;li&gt;初始化读写事件对应的处理和回调函数handler: c-&amp;gt;rev = ngx_recv等&lt;/li&gt;
 &lt;li&gt;分配log结构，以便后续log系统使用&lt;/li&gt;
 &lt;li&gt;分配一个套接口地址sockaddr，将对端tcp地址保存在其中&lt;/li&gt;
 &lt;li&gt;将本地套接口地址保存在local_sockaddr中；因为有时候从监听结构ngx_listenging_t中获得的监听地址可能是通配符*******，而本地套接地址是真实地址&lt;/li&gt;
@@ -145,6 +425,22 @@
               to be portable.
 
 		允许只有当监听事件者只有当有数据时才被唤醒；参数是整数，可以限制一个TCP为了处理完成一个连接所做的最多尝试次数
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;    * ngx_http_init_connection
+        * 初始化读写事件处理函数
+            * 写事件：ngx_http_empty_handler
+            * 读事件：ngx_http_init_request
+                * 如果连接上有数据过来，则调用该函数处理数据
+                * 否则设置定时器，等待数据到来或者超时，再在该函数中处理
+* 初始化用户请求：ngx_http_init_request
+    * 它是一个事件处理函数，唯一的参数是ngx_event_t *；
+    * 进入该事件处理函数后，判断是否超时，如果超时，则直接关闭连接并返回；否则继续
+    * 在连接的内存池中分配一个ngx_http_request_t结构，用于保存请求的所有信息，并设置为该连接的request字段
+    * nginx根据该请求的端口和地址，找到一个默认vhost(第一个定义的server)，或者根据域名来区分监听相同端口和地址的vhost，临时使用，最终找到真正的目标vhost；
+    * 进入vhost后，将连接的读事件处理函数ngx_http_process_request_line函数，解析请求行；为这个请求分配缓冲区，保存header头在request-&amp;gt;header_in，默认1024B，在该请求所在连接的内存池中分配
+    * 将请求的引用计数count字段设置为1；将当前时间设置为start_sec和start_mset；nginx以接收到客户端的第一个数据包的时间作为起始，apache则以接收到整个request line开始
+    * 初始化请求的其他字段，比如将uri_changes设置为11，表示最多可以将该请求的uri改写10次，subrequests被设置为201，表示一个请求最多可以发起200个子请求； 
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -180,6 +476,16 @@
 &lt;/ul&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;nginx的sendfile，还有读取用户请求的post数据等，灵活的操作内存缓冲区，代码质量很高，值得品味&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://t37.net/nginx-optimization-understanding-sendfile-tcp_nodelay-and-tcp_nopush.html&#34;&gt;参考链接&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;sendfile, tcp_nodelay和tcp_nopush是怎样对nginx产生影响的呢？
+
+&lt;ul&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -1444,253 +1750,6 @@ tcpdump -ni any port 9001 and &#39;tcp[13] &amp;amp; 4 != 0 &#39; -s0  -w rst.ca
 &lt;/ul&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;pmap -d pid&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>nodemcu_smart_home</title>
-      <link>https://bg2bkk.github.io/post/nodemcu_smart_home/</link>
-      <pubDate>Wed, 13 Jul 2016 17:03:29 +0800</pubDate>
-      
-      <guid>https://bg2bkk.github.io/post/nodemcu_smart_home/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.myelectronicslab.com/tutorial/door-sensor-with-push-notification-using-esp8266-nodemcu/&#34;&gt;智能门锁&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://instapush.im/&#34;&gt;推送服务器instapush&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.myelectronicslab.com/wp-content/uploads/2016/04/my-electronics-lab-InstaPushCode.zip&#34;&gt;智能门锁内含推送服务器端php代码&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.blynk.cc/&#34;&gt;blynk.cc&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;First drag-n-drop IoT app builder for Arduino, Raspberry Pi, ESP8266, SparkFun boards, and others&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://github.com/MarsTechHAN/Weplaio&#34;&gt;marsTechHan的天气检测&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://frightanic.com/iot/comparison-of-esp8266-nodemcu-development-boards/&#34;&gt;esp8266开发板的对比&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://dataguild.org/?p=6817&#34;&gt;mqtt简介&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://iotbytes.wordpress.com/wifi-configuration-on-nodemcu/&#34;&gt;nodemcu的wifi配置经&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/pradeesi/NodeMCU-WiFi&#34;&gt;src&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/esp8266/comments/3ydxnx/cant_get_esp8266_access_point_to_work_with/&#34;&gt;topic&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://nurdspace.nl/ESP8266#Technical_Overview&#34;&gt;esp8266 user guide&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.xue163.com/588880/39187/391875076.html&#34;&gt;服务器和智能硬件的互相通信方案&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;google &amp;lsquo;server push message to  nodemcu&amp;rsquo;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://postscapes.com/internet-of-things-protocols&#34;&gt;物联网的协议和标准&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://websocket.org/&#34;&gt;websocket官网&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/leytton&#34;&gt;mqtt&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://nodemcu.readthedocs.io/en/master/en/modules/wifi/#wifistagetap&#34;&gt;esp8266的smartconfig&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/txf1984/article/details/51188561&#34;&gt;示例&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.jianshu.com/p/a852d5ca6a44&#34;&gt;例子&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://github.com/SmingHub&#34;&gt;sming hub&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://tuanpm.net/rock-solid-esp8266-wifi-mqtt-restful-client-for-arduino/&#34;&gt;Rock solid esp8266 wifi mqtt, restful client for arduino&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.nyl.io/esp8266-led-arduino/&#34;&gt;8266 mcu&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>postgresql初步上手</title>
-      <link>https://bg2bkk.github.io/post/postgresql%E5%88%9D%E6%AD%A5%E4%B8%8A%E6%89%8B/</link>
-      <pubDate>Fri, 08 Jul 2016 00:37:41 +0800</pubDate>
-      
-      <guid>https://bg2bkk.github.io/post/postgresql%E5%88%9D%E6%AD%A5%E4%B8%8A%E6%89%8B/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;sudo apt-get install postgresql&lt;/li&gt;
-&lt;li&gt;pip install psycopg2&lt;/li&gt;
-&lt;li&gt;su postgres&lt;/li&gt;
-&lt;li&gt;pgcli&lt;/li&gt;
-&lt;li&gt;create database testdb&lt;/li&gt;
-&lt;li&gt;alter user postgres password huang;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>stm32_eclipse_openocd_stlink</title>
-      <link>https://bg2bkk.github.io/post/stm32_eclipse_openocd_stlink/</link>
-      <pubDate>Wed, 06 Jul 2016 12:51:05 +0800</pubDate>
-      
-      <guid>https://bg2bkk.github.io/post/stm32_eclipse_openocd_stlink/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;eclipse下载&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;neon &lt;a href=&#34;http://ftp.jaist.ac.jp/pub/eclipse/technology/epp/downloads/release/neon/R/eclipse-jee-neon-R-linux-gtk-x86_64.tar.gz&#34;&gt;http://ftp.jaist.ac.jp/pub/eclipse/technology/epp/downloads/release/neon/R/eclipse-jee-neon-R-linux-gtk-x86_64.tar.gz&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;system workbench:&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;stlink 驱动&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://erika.tuxfamily.org/wiki/index.php?title=Tutorial:_STM32_-_Integrated_Debugging_in_Eclipse_using_GNU_toolchain&amp;amp;oldid=5474&#34;&gt;http://erika.tuxfamily.org/wiki/index.php?title=Tutorial:_STM32_-_Integrated_Debugging_in_Eclipse_using_GNU_toolchain&amp;amp;oldid=5474&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.st.com/content/st_com/en/products/embedded-software/development-tool-software/stsw-link004.html#&#34;&gt;http://www.st.com/content/st_com/en/products/embedded-software/development-tool-software/stsw-link004.html#&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Linux: &lt;a href=&#34;https://github.com/texane/stlink&#34;&gt;https://github.com/texane/stlink&lt;/a&gt;
-
-&lt;ul&gt;
-&lt;li&gt;sudo apt-get install autoreconf&lt;/li&gt;
-&lt;li&gt;sudo apt-get install libusb-1.0-0 libusb-1.0-0-dev&lt;/li&gt;
-&lt;li&gt;make &amp;amp;&amp;amp; make -j &amp;amp;&amp;amp; make install&lt;/li&gt;
-&lt;li&gt;sudo ./st-util
-
-&lt;ul&gt;
-&lt;li&gt;之前还需要做udev.rules，现在发现不需要&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;用法：&lt;a href=&#34;http://erika.tuxfamily.org/wiki/index.php?title=Tutorial:_STM32_-_Integrated_Debugging_in_Eclipse_using_GNU_toolchain&amp;amp;oldid=5474&#34;&gt;http://erika.tuxfamily.org/wiki/index.php?title=Tutorial:_STM32_-_Integrated_Debugging_in_Eclipse_using_GNU_toolchain&amp;amp;oldid=5474&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;arm gcc compiler&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;sudo apt-get install gcc-arm-none-eabi&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;插件和eclipse环境配置：&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;eclipse cdt 插件
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://eclipse.org/cdt/downloads.php&#34;&gt;https://eclipse.org/cdt/downloads.php&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://gnuarmeclipse.sourceforge.net/updates&#34;&gt;http://gnuarmeclipse.sourceforge.net/updates&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;gnu arm eclipse plugins的几种安装方法 &lt;a href=&#34;http://gnuarmeclipse.github.io/plugins/install/&#34;&gt;http://gnuarmeclipse.github.io/plugins/install/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://gnuarmeclipse.github.io/eclipse/workspace/preferences/&#34;&gt;http://gnuarmeclipse.github.io/eclipse/workspace/preferences/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://gnuarmeclipse.github.io/plugins/packs-manager/&#34;&gt;http://gnuarmeclipse.github.io/plugins/packs-manager/&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;ac6 system workbench: &lt;a href=&#34;http://www.ac6-tools.com/Eclipse-updates/org.openstm32.system-workbench.site/&#34;&gt;http://www.ac6-tools.com/Eclipse-updates/org.openstm32.system-workbench.site/&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;有了它就可以ac6 debugger了，但是没办法，neon不支持&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.emcu.it/STM32/What_should_I_use_to_develop_on_STM32/stm32f0_linux_dvlpt.pdf&#34;&gt;http://www.emcu.it/STM32/What_should_I_use_to_develop_on_STM32/stm32f0_linux_dvlpt.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;如何使用eclipse新建工程&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;可以安装以上两个插件后，从eclipse新建ac6工程，下载相应库即可，ac6保证这个好使；&lt;/li&gt;
-&lt;li&gt;可以从cube新建工程sw4stm32类型的工程，然后引入SW4STM32工程&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;如何调试工程&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;debugger: AC6     普通的&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;使用ac6调试, &lt;a href=&#34;http://www.xlgps.com/article/387805.html&#34;&gt;http://www.xlgps.com/article/387805.html&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;debugger: hardware debugger configuration&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://stm32discovery.nano-age.co.uk/open-source-development-with-the-stm32-discovery/getting-hardware-debuging-working-with-eclipse-and-code-sourcey&#34;&gt;http://stm32discovery.nano-age.co.uk/open-source-development-with-the-stm32-discovery/getting-hardware-debuging-working-with-eclipse-and-code-sourcey&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;neon还不支持ac6 debugger，所以只能用后者 &lt;a href=&#34;http://www.openstm32.org/forumthread3023&#34;&gt;http://www.openstm32.org/forumthread3023&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;create debugging configuration&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.openstm32.org/Creating+debug+configuration&#34;&gt;http://www.openstm32.org/Creating+debug+configuration&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;开始debug&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;st-flash 烧录工具 &lt;a href=&#34;https://www.youtube.com/watch?v=HKX12hJApZM&#34;&gt;https://www.youtube.com/watch?v=HKX12hJApZM&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;openocd &lt;a href=&#34;https://www.youtube.com/watch?v=ZeUQXjTg-8c&#34;&gt;https://www.youtube.com/watch?v=ZeUQXjTg-8c&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;./configure &amp;ndash;enable-verbose &amp;ndash;enable-verbose-jtag-io &amp;ndash;enable-parport &amp;ndash;enable-jlink &amp;ndash;enable-ulink &amp;ndash;enable-stlink &amp;ndash;enable-ti-icdi&lt;/li&gt;
-&lt;li&gt;make -j &amp;amp;&amp;amp; sudo make install&lt;/li&gt;
-&lt;li&gt;openocd -f tcl/board/stm32f4discovery.cfg&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;openocd是debug server，3333端口&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;eclipse需要debug configuration&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;eclipse的设置&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;代码自动提示：&lt;a href=&#34;http://blog.csdn.net/u012750578/article/details/16811227&#34;&gt;http://blog.csdn.net/u012750578/article/details/16811227&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;elua&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;openocd -f ../../openocd-0.9.0/tcl/board/stm32f429discovery.cfg   -c &amp;quot;init&amp;quot;    -c &amp;quot;reset halt&amp;quot;    -c &amp;quot;sleep 100&amp;quot;    -c &amp;quot;wait_halt 2&amp;quot;    -c &amp;quot;echo \&amp;quot;--- Writing elua_lua_stm32f4discovery.bin\&amp;quot;&amp;quot;    -c &amp;quot;flash write_image erase elua_lua_stm32f4discovery.bin 0x08000000&amp;quot;    -c &amp;quot;sleep 100&amp;quot;    -c &amp;quot;echo \&amp;quot;--- Verifying\&amp;quot;&amp;quot;    -c &amp;quot;verify_image elua_lua_stm32f4discovery.bin 0x08000000&amp;quot;    -c &amp;quot;sleep 100&amp;quot;    -c &amp;quot;echo \&amp;quot;--- Done\&amp;quot;&amp;quot;    -c &amp;quot;resume&amp;quot;    -c &amp;quot;shutdown&amp;quot;
-
-st-flash --reset write elua_lua_stm32f4discovery.bin 0x8000000
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>modern_c&#43;&#43;_现代C&#43;&#43;</title>
-      <link>https://bg2bkk.github.io/post/modern_c&#43;&#43;_%E7%8E%B0%E4%BB%A3C&#43;&#43;/</link>
-      <pubDate>Sat, 11 Jun 2016 12:27:29 +0800</pubDate>
-      
-      <guid>https://bg2bkk.github.io/post/modern_c&#43;&#43;_%E7%8E%B0%E4%BB%A3C&#43;&#43;/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://msdn.microsoft.com/zh-cn/library/hh279663.aspx&#34;&gt;现代C++类型系统&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>golang_concurrency_patterns</title>
-      <link>https://bg2bkk.github.io/post/golang_concurrency_patterns/</link>
-      <pubDate>Wed, 08 Jun 2016 11:32:32 +0800</pubDate>
-      
-      <guid>https://bg2bkk.github.io/post/golang_concurrency_patterns/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;我自己摸索出来的模型&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://blog.golang.org/pipelines&#34;&gt;https://blog.golang.org/pipelines&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;上个链接里的内容非常的golang，我们在讲这段代码非常golang的时候，我们说的是协程、channel以及二者的并发实践；我们在讲某段lua代码非常的lua时候，我们说的是coroutine和metatable；我们在讲某段c代码非常的有c味道的时候，往往说的是指针、多级指针和void灵活指向的类型；我们在讲某段cpp代码非常的c++的时候，我们说的是它的封装、类库和内存模型&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>compare_strings_比较字符串</title>
-      <link>https://bg2bkk.github.io/post/compare_strings_%E6%AF%94%E8%BE%83%E5%AD%97%E7%AC%A6%E4%B8%B2/</link>
-      <pubDate>Sun, 05 Jun 2016 22:47:08 +0800</pubDate>
-      
-      <guid>https://bg2bkk.github.io/post/compare_strings_%E6%AF%94%E8%BE%83%E5%AD%97%E7%AC%A6%E4%B8%B2/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.lintcode.com/zh-cn/problem/compare-strings/&#34;&gt;http://www.lintcode.com/zh-cn/problem/compare-strings/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://taop.marchtea.com/02.0.html&#34;&gt;http://taop.marchtea.com/02.0.html&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://taop.marchtea.com/01.02.html&#34;&gt;http://taop.marchtea.com/01.02.html&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

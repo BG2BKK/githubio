@@ -7,24 +7,24 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-        <meta property="og:title" content=" docker操作指南 &middot;  BG2BKK Site" />
+        <meta property="og:title" content=" C&#43;&#43;基础知识学习 &middot;  BG2BKK Site" />
         <meta property="og:site_name" content="BG2BKK Site" />
-        <meta property="og:url" content="https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" />
+        <meta property="og:url" content="https://bg2bkk.github.io/post/cpp_basis/" />
 
     
         <meta property="og:type" content="article" />
-        <meta property="og:article:published_time" content="2016-08-14T16:09:53&#43;08:00" />
+        <meta property="og:article:published_time" content="2016-08-23T19:52:25&#43;08:00" />
         
 
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:site" content="@" />
         <meta name="twitter:creator" content="@" />
-        <meta name="twitter:title" content="docker操作指南" />
+        <meta name="twitter:title" content="C&#43;&#43;基础知识学习" />
         <meta name="twitter:description" content="" />
-        <meta name="twitter:url" content="https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" />
+        <meta name="twitter:url" content="https://bg2bkk.github.io/post/cpp_basis/" />
     
 
-        <title> docker操作指南 &middot;  BG2BKK Site</title>
+        <title> C&#43;&#43;基础知识学习 &middot;  BG2BKK Site</title>
 
     
         <meta name="description" content="" />
@@ -43,21 +43,21 @@
     
 
     
-        <link rel="canonical" href="https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" />
+        <link rel="canonical" href="https://bg2bkk.github.io/post/cpp_basis/" />
 
     
     <script type="application/ld+json">
     { 
         "@context": "http://schema.org",
         "@type": "Article",
-        "headline": "docker操作指南",
+        "headline": "C\x2b\x2b基础知识学习",
         "author": {
             "@type": "Person",
             "name": "http://profiles.google.com/?rel=author"
         },
-        "datePublished": "2016-08-14",
+        "datePublished": "2016-08-23",
         "description": "",
-        "wordCount":  77 
+        "wordCount":  139 
     }
     </script>
     
@@ -91,100 +91,120 @@
 
 <article id="" class="post">
     <div class="post-stamp">
-        <time datetime="2016-08-14T16:09:53&#43;08:00">
-            14 Aug 2016
+        <time datetime="2016-08-23T19:52:25&#43;08:00">
+            23 Aug 2016
         </time>
         <span class="taglist">
         
         </span>
     </div>
-    <h1 class="post-title">docker操作指南</h1>
-    <p>docker学习操作</p>
+    <h1 class="post-title">C&#43;&#43;基础知识学习</h1>
+    
+
+<h2 id="static和const关键字各自的作用:2404ccd5838a6732564bda89dd9448a6">static和const关键字各自的作用</h2>
 
 <ul>
-<li>docker info
+<li><p>static关键字</p>
 
 <ul>
-<li>查看docker是否正常工作</li>
+<li>在函数体内，static变量只分配一次，作用域范围也在该函数体内；当下次调用该函数时，该值保持不变</li>
+<li>模块内的static变量的作用域是模块内</li>
+<li>类的static变量属于整个类，而不是某个对象，所有对象都共有这一份拷贝</li>
 </ul></li>
 
-<li><p>systemctl status docker</p>
+<li><p>const关键字</p>
 
 <ul>
-<li>查看docker守护进程是否工作</li>
-</ul></li>
-
-<li><p>docker ps</p>
-
-<ul>
-<li>查看正在运行的容器</li>
-<li>docker ps -a 查看所有容器</li>
-</ul></li>
-
-<li><p>docker images</p>
-
-<ul>
-<li>查看镜像</li>
-</ul></li>
-
-<li><p>docker run -t -i ubuntu /bin/bash</p>
-
-<ul>
-<li>运行docker镜像</li>
-<li>-t 开启terminal</li>
-<li>-i 保证stdin开启</li>
-<li>docker run &ndash;name huang_ubuntu -t -i ubuntu /bin/bash
-
-<ul>
-<li>别名huang_ubuntu</li>
-</ul></li>
-</ul></li>
-
-<li><p>docker attach huang_ubuntu</p>
-
-<ul>
-<li>重新附着到运行容器中</li>
-</ul></li>
-
-<li><p>运行守护式容器</p>
-
-<ul>
-<li>docker run &ndash;name daemon_ubuntu -d ubuntu /bin/bash -c $CMD</li>
-<li>docker logs -f daemon_ubuntu
-
-<ul>
-<li>查看docker日志</li>
-</ul></li>
-<li>docker logs -ft daemon_ubuntu
-
-<ul>
-<li>加上时间戳</li>
-</ul></li>
-</ul></li>
-
-<li><p>docker stats huang_ubuntu</p>
-
-<ul>
-<li>容器运行信息</li>
-</ul></li>
-
-<li><p>docker exec -t -i huang_ubuntu /bin/bash</p>
-
-<ul>
-<li>docker容器中执行程序，采用-t -i方式打开/bin/bash可以打开容器终端，能够附着在运行中容器里</li>
-</ul></li>
-
-<li><p><a href="http://docs.daocloud.io/allen-docker/docker-build-cache">docker build</a></p>
-
-<ul>
-<li><a href="http://www.heblug.org/chinese_docker/examples/mongodb.html">mongoDB</a></li>
+<li>定义常量；首次定义必须初始化，之后不能赋值</li>
+<li>函数声明时，用const修饰形参，可以保证不被函数体修改</li>
+<li>可以修饰类的成员函数，保证其返回值不为“左值”</li>
 </ul></li>
 </ul>
+
+<h2 id="拷贝构造函数和赋值构造函数:2404ccd5838a6732564bda89dd9448a6">拷贝构造函数和赋值构造函数</h2>
+
+<p>C++的拷贝构造函数、重载赋值构造函数，以及析构函数，属于C++复制控制的范畴</p>
+
+<p>如果没有手动实现，编译器会自动生成一个；编译器会自动生成以下四个成员函数</p>
+
+<ul>
+<li>1. 构造函数</li>
+<li>2. 析构函数</li>
+<li>3. 拷贝构造函数</li>
+<li>4. 赋值构造函数</li>
+</ul>
+
+<pre><code class="language-cpp">
+class String {
+public:
+	String(const char *);			// 构造函数
+	String(const String &amp;other);	// 拷贝构造函数
+	String &amp; operator=( const String &amp;other); // 赋值构造函数
+	~String();						// 析构函数
+private:
+	char *m_data;
+}
+</code></pre>
+
+<p>如果有手动实现，则会替代编译器的行为；除了析构函数，析构函数用于完成对象的释放操作，即使我们手动实现，编译器也会实现一份，这时析构函数可以让我们用来释放动态分配的内存.</p>
+
+<ul>
+<li>拷贝构造函数</li>
+</ul>
+
+<pre><code class="language-cpp">String::String(const String &amp;other) {
+	int len = strlen(other.m_data);
+	m_data = new char[len + 1];
+	strcpy(m_data, other.m_data);
+}
+</code></pre>
+
+<pre><code>* 如下几种情况下，拷贝构造函数被调用:
+    * 1. 定义新对象，并用已有对象初始化新对象：即 String obj = other，或者 String obj(other)时，此时String(const String &amp;other)被调用
+    * 2. 对象作为参数传递时，函数将建立对象的临时拷贝
+    * 3. 对象作为函数的返回值时，函数建立临时拷贝，并将其返回
+</code></pre>
+
+<ul>
+<li>赋值构造函数</li>
+</ul>
+
+<pre><code class="language-cpp">String &amp; operator=(const String &amp;other) {
+	if( this == &amp;other)
+		return *this;
+	delete []m_data;
+
+	int len = strlen(other.m_data);
+	m_data = new char[len + 1];
+	strcpy(m_data, other.m_data);
+
+	return *this;
+}
+</code></pre>
+
+<pre><code>* 赋值构造函数的用法
+</code></pre>
+
+<pre><code class="language-cpp">String obj;
+obj = other;
+
+</code></pre>
+
+<pre><code>* 拷贝构造函数
+</code></pre>
+
+<pre><code class="language-cpp">String obj = other;   //或者
+String obj(other);
+</code></pre>
+
+<p>而在前者的<strong><em>obj = other</em></strong> 和后者的<strong><em>String obj=other</em></strong>不同，前者表示obj是一个未初始化的对象，通过<strong><em>=</em></strong>进行赋值，后者中的<strong><em>=</em></strong>是使用other对obj进行初始化。</p>
+
+<p>在赋值构造函数中，<strong><em>=</em></strong>缺省操作是将成员变量的值赋值，这时函数成员的旧值自然被丢弃，比如指针被赋予新值，旧值丢弃；然而指针旧值指向的内存却并未释放；因此包含动态分配成员的类提供拷贝构造函数外，还应该考虑重载<strong><em>=</em></strong>赋值操作符</p>
 
     <div id="social-bar">
 	<ul class="rrssb-buttons clearfix">
       <li class="email">
-          <a href="mailto:?subject=docker%e6%93%8d%e4%bd%9c%e6%8c%87%e5%8d%97&amp;body=https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/">
+          <a href="mailto:?subject=C%2b%2b%e5%9f%ba%e7%a1%80%e7%9f%a5%e8%af%86%e5%ad%a6%e4%b9%a0&amp;body=https://bg2bkk.github.io/post/cpp_basis/">
               <span class="icon">
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
                       <path transform="scale(0.014,-0.014) translate(0,-1670)" d="M1792 826v-794q0 -66 -47 -113t-113 -47h-1472q-66 0 -113 47t-47 113v794q44 -49 101 -87q362 -246 497 -345q57 -42 92.5 -65.5t94.5 -48t110 -24.5h1h1q51 0 110 24.5t94.5 48t92.5 65.5q170 123 498 345q57 39 100 87zM1792 1120q0 -79 -49 -151t-122 -123 q-376 -261 -468 -325q-10 -7 -42.5 -30.5t-54 -38t-52 -32.5t-57.5 -27t-50 -9h-1h-1q-23 0 -50 9t-57.5 27t-52 32.5t-54 38t-42.5 30.5q-91 64 -262 182.5t-205 142.5q-62 42 -117 115.5t-55 136.5q0 78 41.5 130t118.5 52h1472q65 0 112.5 -47t47.5 -113z"/>
@@ -194,7 +214,7 @@
           </a>
       </li>
       <li class="facebook">
-          <a href="https://www.facebook.com/sharer/sharer.php?u=https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" class="popup">
+          <a href="https://www.facebook.com/sharer/sharer.php?u=https://bg2bkk.github.io/post/cpp_basis/" class="popup">
               <span class="icon">
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
                       <path d="M27.825,4.783c0-2.427-2.182-4.608-4.608-4.608H4.783c-2.422,0-4.608,2.182-4.608,4.608v18.434 c0,2.427,2.181,4.608,4.608,4.608H14V17.379h-3.379v-4.608H14v-1.795c0-3.089,2.335-5.885,5.192-5.885h3.718v4.608h-3.726 c-0.408,0-0.884,0.492-0.884,1.236v1.836h4.609v4.608h-4.609v10.446h4.916c2.422,0,4.608-2.188,4.608-4.608V4.783z"/>
@@ -204,7 +224,7 @@
           </a>
       </li>
 			<li class="twitter">
-          <a href="http://twitter.com/home?status=docker%e6%93%8d%e4%bd%9c%e6%8c%87%e5%8d%97%20https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" class="popup">
+          <a href="http://twitter.com/home?status=C%2b%2b%e5%9f%ba%e7%a1%80%e7%9f%a5%e8%af%86%e5%ad%a6%e4%b9%a0%20https://bg2bkk.github.io/post/cpp_basis/" class="popup">
               <span class="icon">
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
 		                  <path d="M24.253,8.756C24.689,17.08,18.297,24.182,9.97,24.62c-3.122,0.162-6.219-0.646-8.861-2.32 c2.703,0.179,5.376-0.648,7.508-2.321c-2.072-0.247-3.818-1.661-4.489-3.638c0.801,0.128,1.62,0.076,2.399-0.155 C4.045,15.72,2.215,13.6,2.115,11.077c0.688,0.275,1.426,0.407,2.168,0.386c-2.135-1.65-2.729-4.621-1.394-6.965 C5.575,7.816,9.54,9.84,13.803,10.071c-0.842-2.739,0.694-5.64,3.434-6.482c2.018-0.623,4.212,0.044,5.546,1.683 c1.186-0.213,2.318-0.662,3.329-1.317c-0.385,1.256-1.247,2.312-2.399,2.942c1.048-0.106,2.069-0.394,3.019-0.851 C26.275,7.229,25.39,8.196,24.253,8.756z"/>
@@ -214,7 +234,7 @@
           </a>
       </li>
 			<li class="linkedin">
-          <a href="http://www.linkedin.com/shareArticle?mini=true&amp;url=https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/&amp;title=docker%e6%93%8d%e4%bd%9c%e6%8c%87%e5%8d%97&amp;summary=docker%e5%ad%a6%e4%b9%a0%e6%93%8d%e4%bd%9c%20docker%20info%20%e6%9f%a5%e7%9c%8bdocker%e6%98%af%e5%90%a6%e6%ad%a3%e5%b8%b8%e5%b7%a5%e4%bd%9c%20systemctl%20status%20docker%20%e6%9f%a5%e7%9c%8bdocker%e5%ae%88%e6%8a%a4%e8%bf%9b%e7%a8%8b%e6%98%af%e5%90%a6%e5%b7%a5%e4%bd%9c%20docker%20ps%20%e6%9f%a5%e7%9c%8b%e6%ad%a3%e5%9c%a8%e8%bf%90%e8%a1%8c%e7%9a%84%e5%ae%b9%e5%99%a8%20docker%20ps%20-a%20%e6%9f%a5%e7%9c%8b%e6%89%80%e6%9c%89%e5%ae%b9%e5%99%a8%20docker%20images%20%e6%9f%a5%e7%9c%8b%e9%95%9c%e5%83%8f%20docker%20run%20-t%20-i%20ubuntu%20%2fbin%2fbash%20%e8%bf%90%e8%a1%8cdocker%e9%95%9c%e5%83%8f%20-t%20%e5%bc%80%e5%90%afterminal%20-i%20%e4%bf%9d%e8%af%81stdin%e5%bc%80%e5%90%af%20docker%20run%20%26ndash%3bname%20huang_ubuntu%20-t%20-i%20ubuntu%20%2fbin%2fbash%20%e5%88%ab%e5%90%8dhuang_ubuntu%20docker%20attach%20huang_ubuntu%20%e9%87%8d%e6%96%b0%e9%99%84%e7%9d%80%e5%88%b0%e8%bf%90%e8%a1%8c%e5%ae%b9%e5%99%a8%e4%b8%ad%20%e8%bf%90%e8%a1%8c%e5%ae%88%e6%8a%a4%e5%bc%8f%e5%ae%b9%e5%99%a8%20docker%20run%20%26ndash%3bname%20daemon_ubuntu%20-d%20ubuntu%20%2fbin%2fbash%20-c%20%24CMD%20docker%20logs%20-f%20daemon_ubuntu%20%e6%9f%a5%e7%9c%8bdocker%e6%97%a5%e5%bf%97%20docker%20logs%20-ft%20daemon_ubuntu%20%e5%8a%a0%e4%b8%8a%e6%97%b6%e9%97%b4%e6%88%b3%20docker%20stats%20huang_ubuntu%20%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c%e4%bf%a1%e6%81%af%20docker%20exec%20-t%20-i..." class="popup">
+          <a href="http://www.linkedin.com/shareArticle?mini=true&amp;url=https://bg2bkk.github.io/post/cpp_basis/&amp;title=C%2b%2b%e5%9f%ba%e7%a1%80%e7%9f%a5%e8%af%86%e5%ad%a6%e4%b9%a0&amp;summary=static%e5%92%8cconst%e5%85%b3%e9%94%ae%e5%ad%97%e5%90%84%e8%87%aa%e7%9a%84%e4%bd%9c%e7%94%a8%20static%e5%85%b3%e9%94%ae%e5%ad%97%20%e5%9c%a8%e5%87%bd%e6%95%b0%e4%bd%93%e5%86%85%ef%bc%8cstatic%e5%8f%98%e9%87%8f%e5%8f%aa%e5%88%86%e9%85%8d%e4%b8%80%e6%ac%a1%ef%bc%8c%e4%bd%9c%e7%94%a8%e5%9f%9f%e8%8c%83%e5%9b%b4%e4%b9%9f%e5%9c%a8%e8%af%a5%e5%87%bd%e6%95%b0%e4%bd%93%e5%86%85%ef%bc%9b%e5%bd%93%e4%b8%8b%e6%ac%a1%e8%b0%83%e7%94%a8%e8%af%a5%e5%87%bd%e6%95%b0%e6%97%b6%ef%bc%8c%e8%af%a5%e5%80%bc%e4%bf%9d%e6%8c%81%e4%b8%8d%e5%8f%98%20%e6%a8%a1%e5%9d%97%e5%86%85%e7%9a%84static%e5%8f%98%e9%87%8f%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f%e6%98%af%e6%a8%a1%e5%9d%97%e5%86%85%20%e7%b1%bb%e7%9a%84static%e5%8f%98%e9%87%8f%e5%b1%9e%e4%ba%8e%e6%95%b4%e4%b8%aa%e7%b1%bb%ef%bc%8c%e8%80%8c%e4%b8%8d%e6%98%af%e6%9f%90%e4%b8%aa%e5%af%b9%e8%b1%a1%ef%bc%8c%e6%89%80%e6%9c%89%e5%af%b9%e8%b1%a1%e9%83%bd%e5%85%b1%e6%9c%89%e8%bf%99%e4%b8%80%e4%bb%bd%e6%8b%b7%e8%b4%9d%20const%e5%85%b3%e9%94%ae%e5%ad%97%20%e5%ae%9a%e4%b9%89%e5%b8%b8%e9%87%8f%ef%bc%9b%e9%a6%96%e6%ac%a1%e5%ae%9a%e4%b9%89%e5%bf%85%e9%a1%bb%e5%88%9d%e5%a7%8b%e5%8c%96%ef%bc%8c%e4%b9%8b%e5%90%8e%e4%b8%8d%e8%83%bd%e8%b5%8b%e5%80%bc%20%e5%87%bd%e6%95%b0%e5%a3%b0%e6%98%8e%e6%97%b6%ef%bc%8c%e7%94%a8const%e4%bf%ae%e9%a5%b0%e5%bd%a2%e5%8f%82%ef%bc%8c%e5%8f%af%e4%bb%a5%e4%bf%9d%e8%af%81%e4%b8%8d%e8%a2%ab%e5%87%bd%e6%95%b0%e4%bd%93%e4%bf%ae%e6%94%b9%20%e5%8f%af%e4%bb%a5%e4%bf%ae%e9%a5%b0%e7%b1%bb%e7%9a%84%e6%88%90%e5%91%98%e5%87%bd%e6%95%b0%ef%bc%8c%e4%bf%9d%e8%af%81%e5%85%b6%e8%bf%94%e5%9b%9e%e5%80%bc%e4%b8%8d%e4%b8%ba%e2%80%9c%e5%b7%a6%e5%80%bc%e2%80%9d%20%e6%8b%b7%e8%b4%9d%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%e5%92%8c%e8%b5%8b%e5%80%bc%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%20C%2b%2b%e7%9a%84%e6%8b%b7%e8%b4%9d%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%e3%80%81%e9%87%8d%e8%bd%bd%e8%b5%8b%e5%80%bc%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%ef%bc%8c%e4%bb%a5%e5%8f%8a%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0%ef%bc%8c%e5%b1%9e%e4%ba%8eC%2b%2b%e5%a4%8d%e5%88%b6%e6%8e%a7%e5%88%b6%e7%9a%84%e8%8c%83%e7%95%b4%20%e5%a6%82%e6%9e%9c%e6%b2%a1%e6%9c%89%e6%89%8b%e5%8a%a8%e5%ae%9e%e7%8e%b0%ef%bc%8c%e7%bc%96%e8%af%91%e5%99%a8%e4%bc%9a%e8%87%aa%e5%8a%a8%e7%94%9f%e6%88%90%e4%b8%80%e4%b8%aa%ef%bc%9b%e7%bc%96%e8%af%91%e5%99%a8%e4%bc%9a%e8%87%aa%e5%8a%a8%e7%94%9f%e6%88%90%e4%bb%a5%e4%b8%8b%e5%9b%9b%e4%b8%aa%e6%88%90%e5%91%98%e5%87%bd%e6%95%b0%201.%20%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%202.%20%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0%203.%20%e6%8b%b7%e8%b4%9d%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%204.%20%e8%b5%8b%e5%80%bc%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%20class%20String%20%7b%20public%3a%20String%28const%20char%20%2a%29%3b%20%2f%2f%20%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%20String%28const%20String%20%26amp%3bother%29%3b%20%2f%2f%20%e6%8b%b7%e8%b4%9d%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%20String%20%26amp%3b%20operator%3d%28%20const%20String%20%26amp%3bother%29%3b%20%2f%2f%20%e8%b5%8b%e5%80%bc%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%20~String%28%29%3b%20%2f%2f%20%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0%20private%3a%20char%20%2am_data%3b%20%7d%20%e5%a6%82%e6%9e%9c%e6%9c%89%e6%89%8b%e5%8a%a8%e5%ae%9e%e7%8e%b0%ef%bc%8c%e5%88%99%e4%bc%9a%e6%9b%bf%e4%bb%a3%e7%bc%96%e8%af%91%e5%99%a8%e7%9a%84%e8%a1%8c%e4%b8%ba%ef%bc%9b%e9%99%a4%e4%ba%86%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0%ef%bc%8c%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0%e7%94%a8%e4%ba%8e%e5%ae%8c%e6%88%90%e5%af%b9%e8%b1%a1%e7%9a%84%e9%87%8a%e6%94%be%e6%93%8d%e4%bd%9c%ef%bc%8c%e5%8d%b3%e4%bd%bf%e6%88%91%e4%bb%ac%e6%89%8b%e5%8a%a8%e5%ae%9e%e7%8e%b0%ef%bc%8c%e7%bc%96%e8%af%91%e5%99%a8%e4%b9%9f%e4%bc%9a%e5%ae%9e%e7%8e%b0%e4%b8%80%e4%bb%bd%ef%bc%8c%e8%bf%99%e6%97%b6%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0%e5%8f%af%e4%bb%a5%e8%ae%a9%e6%88%91%e4%bb%ac%e7%94%a8%e6%9d%a5%e9%87%8a%e6%94%be%e5%8a%a8%e6%80%81%e5%88%86%e9%85%8d%e7%9a%84%e5%86%85%e5%ad%98.%20%e6%8b%b7%e8%b4%9d%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%20String%3a%3aString%28const%20String%20%26amp%3bother%29%20%7b%20int%20len%20%3d%20strlen%28other.m_data%29%3b%20m_data%20%3d%20new%20char%5blen%20%2b%201%5d%3b%20strcpy%28m_data%2c%20other.m_data%29%3b%20%7d%20%2a%20%e5%a6%82%e4%b8%8b%e5%87%a0%e7%a7%8d%e6%83%85%e5%86%b5%e4%b8%8b%ef%bc%8c%e6%8b%b7%e8%b4%9d%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0%e8%a2%ab%e8%b0%83%e7%94%a8%3a%20%2a%201...." class="popup">
               <span class="icon">
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
                       <path d="M25.424,15.887v8.447h-4.896v-7.882c0-1.979-0.709-3.331-2.48-3.331c-1.354,0-2.158,0.911-2.514,1.803 c-0.129,0.315-0.162,0.753-0.162,1.194v8.216h-4.899c0,0,0.066-13.349,0-14.731h4.899v2.088c-0.01,0.016-0.023,0.032-0.033,0.048 h0.033V11.69c0.65-1.002,1.812-2.435,4.414-2.435C23.008,9.254,25.424,11.361,25.424,15.887z M5.348,2.501 c-1.676,0-2.772,1.092-2.772,2.539c0,1.421,1.066,2.538,2.717,2.546h0.032c1.709,0,2.771-1.132,2.771-2.546 C8.054,3.593,7.019,2.501,5.343,2.501H5.348z M2.867,24.334h4.897V9.603H2.867V24.334z"/>
@@ -225,7 +245,7 @@
       </li>
       <li class="tumblr">
 					<script>
-						document.write('<a href="http://www.tumblr.com/share?v=3&amp;u=' + encodeURIComponent('https:\/\/bg2bkk.github.io\/post\/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97\/') + '&amp;t=docker操作指南" class="popup">');
+						document.write('<a href="http://www.tumblr.com/share?v=3&amp;u=' + encodeURIComponent('https:\/\/bg2bkk.github.io\/post\/cpp_basis\/') + '&amp;t=C\x2b\x2b基础知识学习" class="popup">');
 					</script>
               <span class="icon">
                   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
@@ -236,7 +256,7 @@
           <script>document.write('</a>');</script>
       </li>
       <li class="reddit">
-          <a href="http://www.reddit.com/submit?url=https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/">
+          <a href="http://www.reddit.com/submit?url=https://bg2bkk.github.io/post/cpp_basis/">
               <span class="icon">
                   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
 											<g>
@@ -251,7 +271,7 @@
           </a>
       </li>
       <li class="googleplus">
-          <a href="https://plus.google.com/share?url=https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" class="popup">
+          <a href="https://plus.google.com/share?url=https://bg2bkk.github.io/post/cpp_basis/" class="popup">
               <span class="icon">
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
                       <g>
@@ -270,7 +290,7 @@
 						if (firstimg !== undefined) {
 							imgurl = firstimg.src;
 						}
-						document.write('<a href="http://pinterest.com/pin/create/button/?url=https:\/\/bg2bkk.github.io\/post\/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97\/&amp;media=' + imgurl + '&amp;description=docker操作指南" class="popup">');
+						document.write('<a href="http://pinterest.com/pin/create/button/?url=https:\/\/bg2bkk.github.io\/post\/cpp_basis\/&amp;media=' + imgurl + '&amp;description=C\x2b\x2b基础知识学习" class="popup">');
 					</script>
               <span class="icon">
                   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="28px" height="28px" viewBox="0 0 28 28" enable-background="new 0 0 28 28" xml:space="preserve">
@@ -281,7 +301,7 @@
           <script>document.write('</a>');</script>
       </li>
       <li class="pocket">
-          <a href="https://getpocket.com/save?url=https://bg2bkk.github.io/post/docker%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/"  class="popup">
+          <a href="https://getpocket.com/save?url=https://bg2bkk.github.io/post/cpp_basis/"  class="popup">
               <span class="icon">
                   <svg width="32px" height="28px" viewBox="0 0 32 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
                       <path d="M28.7817528,0.00172488695 C30.8117487,0.00431221738 31.9749312,1.12074529 31.9644402,3.10781507 C31.942147,6.67703739 32.1336065,10.2669583 31.8057648,13.8090137 C30.7147076,25.5813672 17.2181194,31.8996281 7.20714461,25.3808491 C2.71833574,22.4571656 0.196577202,18.3122624 0.0549495772,12.9357897 C-0.0342233715,9.5774348 0.00642900214,6.21519891 0.0300336062,2.85555035 C0.0405245414,1.1129833 1.21157517,0.0146615391 3.01995012,0.00819321302 C7.34746087,-0.00603710433 11.6775944,0.00431221738 16.0064164,0.00172488695 C20.2644248,0.00172488695 24.5237444,-0.00215610869 28.7817528,0.00172488695 L28.7817528,0.00172488695 Z M8.64885184,7.85611511 C7.38773662,7.99113854 6.66148108,8.42606978 6.29310958,9.33228474 C5.90114134,10.2969233 6.17774769,11.1421181 6.89875951,11.8276216 C9.35282156,14.161969 11.8108164,16.4924215 14.2976518,18.7943114 C15.3844131,19.7966007 16.5354102,19.7836177 17.6116843,18.7813283 C20.0185529,16.5495467 22.4070683,14.2982907 24.7824746,12.0327533 C25.9845979,10.8850542 26.1012707,9.56468083 25.1469132,8.60653379 C24.1361858,7.59255976 22.8449191,7.6743528 21.5890476,8.85191291 C19.9936451,10.3488554 18.3680912,11.8172352 16.8395462,13.3777945 C16.1342655,14.093159 15.7200114,14.0048744 15.0566806,13.3440386 C13.4599671,11.7484252 11.8081945,10.2060421 10.1262706,8.70001155 C9.65564653,8.27936164 9.00411403,8.05345704 8.64885184,7.85611511 L8.64885184,7.85611511 L8.64885184,7.85611511 Z"></path>

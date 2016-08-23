@@ -3,8 +3,38 @@
   
   <url>
     <loc>https://bg2bkk.github.io/</loc>
-    <lastmod>2016-08-14T16:09:53+08:00</lastmod>
+    <lastmod>2016-08-23T19:52:25+08:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://bg2bkk.github.io/post/cpp_basis/</loc>
+    <lastmod>2016-08-23T19:52:25+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://bg2bkk.github.io/post/esp8266%E5%BC%80%E5%8F%91/</loc>
+    <lastmod>2016-08-22T16:25:34+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://bg2bkk.github.io/post/shutdown_vs_close_in_tcp/</loc>
+    <lastmod>2016-08-18T19:40:53+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://bg2bkk.github.io/post/redis_client_buffer/</loc>
+    <lastmod>2016-08-18T11:51:16+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://bg2bkk.github.io/post/%E4%B8%89%E6%96%97%E5%A4%A7%E7%A5%9E%E5%9C%A8es%E4%B8%8A%E7%9A%84%E4%B8%89%E4%B8%AA%E9%97%AE%E9%A2%98/</loc>
+    <lastmod>2016-08-17T20:00:25+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://bg2bkk.github.io/post/raspberry%E5%AE%89%E8%A3%85ffmpeg/</loc>
+    <lastmod>2016-08-15T08:00:14+08:00</lastmod>
   </url>
   
   <url>
