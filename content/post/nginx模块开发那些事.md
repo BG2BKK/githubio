@@ -21,3 +21,8 @@ title = "nginx模块开发那些事"
 
 * nginx的sendfile，还有读取用户请求的post数据等，灵活的操作内存缓冲区，代码质量很高，值得品味
 
+
+[参考链接](https://t37.net/nginx-optimization-understanding-sendfile-tcp_nodelay-and-tcp_nopush.html)
+
+* sendfile, tcp_nodelay和tcp_nopush是怎样对nginx产生影响的呢？
+	* 
