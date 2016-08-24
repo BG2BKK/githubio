@@ -11,5 +11,52 @@ ffmpeg和opencv是我的老朋友了，读研的时候犯轴，非要自己编�
 
 [树莓派model 1B+上手](http://www.pcworld.com/article/2598363/how-to-set-up-raspberry-pi-the-little-computer-you-can-cook-into-diy-tech-projects.html)，model 1B+是高于model 1低于model 2的奇葩版本，希望广大网民不要像我这样，买个奇葩的板子哈哈
 
-https://ubuntu-pi-flavour-maker.org/download/
+* 树莓派3 上手
+	* https://ubuntu-pi-flavour-maker.org/download/
+		* 镜像: [ubuntu standard server](https://ubuntu-pi-flavour-maker.org/xenial/ubuntu-standard-16.04-server-armhf-raspberry-pi.img.xz.torrent)
+		* 烧写方法
+
+```bash
+sudo apt-get install gddrescue
+unxz ubuntu-mate-16.04-desktop-armhf-raspberry-pi.img.xz
+sudo ddrescue -d -D --force ubuntu-mate-16.04-desktop-armhf-raspberry-pi.img /dev/sdx
+
+```
+		* 初始账号密码：　ubuntu : ubuntu
+		* [resize file system](https://ubuntu-pi-flavour-maker.org/faq/)
+			* sudo fdisk /dev/mmcblk0
+				* Delete the second partition (d, 2)
+				* recreate it using the defaults (n, p, 2, enter, enter),
+				* 设置partition大小，默认，按enter即可
+				* write(w) and exit
+			* reboot
+			* resize2fs /dev/mmcblk0p2
+
+	* 国内源
+
+```bash
+# https://www.zhihu.com/question/26054875
+deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-updates main restricted universe multiverse
+deb-src http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-updates main restricted universe multiverse
+deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-security main restricted universe multiverse
+deb-src http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-security main restricted universe multiverse
+deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-backports main restricted universe multiverse
+deb-src http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial-backports main restricted universe multiverse
+deb http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial main universe restricted
+deb-src http://mirrors.ustc.edu.cn/ubuntu-ports/ xenial main universe restricted
+
+```
+	* [wifi设置](https://i.cmgine.net/archives/11053.html)
+	
+	* 软件安装
+		* wpasupplicant
+		* wireless-tools
+		* vim
+		* libopencv*
+		* ffmpeg
+
 https://wiki.ubuntu.com/ARM/RaspberryPi
+
+
+https://i.cmgine.net/archives/11053.html
+

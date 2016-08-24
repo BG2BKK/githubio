@@ -11,6 +11,7 @@ title = "SO_REUSEADDR和SO_REUSEPORT"
     1. SO_REUSEPORT用于多个socket监听同一个TCP链接
     2. SO_REUSEADDR可用于多个进程bind同一端口，但需要TCP连接的四元组不一样。
 	3. SO_REUSEPORT比SO_REUSEADDR更加扩展，但是也带来了隐患，需要额外注意
+	4. SO_REUSEADDR的最大作用是，当服务因故障重启时，不用等待需要绑定的端口从TIME_WAIT状态变更到CLOSED状态，就可以直接绑定该端口
 
 引言
 ------------------------

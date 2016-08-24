@@ -79,6 +79,7 @@ tcp_retries2 - INTEGER
 			* [格式较好的地址](https://blog.gesha.net/archives/568/)
 	* [聊一聊重传次数](http://perthcharles.github.io/2015/09/07/wiki-tcp-retries/)
 		* 值得一看，目前我对下文还有疑问，并且认为超时时间只和retries2有关。
+	* [min_rto设置可以通过ip route设置](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Release_Notes/U7/ppc/ar01s04.html)
 
 ```bash
    如果RTT较大，比如RTO初始值计算得到的是1000ms
