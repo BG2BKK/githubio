@@ -5,6 +5,28 @@ title = "effective tips in daily work"
 
 +++
 
+redis设置和清除密码
+---------------------------------
+
+正规项目终于要对redis设置密码了，[如何加密码呢](http://blog.csdn.net/zyz511919766/article/details/42268219)
+
+* 配置文件中添加密码
+	* 配置文件中的requirepass配置指令用于配置密码
+	* 配置文件中的masterauth用于配置从机登陆主机的密码
+
+* 运行中添加密码
+	* config set requirepass PASSWORD
+
+* 运行中删除密码
+	* config set requirepass ""
+
+* 获取密码
+	* config get requirepass
+
+* 配置从机
+	* config set masterauth MASTER_PASSWORD
+	* config set requirepass SLAVE_AUTH
+
 epoll是同步非阻塞的
 ---------------------------------
 
