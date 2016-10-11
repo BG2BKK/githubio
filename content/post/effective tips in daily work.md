@@ -5,6 +5,17 @@ title = "effective tips in daily work"
 
 +++
 
+ubuntu下解压zip文件出现乱码的解决办法
+------------------------------------
+
+[参考链接](https://www.zhihu.com/question/20523036)
+
+由于zip格式中并没有指定编码格式，Windows下生成的zip文件中的编码是GBK/GB2312等，因此，导致这些zip文件在Linux下解压时出现乱码问题，因为Linux下的默认编码是UTF8。
+
+目前网上流传一种unzip -O cp936的方法，但一些unzip是没有-O这个选项的。
+
+亲测好用，不好用的看链接
+
 redis设置和清除密码
 ---------------------------------
 
