@@ -71,7 +71,10 @@ epoll、select等多路服用IO，将fd加入等待时间的队列中，每隔�
 
 因此epoll是同步和非阻塞的。
 
+性能分析
+------------------------
 
+* [有用的systemtap脚本](https://sourceware.org/systemtap/examples/keyword-index.html#FUTEX)
 
 分布式存储
 --------------------------
@@ -106,6 +109,7 @@ epoll、select等多路服用IO，将fd加入等待时间的队列中，每隔�
 * http://www.codeproject.com/Articles/56138/Consistent-hashing
 * http://blog.huanghao.me/?p=14
 * http://blog.csdn.net/sparkliang/article/details/5279393
+
 
 
 并发编程
