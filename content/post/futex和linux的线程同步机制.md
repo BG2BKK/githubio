@@ -11,6 +11,9 @@ title = "futex和linux的线程同步机制"
 * [linux线程同步机制](http://www.dbafree.net/?p=1128)
 	* Linux中的线程同步机制(二)–In Glibc
 		* 大部分的glibc的同步方式，mutex或者semaphore，大多基于futex的方式，首先进行用户态检查，未果的话进行futex系统调用。这是我疑惑为什么futex这么常用却在代码层面上看不到它，原因是我们使用的都是基于futex的机制
+	* Linux中的线程同步机制(三)–Practice
+		* pthread库中的pthread_join也是基于futex的哦，当父进程执行pthread_join它的某一个子线程时，如果子线程已经执行完毕，则父进程不会调用futex系统调用，如果子线程仍然执行中，那么父进程调用futex系统调用进行FUTEX_WAIT休眠，等待子线程的唤醒
+	* 好文章，值得深挖和思考
 * man page
 	* 先通过__sync_bool_compare_and_swap等原子操作比对futex的值是否有变化，如果没有，说明没有进程竞争。这里都是用户态执行的
 	* 如果有变化，说明有进程竞争了，所以这时系统调用futex进行FUTEX_WAIT，使得本进程休眠或休眠一段时间，直到有别的进程FUTEX_WAKE它
