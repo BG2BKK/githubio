@@ -110,6 +110,10 @@ epoll、select等多路服用IO，将fd加入等待时间的队列中，每隔�
 * http://blog.huanghao.me/?p=14
 * http://blog.csdn.net/sparkliang/article/details/5279393
 
+2PC、3PC和Paxos算法
+------------------------
+
+* [coolshell](http://coolshell.cn/articles/10910.html)
 
 
 并发编程
