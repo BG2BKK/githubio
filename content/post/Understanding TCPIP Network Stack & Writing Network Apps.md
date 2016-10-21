@@ -1,5 +1,5 @@
 +++
-date = "2016-10-20T22:21:55+08:00"
+date = "2016-10-20T22:21:55+08:00"	
 draft = false
 title = "Understanding TCPIP Network Stack & Writing Network Apps"
 
@@ -37,10 +37,73 @@ TCP/IP协议为这些考虑而设计，如下是理解TCP/IP协议栈需要了�
 	* 拥塞窗口是除接收窗口之外的另一个通过限制在途数据流大小以防止网络拥塞的方法。发送方尽可能多的发出拥塞窗口允许的数据量，该窗口大小有诸多方法可以实现，Vegas、Westwood、BIC或者CUBIC。不同于流控中的接收窗口，拥塞窗口是由发送方单独确定的。
 
 
-数据传输
+数据发送
 ------------------------
 
+如下图所示，一个网络栈有很多层，图中包含各层类型。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/operation_process_by_each_layer_of_tcp_ip.png" width="70%" height="70%"><p>Figure 1: Operation Process by Each Layer of TCP/IP Network Stack for Data Transmission.</p></div>
+
+图中虽然有多层，但可以简要分为3类：
+
+1. User area 用户区
+2. Kernel area 内核区
+3. Device area 设备区
+
+在user area和kerne area处理的任务都是由CPU完成的，所以user area和kernel area统称为***host***来与device area加以区分。在这里的device是***Network Interface Card(NIC)***，也就是网卡，用于收发数据，NIC是一个比我们常用的"局域网网卡"更准确的术语。
+
+让我们大致看看user area，首先应用程序准备好数据，然后调用***write()***系统调用发送数据。假设所用的socket(图中write调用的参数fd)合法，那么当发起系统调用后，发送流程切换到kernel area。
+
+POSIX系列操作系统例如Linux和Unix通过一个file descriptor，即文件描述符fd向应用程序暴露所用的socket。在POSIX系系统中，socket也是一种文件，应用程序使用的fd在进程中有其对应的file structure，与socket对应，图1中的文件曾进行简单的检查，然后通过调用socket的相关函数。--
+
+内核的socket有两个buffer：
+
+1. 一个是send socket buffer，发送缓冲区，用于发送
+2. 一个是receive socket buffer，接收缓冲区，用于接收
+
+当***write***系统调用被调用时，待发送数据从用户空间复制到内核内存中，然后添加进发送缓冲区的末尾。这样就可以按顺序发出数据。图一中的'Sockets'那层对应的右边灰色的小格子指向socket buffer中的数据。
+
+然后，TCP被调用了。
+
+每个tcp类型的socket都有一个***TCP Control Block(TCB)***tcp控制块的数据结构，包括了用于处理一个TCP连接所需要的元素，比如connection state连接状态(LISTEN, ESTABLISHED, TIME_WAIT等)、receive window接收窗口，congestion window拥塞窗口、sequence number包序号和resending timer重传定时器等。 
+如果当前TCP状态允许数据传输，会新建一个新的TCP segment(packet，报文)；否则系统调用结束并返回错误码。
+
+下图是一个TCP报文，包括两个TCP片段：TCP header和Payload，如图2所示
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/tcp_frame_structure.png" width="70%" height="70%"><p>Figure 2: TCP Frame Structure .</p></div>
+
+payload部分是待发送的数据，从系统的未确认(unACK) socket发送缓冲区中获得，payload的最大长度由对方接收窗口大小、拥塞窗口大小和maximum segment size（MSS，最大报文长度）共同决定。
+
+-- 计算packet的checksum，目前由NIC用硬件实现
+
+然后TCP报文进入下一层IP层处理，IP层添加IP头部，并进行IP路由选择。IP路由选择是一个选择下一跳的过程。当IP层计算并添加IP头部校验checksum后，将数据包发送到下一层Ethernet层，即数据链路层。Ethernet层采用ARP协议搜索查询下一跳IP的MAC地址，然后向报文添加Ethernet头部。添加完Ethernet头部后，host部分的报文就处理完毕了。
+
+在IP路由选择执行完毕后，根据选择结果选择哪个NIC作为传输接口，然后调用NIC驱动发送数据。
+
+此时，如果一个抓包软件比如tcpdump或者wireshark正在运行，kernel将报文从内核态复制一份到这些软件内存中。同样的，如果是抓接收到的包，也同样是从NIC驱动这里抓取的。
+
+NIC驱动程序通过约定的通信协议向NIC请求发送packet。
+
+NIC收到发送网络包请求后，将报文复制到自己的内存中然后发送到网络。发送前，还要修改一些标志，包括packet的CRC校验码，IFG（Inter-Frame Gap）--（ At this time, by complying with the Ethernet standard, it adds the IFG (Inter-Frame Gap), preamble, and CRC to the packet. The IFG and preamble are used to distinguish the start of the packet (as a networking term, framing), and the CRC is used to protect the data (the same purpose as TCP and IP checksum). Packet transmission is started based on the physical speed of the Ethernet and the condition of Ethernet flow control. It is like getting the floor and speaking in a conference room.）（待翻译）
 
 
+当NIC发送一个数据报文，NIC向CPU发出中断，每个中断有其自己的中断号，操作系统根据中断号调用对应的驱动程序处理中断。NIC驱动启动时注册中断回调函数，OS调用中断服务程序，然后中断服务程序返回已发送的数据包给OS。
 
+至此我们讨论了应用程序数据发送的流程，贯穿kernel和NIC设备。而且，即使没有应用程序的写请求，kernel可以调用TCP层直接发送数据包。例如，当收到一个ACK后并且得知对端接收窗口扩大，kernel将自动的把仍在发送缓存中的数据打包，直接发出。
 
+数据接收
+------------------------
+
+现在我们看看数据的接收流程，当数据包到来的时候，网络栈是如何处理的，如图3所示。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/operation_process_by_each_layer_of_tcp_ip_for_data_received.png" width="70%" height="70%"><p>Figure 3: Operation Process by Each Layer of TCP/IP Network Stack for Handling Data Received.</p></div>
+
+首先，NIC将数据包写入自身内存，检查该包是否CRC合法，然后将该包发送给host的内存，host的内存是NIC驱动事先向kernel申请的内存，用于接收数据包，当host分配成功，通过NIC驱动告诉NIC这块内存的地址和大小。如果NIC driver没有实现分配好内存，NIC收到数据包后会直接丢弃。
+
+当NIC将数据包写入到host的内存缓冲区后，NIC向host 操作系统发出中断信号。
+
+-- 然后，NIC驱动检查它是否可以处理这个新包，至此都是NIC和NIC驱动之间的 （删除）
+
+当驱动需要将数据包发送到上一层时，这个数据包必须被包装成OS可以理解的包格式。比如，linux上的sk_buff，BSD系列内核的mbuf结构，或者MS系统的NET_BUFFER_LIST结构。NIC驱动将封装后的数据包转给上层处理。
+
+Ethernet层检查数据包是否合法，然后根据数据包的网络协议选择不同
