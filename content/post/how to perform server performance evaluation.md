@@ -11,6 +11,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 	* CPU load balance
 	* context switch/ interrupt stats
 		* 频繁切换很要命
+	* cache失效/cache miss情况
 
 * 内存使用情况
 	* 内存使用情况分布
@@ -34,6 +35,11 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 	* 输入输出
 	* DNS时间
 	* TCP情况统计
+		* TCP数量
+		* TCP状态分布
+			* ESTA
+			* TIME_WAIT等
+	* Unix Domain Socket的情况
 	* socket内存使用率
 	* socket缓冲队列
 	* 从sysctl配置开始，然后统计
@@ -60,3 +66,5 @@ resource
 usage
 saturation
 error
+
+[context switch definition](http://www.linfo.org/context_switch.html)

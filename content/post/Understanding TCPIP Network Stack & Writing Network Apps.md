@@ -8,11 +8,12 @@ title = "Understanding TCPIP Network Stack & Writing Network Apps"
 理解TCP/IP协议栈 实现网络应用
 ===================================
 
-遇到好文章我就想给翻译下来，觉得写的很好，现在cubrid的一篇TCP/IP相关的文章[详细介绍了TCP协议栈，以及收发数据包的流程，非常有启发意义](http://www.cubrid.org/blog/dev-platform/understanding-tcp-ip-network-stack/)，所以我就想翻译一下，做个记录。
+> 遇到好文章我就想给翻译下来，觉得写的很好，现在cubrid的一篇TCP/IP相关的文章[详细介绍了TCP协议栈，以及收发数据包的流程，非常有启发意义](http://www.cubrid.org/blog/dev-platform/understanding-tcp-ip-network-stack/)，所以我就想翻译一下，做个记录。将TCP/IP协议栈在一篇文章内讲明白是不可能的，所以本文能够做到的是讲清楚TCP/IP协议栈收发数据包的流程，我们要做的是首先了解大致流程，然后尝试根据TCP/IP协议和拿着代码去理解。由于我本人能力十分有限，译文都是我个人理解，所以会有大量错误，希望您能帮我纠正。如果您想转载，我必须提醒一句我这个译文是自己学习之用，并未取得版权方同意，因此首先做免责声明。
 
-我们不能想象没有TCP/IP，互联网服务将会是何种情况。所有我们开发和使用的Internet服务都基于一个坚实的基础：TCP/IP。理解数据如何在网络中传输可以帮助你通过优化和调试的方式来提升程序性能，引入新的技术。
 
-本文将通过在linux操作系统和硬件层面的数据流和控制流来描述网络技术栈的整体操作流程。
+我们不能想象没有TCP/IP，互联网服务将会是何种情况。所有我们开发和使用的Internet服务都基于一个坚实的基础：TCP/IP。理解数据如何在网络中传输可以帮助你通过优化和调试的方式来提升程序性能，引入和使用新的技术。
+
+本文将通过在linux操作系统和硬件层面的数据流和控制流来描述网络技术栈的整体执行流程。
 
 TCP/IP的关键字
 -----------------------
@@ -32,7 +33,7 @@ TCP/IP协议为这些考虑而设计，如下是理解TCP/IP协议栈需要了�
 4. RELIABILITY THROUGH ACK，通过ACK实现可靠性
 	* 当发送方发送数据后，没有收到接收方传来的该包的ACK，发送方将重新发送该数据。因此，发送方的TCP需要将未被ACK的数据缓存起来。
 5. FLOW CONTROL，流控
-	* 发送方都想尽可能的发送数据给接收方，但是发送方也得能够有能力接收，因此接收方要发送自己能够接收的最大数据量给发送方知道，最终发送方发出长度数据量由接收方的***接收窗口***决定。
+	* 发送方都想尽可能的发送数据给接收方，但是发送方也得能够有能力接收，因此接收方要发送自己能够接收的最大数据量给发送方知道，最终发送方发出数据量由接收方的***接收窗口***决定。
 6. CONGESTION CONTROL，拥塞控制
 	* 拥塞窗口是除接收窗口之外的另一个通过限制在途数据流大小以防止网络拥塞的方法。发送方尽可能多的发出拥塞窗口允许的数据量，该窗口大小有诸多方法可以实现，Vegas、Westwood、BIC或者CUBIC。不同于流控中的接收窗口，拥塞窗口是由发送方单独确定的。
 
@@ -52,44 +53,42 @@ TCP/IP协议为这些考虑而设计，如下是理解TCP/IP协议栈需要了�
 
 在user area和kerne area处理的任务都是由CPU完成的，所以user area和kernel area统称为***host***来与device area加以区分。在这里的device是***Network Interface Card(NIC)***，也就是网卡，用于收发数据，NIC是一个比我们常用的"局域网网卡"更准确的术语。
 
-让我们大致看看user area，首先应用程序准备好数据，然后调用***write()***系统调用发送数据。假设所用的socket(图中write调用的参数fd)合法，那么当发起系统调用后，发送流程切换到kernel area。
+让我们大致看看user area，首先应用程序准备好数据(右上角的user data灰色框)，然后调用***write()***系统调用发送数据。假设所用的socket(图中write调用的参数fd)合法，那么当发起系统调用后，发送流程切换到kernel area。
 
-POSIX系列操作系统例如Linux和Unix通过一个file descriptor，即文件描述符fd向应用程序暴露所用的socket。在POSIX系系统中，socket也是一种文件，应用程序使用的fd在进程中有其对应的file structure，与socket对应，图1中的文件曾进行简单的检查，然后通过调用socket的相关函数。--
+POSIX系列操作系统例如Linux和Unix在应用程序通过一个file descriptor，即文件描述符fd来表示所用的socket。在POSIX系系统中，socket也是一种文件，应用程序使用的fd在进程中有其对应的file structure，与socket对应（file->private_data指向对应的struct socket，此处不影响理解），图1中的文件层进行简单的检查(VFS对write()的权限检查)，然后通过调用socket的相关函数最终实现write()。
 
-内核的socket有两个buffer：
+内核中每个socket有两个buffer：
 
 1. 一个是send socket buffer，发送缓冲区，用于发送
 2. 一个是receive socket buffer，接收缓冲区，用于接收
 
-当***write***系统调用被调用时，待发送数据从用户空间复制到内核内存中，然后添加进发送缓冲区的末尾。这样就可以按顺序发出数据。图一中的'Sockets'那层对应的右边灰色的小格子指向socket buffer中的数据。
+当***write***系统调用被调用时，待发送数据从用户空间复制到内核内存中，然后添加进发送缓冲区的链表末尾。这样就可以按顺序发出数据。图一中的'Sockets'那层对应的右边灰色的小格子指向socket send buffer中的数据。然后，调用TCP/IP协议栈。
 
-然后，TCP被调用了。
+每个tcp类型的socket都有一个***TCP Control Block(TCB)***tcp控制块的数据结构，TCB包括了一个TCP连接所需要的成员，比如connection state连接状态(LISTEN, ESTABLISHED, TIME_WAIT等)、receive window接收窗口，congestion window拥塞窗口、sequence number包序号和resending timer重传定时器等。可以认为一个TCB 代表一条TCP连接。
 
-每个tcp类型的socket都有一个***TCP Control Block(TCB)***tcp控制块的数据结构，包括了用于处理一个TCP连接所需要的元素，比如connection state连接状态(LISTEN, ESTABLISHED, TIME_WAIT等)、receive window接收窗口，congestion window拥塞窗口、sequence number包序号和resending timer重传定时器等。 
 如果当前TCP状态允许数据传输，会新建一个新的TCP segment(packet，报文)；否则系统调用结束并返回错误码。
 
 下图是一个TCP报文，包括两个TCP片段：TCP header和Payload，如图2所示
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/tcp_frame_structure.png" width="70%" height="70%"><p>Figure 2: TCP Frame Structure .</p></div>
 
-payload部分是待发送的数据，从系统的未确认(unACK) socket发送缓冲区中获得，payload的最大长度由对方接收窗口大小、拥塞窗口大小和maximum segment size（MSS，最大报文长度）共同决定。
+payload部分是待发送的数据，处于socket的未确认(unACK)发送缓冲区，每个包的payload的最大长度由对方接收窗口大小、拥塞窗口大小和maximum segment size（MSS，最大报文长度）共同决定。
 
--- 计算packet的checksum，目前由NIC用硬件实现
+然后计算packet的checksum校验码，实际上，checksum计算目前由NIC用硬件实现，放在这里只是为了逻辑通顺。
 
-然后TCP报文进入下一层IP层处理，IP层添加IP头部，并进行IP路由选择。IP路由选择是一个选择下一跳的过程。当IP层计算并添加IP头部校验checksum后，将数据包发送到下一层Ethernet层，即数据链路层。Ethernet层采用ARP协议搜索查询下一跳IP的MAC地址，然后向报文添加Ethernet头部。添加完Ethernet头部后，host部分的报文就处理完毕了。
+然后TCP报文进入下一层IP层处理，IP层添加IP头部和checksum，并进行IP路由选择。IP路由选择是选择下一跳的过程。当IP层计算并添加IP头部校验checksum后，将数据包发送到下一层Ethernet层，即数据链路层。Ethernet层采用ARP协议搜索查询下一跳IP的MAC地址，然后向报文添加Ethernet头部。添加完Ethernet头部后，host部分的报文就处理完毕了。
 
-在IP路由选择执行完毕后，根据选择结果选择哪个NIC作为传输接口，然后调用NIC驱动发送数据。
+在IP路由选择执行完毕后，根据结果选择哪个NIC作为传输接口；在host处理完报文后，调用NIC驱动发送数据。（一定要注意，NIC和NIC驱动不是一体的，前者是NIC网卡硬件，后者是运行在host和内核的驱动程序，硬件是CPU）
 
-此时，如果一个抓包软件比如tcpdump或者wireshark正在运行，kernel将报文从内核态复制一份到这些软件内存中。同样的，如果是抓接收到的包，也同样是从NIC驱动这里抓取的。
+此时，如果一个抓包软件比如tcpdump或者wireshark正在运行，kernel将报文从内核态复制一份到这些软件内存中。同样的，如果是抓接收到的包，也同样是从NIC驱动这里抓取的。一般来说，流量整形工具也是在这一层实现的。
 
-NIC驱动程序通过约定的通信协议向NIC请求发送packet。
+NIC驱动程序通过厂商制定的网卡与主机的通信协议向NIC请求发送packet。
 
-NIC收到发送网络包请求后，将报文复制到自己的内存中然后发送到网络。发送前，还要修改一些标志，包括packet的CRC校验码，IFG（Inter-Frame Gap）--（ At this time, by complying with the Ethernet standard, it adds the IFG (Inter-Frame Gap), preamble, and CRC to the packet. The IFG and preamble are used to distinguish the start of the packet (as a networking term, framing), and the CRC is used to protect the data (the same purpose as TCP and IP checksum). Packet transmission is started based on the physical speed of the Ethernet and the condition of Ethernet flow control. It is like getting the floor and speaking in a conference room.）（待翻译）
+NIC收到发送网络包请求后，将报文复制到自己的内存中然后发送到网络。发送前，为遵守以太网标准，还要修改一些标志，包括packet的CRC校验码，IFG（Inter-Frame Gap）包内间隔和报文头等标志；CRC校验码用于数据保真，其他二者用于区分其实包还是中间包（需要翻译调整）。数据包传输速度根据网络物理速度和以太网流控制条件来调整，一般取低值，并留有一定余量。
 
+当NIC发出一个数据包，NIC向CPU发出中断；每个中断有其自己的中断号，操作系统根据中断号调用对应的驱动程序处理中断，驱动的中断处理函数是NIC驱动在OS启动时注册中断回调函数；当中断发生时，OS调用中断服务程序，然后中断服务程序向OS返回发送完成的数据包（编号）。
 
-当NIC发送一个数据报文，NIC向CPU发出中断，每个中断有其自己的中断号，操作系统根据中断号调用对应的驱动程序处理中断。NIC驱动启动时注册中断回调函数，OS调用中断服务程序，然后中断服务程序返回已发送的数据包给OS。
-
-至此我们讨论了应用程序数据发送的流程，贯穿kernel和NIC设备。而且，即使没有应用程序的写请求，kernel可以调用TCP层直接发送数据包。例如，当收到一个ACK后并且得知对端接收窗口扩大，kernel将自动的把仍在发送缓存中的数据打包，直接发出。
+至此我们讨论了应用程序数据发送的流程，贯穿kernel和NIC设备。而且，即使没有应用程序的写请求，kernel可以调用TCP/IP协议栈直接发送数据包。例如，当收到一个ACK后并且得知对端接收窗口扩大，kernel将自动的把仍在发送缓存中的数据打包，直接发出。
 
 数据接收
 ------------------------
@@ -102,21 +101,21 @@ NIC收到发送网络包请求后，将报文复制到自己的内存中然后�
 
 当NIC将数据包写入到host的内存缓冲区后，NIC向host 操作系统发出中断信号。
 
--- 然后，NIC驱动检查它是否可以处理这个新包，至此都是NIC和NIC驱动之间的 （删除）
+然后，NIC驱动来确认它是否可以处理这个新包，这个过程使用的是NIC和NIC驱动之间的通信协议。
 
 当驱动需要将数据包发送到上一层时，这个数据包必须被包装成OS可以理解的包格式。比如，linux上的sk_buff，BSD系列内核的mbuf结构，或者MS系统的NET_BUFFER_LIST结构。NIC驱动将封装后的数据包转给上层处理。
 
-Ethernet层检查数据包是否合法，然后根据数据包头部的ethertype值选择上层网络协议。IPV4类型的值为0x0800。本层的工作就是去掉数据包的Ethernet头部，传送给上层IP层。
+链路层Ethernet层检查数据包是否合法，然后根据数据包头部的ethertype值选择上层网络协议。IPV4类型的值为0x0800。本层的工作就是去掉数据包的Ethernet头部，传送给上层IP层。
 
-IP层同样首先检查数据包合法性，采用检查IP头部的checksum字段的方式。在逻辑上决定是否进行IP路由选择，本机操作系统处理这个包，还是转发给另一个系统。如果本机处理数据包，那么IP层将根据IP头部的协议proto值选择上层传输层协议，比如TCP协议的proto值是6.本层的工作就是移除IP头部，发送给上层TCP层。
+IP层同样首先检查数据包合法性，采用检查IP头部的checksum字段的方式。在逻辑上进行IP路由选择，决定是否本机操作系统处理这个包，还是转发给另一个系统。如果本机处理数据包，那么IP层将根据IP头部的协议proto值选择上层传输层协议，比如TCP协议的proto值是6.本层的工作就是移除IP头部，发送给上层TCP层。
 
-同样的，TCP层检查数据包的checksum是否正确。之前说过，TCP的checksum也是由NIC计算得到的。（难道这些检查都是在NIC层面上做，这一步只是逻辑上放在这里的？）
+同样的，TCP层检查数据包的checksum是否正确。之前说过，TCP的checksum也是由NIC计算得到的。（可以理解这些CRC校验的工作都是由NIC硬件实现的，如果硬件层没有校验通过，可以直接在网卡丢弃）
 
-然后开始搜索这个数据包对应的TCP Control Block，采用IP:PORT四元组作为标志查找。找到TCP控制块后，根据包协议处理数据包。如果是收到新数据，那么将其加入socket接收缓冲区中。根据TCP状态，协议栈发送TCP回复包（比如ACK包）。现在TCP/IP的接收数据流程完成了。
+然后开始采用IP:PORT四元组作为标志搜索这个数据包对应的TCP Control Block。找到TCP控制块后就找到了TCP连接，根据包协议处理数据包。如果是收到新数据，那么将其加入socket接收缓冲区中。根据TCP状态，协议栈发送TCP回复包（比如ACK包）。现在TCP/IP的接收数据流程完成了。
 
 socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP接受窗口扩大时TCP的吞吐能力增大；在此之前，socket的缓冲区大小由应用程序或者操作系统配置来调整，而现在新的网络栈具有自动调整接受缓冲区大小的功能。
 
-当应用程序调用read系统调用时，从user area切换到kernel area，数据从socket的缓冲区复制到user area，然后从socket缓冲区中去除，然后TCP层被调用。当socket缓冲区仍有空间时，TCP增大接受窗口。And it sends a packet according to the protocol status. If no packet is transferred, the system call is terminated.（待翻译）
+当应用程序调用read系统调用时，从user area切换到kernel area，数据从socket的缓冲区复制到user area，然后从socket缓冲区中释放。然后调用TCP层，因为socket缓冲区有了新的空间，所以TCP增大接受窗口。And it sends a packet according to the protocol status. If no packet is transferred, the system call is terminated.（待翻译）
 
 网络栈开发方向
 -------------------------
@@ -138,11 +137,11 @@ socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP�
 网络栈的控制流
 -------------------------
 
-现在我们可以从更细节的角度观察linux网络栈的内部流程。就像其他非网络栈的子系统，linux的网络站以事件驱动的方式，当网络事件发生时进行相应处理，也就是说网络栈内只有一个进程或者控制流处理运行（可修饰）。上文的图1和图3简单的表示了控制流的数据包，图4将显示更多细节。
+现在我们可以从更细节的角度观察linux网络栈的内部流程。就像其他非网络栈的子系统，linux的网络站以事件驱动的方式，当网络事件发生时进行相应处理，也就是说网络栈内只有一个进程或者控制流处理运行（其实就是kernel）。上文的图1和图3简单的表示了控制流的数据包，图4将显示更多细节。
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/control_flow_in_stack.png" width="70%" height="70%"><p>Figure 4: Control Flow in the Stack.</p></div>
 
-图4的控制流(1)中，应用程序通过系统调用比如read()和write()使用TCP，此处没有数据包的传输。控制流(2)与控制流(1)的不同之处在于，它用于调用TCP层后发送数据包，它创造一个数据包然后将该包发送到NIC驱动前的一个队列中，然后队列的实现方式决定何时将该包发送给NIC驱动。这是linux中的队列方式，linux的流量控制功能就是操作这个队列实现的，默认的操作方式是FIFO，先进先出。通过使用另一种队列控制方式，linux可以实现多种效果，比如人工控制丢包、包延迟和流量限制等等功能。在控制流(1)和(2)中，应用程序的进程也将调用NIC驱动。
+图4的控制流(1)中，应用程序通过系统调用比如read()和write()调用TCP/IP协议栈，在这里没有数据包的传输，需要经过协议栈传输。控制流(2)与控制流(1)的不同之处在于，它要求调用TCP/IP协议栈后发送数据包，它创造一个数据包然后将该包发送到NIC驱动前的一个队列中，然后队列的实现方式决定何时将该包发送给NIC驱动。这其实就是linux中的队列方式，linux的流量控制功能就是操作这个队列实现的，默认的操作方式是FIFO，先进先出。通过使用其他队列控制方式，linux可以实现多种效果，比如人工控制丢包、包延迟和流量限制等等功能。在控制流(1)和(2)中，应用程序的处理流程最终将调用NIC驱动。
 
 控制流(3)表示TCP用到的一些定时器，比如当TIME_WAIT定时器超时后，TCP协议栈将响应并删除超时的连接。
 
@@ -150,11 +149,11 @@ socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP�
 
 控制流(3)和(4)显示定时器软中断的处理流程。
 
-当NIC驱动收到NIC中断，它将释放已传输的数据包。大部分情况下，NIC驱动的处理流程在这里就终止了（莫非是发送数据完成后收到NIC的通知？）。控制流(5)表示数据包在传输队列中累积，NIC驱动请求软中断，然后软中断处理函数从发送队列中将累积的数据包发送给NIC驱动（请结合(5)左边的黑线）。
+当NIC驱动收到NIC中断，它将释放已传输的数据包。大部分情况下，NIC驱动的处理流程在这里就终止了。控制流(5)表示数据包在传输队列中累积，NIC驱动请求软中断，然后软中断处理函数从发送队列中将累积的数据包发送给NIC驱动（请结合(5)左边的黑线）。
 
-当NIC驱动收到中断并且收到一个新的数据包，它将请求软中断。处理接收数据包的软中断调用NIC驱动并将收到的数据包传给上层处理。在LInux中，如上描述的处理接受数据包的处理方式称为New API(NAPI)。NAPI与轮询类似，因为NIC驱动并不直接向上层发送数据，而是上层从NIC驱动中拿数据包，这段代码称为NAPI poll(NAPI轮询)。
+当NIC驱动收到中断并且收到一个新的数据包，它将请求软中断。处理接收数据包的软中断调用NIC驱动并将收到的数据包传给上层处理。在LInux中，如上描述的处理接受数据包的处理方式称为New API(NAPI)。NAPI与轮询类似，因为NIC驱动并不直接向上层发送数据，而是上层从NIC驱动中主动拿数据包，这段代码称为NAPI poll(NAPI轮询)。
 
-控制流(6)显示TCP协议栈接受数据包的完整处理流程，控制流(7)表示请求更多数据包进行发送到过程。控制流(5)、(6)、(7)都是由NIC发起中断，软中断处理NIC中断实现的。
+控制流(6)显示TCP协议栈接受数据包的完整处理流程，控制流(7)表示请求更多数据包进行发送到过程。控制流(5)、(6)、(7)都是由NIC发起中断，软中断服务程序处理NIC中断实现的。
 
 怎样处理中断然后接受数据包
 ---------------------------------
@@ -185,4 +184,236 @@ socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP�
 
 ### sk_buff包括数据包的Data部分和元数据部分
 
-sk_buff直接包括包数据部分，或者用指针指向它。在图6中，一些
+sk_buff直接包括包数据部分，或者用指针指向它。在图6中，sk_buff结构体中的data成员指向一个skb_shared_info结构体的Ethernet到buffer成员之间的内存，而额外的数据由skb_shared_info的frags成员指向具体的内存页。
+
+sk_buff的一些基本信息，比如头部信息和包数据长度存在元数据区域(元数据待理解，初步认定是skb_shared_info)。如图6所示，链路层头部mac_header、网络层头部network_header和传输控制层头部transport_header都有对应的指针依次指向从元数据开始的地方。这种方式使得TCP协议处理更容易一些。
+
+### 如何添加或删除头部
+
+当在网络协议栈各层处理时，数据包的头部将会被添加或者删除，此时采用指针来移动到不同层的header位置最为方便高效，比如如果要删除Ethernet头部，只需要将头部指针，即sk_buff的head成员指向上一层IP头部位置即可。
+
+### 怎样合并或者分解数据包
+
+在向socket缓冲区高效添加或者删除数据包的数据量时，采用链表的方式最为方便。sk_buffer的next和prev指针成员的目的就是在此。
+
+### 快速分配或者释放内存
+
+当创建一个packet时，一个sk_buff结构体要被分配，这里需要快速分配器。比如，如果数据在万兆网卡传输，那么每秒最多将超过百万包被分配和释放。
+
+## TCP Control Block
+
+第二，需要有一个结构体来表示一条TCP连接。此前，它被笼统的称为TCP控制块。Linux使用tcp_sock结构体表示TCP Control Block，如图7所示，你可以看到socket、tcp_socket和struct file之间的关系。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/tcp_connection_structure.png" width="70%" height="70%"><p>Figure 7: TCP Connection Structure.</p></div>
+
+当一个系统调用执行时，首先搜索进程的fd对应的struct file结构，对于类Uinx操作系统来说，一个socket、一个文件或者一个设备对于普通文件系统来说都抽象成struct file结构。因此，文件系统包括了基本信息，对于一个socket结构体来说，struct socket包含了与socket相关的信息，以及一个file指针，该socket结构体[同样有一个struct sock类型的指针sk成员，struct sock可强制类型转换到struct tcp_sock](include/linux/tcp.h中的tcp_sk函数)。
+
+```cpp
+// socket 结构体, include/linux/net.h
+
+/**
+ *  struct socket - general BSD socket
+ *  @state: socket state (%SS_CONNECTED, etc)
+ *  @type: socket type (%SOCK_STREAM, etc)
+ *  @flags: socket flags (%SOCK_NOSPACE, etc)
+ *  @ops: protocol specific socket operations
+ *  @file: File back pointer for gc
+ *  @sk: internal networking protocol agnostic socket representation
+ *  @wq: wait queue for several uses
+ */
+struct socket {
+	socket_state		state;
+
+	kmemcheck_bitfield_begin(type);
+	short			type;
+	kmemcheck_bitfield_end(type);
+
+	unsigned long		flags;
+
+	struct socket_wq __rcu	*wq;
+
+	struct file		*file;
+	struct sock		*sk;
+	const struct proto_ops	*ops;
+};
+
+```
+
+socket结构体指向的tcp_sock结构体除了支持TCP协议类型外还有别的比如sock，inet_sock等类型，这点可以视为某种意义上的多态。
+
+所有TCP协议的状态信息保存在tcp_sock结构体中，比如TCP的序号sequence number、接受窗口receive window、拥塞窗口和重传定时器等。
+
+socket发送缓冲区和socket接收缓冲区都是tcp_sock的sk_buff链表；tcp_sock的dst_entry成员，存储IP路由选择结果，避免再次进行路由选择，dst_entry可以进行ARP结果的快速检索，比如对端MAC地址。dst_entry是路由表的一部分，由于路由表的复杂结构，所以不在本文讨论，总之记住dst_entry可用来选择传输本数据包的网络设备NIC，NIC就是dst_entry指向的net_device成员。
+
+因此，通过struct file我们可以很容易的找到与TCP连接的所有信息，只占用少量内存，几KB而已（有很多功能添加进来，所以这部分内存从过去到现在不断增长）。
+
+最后，我们看下TCP连接的查找表，这是一个用于查找所收到数据包对应的TCP连接的哈希表，索引通过数据包的IP:PORT四元组进行Jenkins哈希算法计算得到。选择这个算法的原因是考虑到防范对此哈希表的攻击（待查）。
+
+其余代码：如何发送数据
+---------------------------
+
+我们通过追踪阅读Linux kernel源码来学习TCP/IP协议栈如何执行，通过常用的读数据和写数据来观察。
+
+首先，应用程序调用write()来实现数据发送
+
+```cpp
+SYSCALL_DEFINE3(write, unsigned int, fd, const char __user *, buf, ...)
+{
+	struct file *file;
+	[...]
+	file = fget_light(fd, &fput_needed);
+	[...] ===>
+	ret = filp->f_op->aio_write(&kiocb, &iov, 1, kiocb.ki_pos);
+ 
+struct file_operations {
+	[...]
+	ssize_t (*aio_read) (struct kiocb *, const struct iovec *, ...)
+	ssize_t (*aio_write) (struct kiocb *, const struct iovec *, ...)
+	[...]
+};
+ 
+static const struct file_operations socket_file_ops = {
+	[...]
+	.aio_read = sock_aio_read,
+	.aio_write = sock_aio_write,
+	[...]
+};
+```
+
+当应用程序调用write()系统调用，内核在文件层执行write()，首先找到fd对应的struct file，然后调用file_operations中的aio_write()，它是一个函数指针，最终调用的是socket_file_ops的sock_aio_write()方法。kenerl中通过函数表的方式实现接口，这点十分常见，但是对于TCP的具体指向方式，可以以后详查(TODO LIST)。
+
+接下来是sock_aio_write()的具体调用过程。
+
+```cpp
+static ssize_t sock_aio_write(struct kiocb *iocb, const struct iovec *iov, ..)
+{
+	[...]
+	struct socket *sock = file->private_data;
+	[...] ===>
+	return sock->ops->sendmsg(iocb, sock, msg, size);
+ 
+struct socket {
+	[...]
+	struct file *file;
+	struct sock *sk;
+	const struct proto_ops *ops;
+};
+ 
+const struct proto_ops inet_stream_ops = {
+	.family = PF_INET,
+	[...]
+	.connect = inet_stream_connect,
+	.accept = inet_accept,
+	.listen = inet_listen,
+	.sendmsg = tcp_sendmsg,
+	.recvmsg = inet_recvmsg,
+	[...]
+};
+ 
+struct proto_ops {
+	[...]
+	int (*connect) (struct socket *sock, ...)
+	int (*accept) (struct socket *sock, ...)
+	int (*listen) (struct socket *sock, int len);
+	int (*sendmsg) (struct kiocb *iocb, struct socket *sock, ...)
+	int (*recvmsg) (struct kiocb *iocb, struct socket *sock, ...)
+	[...]
+};
+```
+sock_aio_write()函数从struct file中获取struct socket，然后调用socket的sendmsg方法，sendmsg依然是个函数指针，指向的是struct socket中的proto_ops函数表的sendmsg，IPv4协议族的TCP类型的proto_ops操作表是inet_stream_ops，将sendmsg实现为tcp_sendmsg。
+
+```cpp
+int tcp_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg, size_t size)
+{
+	struct sock *sk = sock->sk;
+	struct iovec *iov;
+	struct tcp_sock *tp = tcp_sk(sk);
+	struct sk_buff *skb;
+
+	[...]
+
+	mss_now = tcp_send_mss(sk, &size_goal, flags);
+
+	/* Ok commence sending. */
+	iovlen = msg->msg_iovlen;
+	iov = msg->msg_iov;
+	copied = 0;
+
+	[...]
+
+	while (--iovlen >= 0) {
+		int seglen = iov->iov_len;
+		unsigned char __user *from = iov->iov_base;
+		iov++;
+		while (seglen > 0) {
+			int copy = 0;
+			int max = size_goal;
+	
+			[...]
+		
+			skb = sk_stream_alloc_skb(sk, select_size(sk, sg), sk->sk_allocation);
+			if (!skb)
+				goto wait_for_memory;
+			/*
+			* Check whether we can use HW checksum.
+			*/
+			if (sk->sk_route_caps & NETIF_F_ALL_CSUM)
+				skb->ip_summed = CHECKSUM_PARTIAL;
+		
+			[...]
+			skb_entail(sk, skb);
+		
+			[...]
+			/* Where to copy to? */
+			if (skb_tailroom(skb) > 0) {
+		
+				/* We have some space in skb head. Superb! */
+				if (copy > skb_tailroom(skb))
+					copy = skb_tailroom(skb);
+				if ((err = skb_add_data(skb, from, copy)) != 0)
+					goto do_fault;
+				[...]
+			
+				if (copied)
+					tcp_push(sk, flags, mss_now, tp->nonagle);
+			
+				[...]
+}
+```
+
+tcp_sendmsg()首先从参数struct socket \*sock获取tcp_sock，即TCP Control Blcok，然后将应用程序请求发送的数据复制到socket的发送缓冲区中。当复制数据到sk_buff中前，首先获取socket的Maximum Segment Size(MSS，最大消息长度)，MSS代表一个TCP包可携带的最大数据量（当然如果支持TSO或者GSO的话可以大于MSS），然后创建数据包，即sk_stream_alloc_skb()函数创建一个新的sk_buff，返回skb，skb_entail()函数将新建的skb添加到socket的发送缓冲区中（前文提到该缓冲区是一个链表）。skb_add_data函数将应用程序的数据复制到skb的buffer中。所有的数据将在重复调用这一过程中复制完成。此时，socket的发送缓冲区将以链表形式组织起MSS大小的若干个sk_buff。最后，调用tcp_push()函数将可发送的数据以数据包的形式发送出去，实现write()掉用的完整流程。
+
+```cpp
+static inline void tcp_push(struct sock *sk, int flags, int mss_now, ...)
+	[...] ===>
+	static int tcp_write_xmit(struct sock *sk, unsigned int mss_now, ...)
+	int nonagle,
+	{
+		struct tcp_sock *tp = tcp_sk(sk);
+		struct sk_buff *skb;
+		[...]
+		while ((skb = tcp_send_head(sk))) {
+			[...]
+			cwnd_quota = tcp_cwnd_test(tp, skb);
+			if (!cwnd_quota)
+			break;
+			 
+			if (unlikely(!tcp_snd_wnd_test(tp, skb, mss_now)))
+			break;
+			[...]
+			if (unlikely(tcp_transmit_skb(sk, skb, 1, gfp)))
+			break;
+			 
+			/* Advance the send_head. This one is sent out.
+			* This call will increment packets_out.
+			*/
+			tcp_event_new_data_sent(sk, skb);
+			[...]
+
+```
+
+tcp_push()函数尽可能的将TCP允许发送的sk_buffs按序号发送出去。首先调用tcp_send_head()函数将发送缓冲区队列头的sk_buff发送，然后tcp_cwnd_test()和tcp_snd_wnd_test()函数用来检查拥塞窗口和接收窗口是否允许新的数据包发送，如果不可以，break退出当前发送循环，否则继续；调用tcp_transmit_skb()函数创建新的数据包。
+
+
+To Be Continued
+------------------------
