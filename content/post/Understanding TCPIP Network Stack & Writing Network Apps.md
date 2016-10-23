@@ -106,4 +106,62 @@ NIC收到发送网络包请求后，将报文复制到自己的内存中然后�
 
 当驱动需要将数据包发送到上一层时，这个数据包必须被包装成OS可以理解的包格式。比如，linux上的sk_buff，BSD系列内核的mbuf结构，或者MS系统的NET_BUFFER_LIST结构。NIC驱动将封装后的数据包转给上层处理。
 
-Ethernet层检查数据包是否合法，然后根据数据包的网络协议选择不同
+Ethernet层检查数据包是否合法，然后根据数据包头部的ethertype值选择上层网络协议。IPV4类型的值为0x0800。本层的工作就是去掉数据包的Ethernet头部，传送给上层IP层。
+
+IP层同样首先检查数据包合法性，采用检查IP头部的checksum字段的方式。在逻辑上决定是否进行IP路由选择，本机操作系统处理这个包，还是转发给另一个系统。如果本机处理数据包，那么IP层将根据IP头部的协议proto值选择上层传输层协议，比如TCP协议的proto值是6.本层的工作就是移除IP头部，发送给上层TCP层。
+
+同样的，TCP层检查数据包的checksum是否正确。之前说过，TCP的checksum也是由NIC计算得到的。（难道这些检查都是在NIC层面上做，这一步只是逻辑上放在这里的？）
+
+然后开始搜索这个数据包对应的TCP Control Block，采用IP:PORT四元组作为标志查找。找到TCP控制块后，根据包协议处理数据包。如果是收到新数据，那么将其加入socket接收缓冲区中。根据TCP状态，协议栈发送TCP回复包（比如ACK包）。现在TCP/IP的接收数据流程完成了。
+
+socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP接受窗口扩大时TCP的吞吐能力增大；在此之前，socket的缓冲区大小由应用程序或者操作系统配置来调整，而现在新的网络栈具有自动调整接受缓冲区大小的功能。
+
+当应用程序调用read系统调用时，从user area切换到kernel area，数据从socket的缓冲区复制到user area，然后从socket缓冲区中去除，然后TCP层被调用。当socket缓冲区仍有空间时，TCP增大接受窗口。And it sends a packet according to the protocol status. If no packet is transferred, the system call is terminated.（待翻译）
+
+网络栈开发方向
+-------------------------
+
+以上描述的网络栈各层的功能都是一些基本的功能。90年代早期的网络栈功能比以上描述的还少。不过，目前最新的网络栈的功能更加丰富，复杂度更高，这些新功能根据用途有如下分类：
+
+* Packet Processing Procedure Manipulation, 控制修改包处理流程
+
+类似于Netfilter(firewall, NAT)和流量控制。通过在数据包基本处理流程中插入用户代码可以实现不同功能。
+
+* Protocol Performance, 协议性能提升
+
+目的是在同样的网络质量情况下，提升吞吐量、降低时延，提高稳定性。多种拥塞控制算法和附加TCP功能比如SACK（选择确认）就是这类功能。通过协议提升性能在本文中不作重点讨论。
+
+* Packet Processing Efficiency, 数据包处理效率
+
+包处理效率相关的功能旨在提升每秒能够处理最大量的数据包，通过降低用于处理数据包的CPU使用率、内存占用和内存访问次数。目前有多种降低系统时延的尝试，包括并行处理、头部预测、零拷贝、单一副本、免校验、TSO、LRO和RSS等。
+
+网络栈的控制流
+-------------------------
+
+现在我们可以从更细节的角度观察linux网络栈的内部流程。就像其他非网络栈的子系统，linux的网络站以事件驱动的方式，当网络事件发生时进行相应处理，也就是说网络栈内只有一个进程或者控制流处理运行（可修饰）。上文的图1和图3简单的表示了控制流的数据包，图4将显示更多细节。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/control_flow_in_stack.png" width="70%" height="70%"><p>Figure 4: Control Flow in the Stack.</p></div>
+
+图4的控制流(1)中，应用程序通过系统调用比如read()和write()使用TCP，此处没有数据包的传输。控制流(2)与控制流(1)的不同之处在于，它用于调用TCP层后发送数据包，它创造一个数据包然后将该包发送到NIC驱动前的一个队列中，然后队列的实现方式决定何时将该包发送给NIC驱动。这是linux中的队列方式，linux的流量控制功能就是操作这个队列实现的，默认的操作方式是FIFO，先进先出。通过使用另一种队列控制方式，linux可以实现多种效果，比如人工控制丢包、包延迟和流量限制等等功能。在控制流(1)和(2)中，应用程序的进程也将调用NIC驱动。
+
+控制流(3)表示TCP用到的一些定时器，比如当TIME_WAIT定时器超时后，TCP层将响应并删除超时的连接。
+
+与控制流(3)类似，(4)表示超时后TCP将一系列处理理的数据包发送出去，比如，当重传定时器超时后，未得ACK确认的包需要被重传。
+
+控制流(3)和(4)显示定时器软中断的处理流程。
+
+当NIC驱动收到中断，它将释放在传输的数据包，大部分情况下驱动处理流程在这里终止。比如，当重传定时器超时，NIC驱动请求软中断，然后软中断处理函数从发送队列中将累计的数据包发送给NIC驱动。
+
+当NIC驱动收到中断并且收到一个新的数据包，它将请求软中断。处理接收数据包的软中断调用NIC驱动并将收到的数据包传给上层处理。在LInux中，如上描述的处理方式成为New API(NAPI)。该流程与轮询类似，因为NIC驱动并不直接向上层发送数据，而是上层从NIC驱动中拿数据包，这段代码称为NAPI轮询。（待理解）
+
+控制流(6)显示完成TCP的处理流程，控制流(7)表示请求更多数据包进行发送到过程。控制流(5)、(6)、(7)都是由软中断处理NIC中断实现的。
+
+怎样处理中断然后接受数据包
+---------------------------------
+
+中断处理是复杂的，毕竟你需要理解与接受数据包有关的性能问题。图5显示了中断处理流程图。
+
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/processing_interrupt_softirq_and_received_packet.png" width="70%" height="70%"><p>Figure 5: Processing Interrupt, softirq, and Received Packet.</p></div>
+
+想象下CPU 0正在执行应用程序，这个时候NIC收到一个数据包，向CPU 0产生一个中断。然后CPU执行内核中断处理程序。内核通过中断号调用中断处理程序，调用相应驱动。驱动数据包
