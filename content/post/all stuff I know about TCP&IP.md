@@ -233,4 +233,4 @@ static void tcp_reset(struct sock *sk)
 
 * [linux内核工程导论：TCP](http://www.lai18.com/content/1409216.html)
 
-
+* [TCP的write/read系统调用和send/recv的区别](http://blog.csdn.net/petershina/article/details/7946615)

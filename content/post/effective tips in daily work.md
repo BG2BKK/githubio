@@ -5,6 +5,25 @@ title = "effective tips in daily work"
 
 +++
 
+sar在ubuntu中的配置
+-------------------------
+
+```bash
+sudo apt-get install sysstat
+
+sudo vim /etc/default/sysstat
+" change ENABLED="false" to "true"
+
+sudo vim /etc/cron.d/sysstat
+" change 
+" 5-55/10 * * * * root command -v debian-sa1 > /dev/null && debian-sa1 1 1
+" to 
+" */2 * * * * root command -v debian-sa1 > /dev/null && debian-sa1 1 1
+" change the collection interval from every 10 minutes to every 2 minutes.
+
+sudo /etc/init.d/sysstat restart
+```
+
 全世界最愚蠢的事情就是，重复做相同的事情，却期待有不同的结果发生
 -----------------------------------------------------------------
 

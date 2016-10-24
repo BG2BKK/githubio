@@ -45,71 +45,70 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 
 * 测试场景
 	* 评估计算能力
-		* 方式一：选择高CPU型应用压测，采用专业benchmark软件观察
+		* 方式一：选择高CPU型应用压测，采用专业benchmark软件观察;[计算圆周率](http://wushank.blog.51cto.com/3489095/1585927)
 		* 方式二：采用开源代码，或者手写计算型压测代码，通过systemtap等工具统计时长
+			* [参考sysbench](https://github.com/akopytov/sysbench)
 
 	* 评估各级CPU高速缓存L1/L2/L3失效对性能的影响
-		* 通过代码创造cache miss情况
+		* 场景：
+			* 通过代码创造cache miss情况
+		* 方法：
 			* 采用systemtap等相关工具统计时长
-		* 获取CPU各级缓存速度
-			* 查文档，每层多少cycle
-			* 其他方式？
-			* [lmbench](http://www.bitmover.com/lmbench/)
+			* 获取CPU各级缓存速度，需要多少cycle读取
+				* 查文档或者其他方式，如[lmbench](http://www.bitmover.com/lmbench/)
 
 	* 评估进程调度和切换能力
 		* 场景：并发大量CPU繁忙任务
-		* 方法
+		* 方法：
+			* 查看CPU负载
 			* 统计context switch/ interrupt stats，通过sar等工具
 			* 进程切换平均时间统计，在不同负载下：[谁在做进程调度&&lmbench](http://blog.yufeng.info/archives/753)
-			* 进程调度效率统计
+			* 进程调度能力
 				* load average，通过统计工具
 				* 动态跟踪方法动态确定处于调度队列中的任务规模
-<!--
-* tips
 
-	* CPU load balance
-		* 均衡负载测试
-	* 响应中断方面softirq
-
-* CPU多进程调度，多任务处理的能力
-	* 产生大量进程，进行高密度运算
-	* 每个人的时间片都占满，想想就开心
-
-* CPU多任务能力
-	* 产生大量进程，读取不同文件，大家一起读不同的文件，让磁盘高速旋转
-	* 或者大家一起读局域网内的文件服务器，争取把网络填满，IO也很高，每个进程的时间片也用的比较开心
-
-* 感兴趣点
-	* CPU在虚拟化方面的性能
--->
+	* 评估CPU对软硬中断的响应能力
+		* 一段时间内的中断分布情况，CPU响应时间，恐怕也得静态追踪
+			* 事实上这种对系统庖丁解牛式细致分析是我一直追求的
+			* 多长时间响应中断
+			* 多长时间处理完中断
+			* 如何分配，如何均衡处理
 
 ### 内存资源使用
 * 硬件
 	* 总线宽度/内存读写速度/内存颗粒主频
-		* dmidecode获取主板信息
+		* [dmidecode获取主板信息](http://blog.opskumu.com/dmidecode.html)
+		* [内存带宽测试](http://www.latelee.org/using-gnu-linux/linux-memory-bandwidth-test-note.html)
+
 * 内存资源使用情况
-	* 最多分配多少内存给某个资源，比如分配socket memory给网络
-		* 调整sysctl参数
-	* 内存使用情况分布
-		* page entry/sk_buff
-	* 内存换页率
-		* 换页swap in和swap out
-	* 脏页情况
-		* /proc/meminfo等
-	* 小内存块分布情况
-	* 虚拟内存使用情况
-		* vmstat
-	* 通过内核代码对各种分配函数进行统计，分配大小、位置和目的
-	* 缺页中断
-	* 内存的话，huge page，大页表
+
+	* 评估系统的内存分配能力
+		* 最多能分配多少内存给某个资源
+			* 分配socket memory
+				* 与一位同事聊天，系统在已有大规模socket的情况下，对其分配内存的策略是惰性的
+			* 分配page cache/page buffer
+				* [cache的使用，cache的重复使用](http://liwei.life/2016/01/22/cgroup_memory/)
+				* swap内存
+
+		* 系统自身需要的内存
+			* page
+			* slab/vma小内存块
+			* 值得具体了解
+			* 通过内核代码对各种分配函数进行统计，分配大小、位置和目的
+
+		* 内存换页率和脏页情况
+			* /proc/meminfo等
+			* 换页swap in和swap out
+			* [参考](http://chuansong.me/n/285622451424)
+		* 缺页中断
+		* huge page
 
 ### 磁盘读写能力
 * 硬件
 	* 磁盘类型/转速
 	* 查看kernel能够tuning的选项
 		* 磁盘块IO大小
-		* 文件系统
-		* 盘转速
+		* [调度策略](http://scoke.blog.51cto.com/769125/490546)
 
 * 读写文件方式
 	* 直接读写文件性能
@@ -122,33 +121,32 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 		* 大量小文件
 
 * 读文件缓存
-		* 首次读
-			* 可测试文件从磁盘读到kernel内存直到用户进程这一过程
-		* 非首次读
-			* 测试文件在缓存中后的读效率
+	* 首次读
+		* 可测试文件从磁盘读到kernel内存直到用户进程这一过程
+			* 微观角度，systemtap等脚本动态追踪
+	* 非首次读
+		* 测试文件在缓存中后的读效率
+			* 文件系统缓存命中率
 
-* bio调度队列的大小
-	* 输入输出
-		* iostat
-	* 磁盘换页
-	* 读盘写盘
-
-* 文件系统缓存命中率
-	* 读文件
-	* 数据库
-	* 文件缓存内存使用情况
-	* 脏页回收效率
+* 不同调度策略对磁盘IO性能的影响
+	* 场景：
+		* 不同策略适应不同场景
+	* 方法：
+		* 写随机文件内容，记录参数
+		* bio调度队列的大小
+		* 输入输出能力
+			* iostat
 
 ### 网卡吞吐能力
+
 * 硬件
 	* 千兆/万兆
 	* 多队列
-	* 缓冲队列
-	* 驱动的缓冲队列
-		* 这个似乎也可以通过sysctl来调节
+	* 网卡缓冲区大小
 * 查看kernel能够tuning的选项
 	* [ethtool、网卡硬件信息和优化技术](http://www.blogjava.net/yongboy/archive/2015/01/30/422592.html)
-	* sysctl
+	* 网卡驱动的缓冲队列
+
 * 压测网卡
 	* 发送大量小包/发送大量大包
 		* 丢包率
@@ -179,3 +177,9 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 * [海量小文件](http://blog.csdn.net/liuaigui/article/details/9981135)
 * [单机负载评估](http://www.jianshu.com/p/db8e8a2884ef)、[性能分析](http://www.jianshu.com/p/fd6e35f529c1)
 * [性能评估](http://blog.csdn.net/hguisu/article/details/39373311)
+* [Linux性能优化--CPU](http://kumu-linux.github.io/blog/2014/04/21/performance-cpu/)
+	* 参考该post前我也想到了CPU压测的几个关注点：待调度执行任务数、CPU负载和进程切换
+	* 该post有很大启发
+* [SAR的一些使用](http://www.thegeekstuff.com/2011/03/sar-examples/?utm_source=feedburner)
+* [Linux磁盘调度策略](http://blog.itpub.net/27425054/viewspace-768224/)
+* [其实没想到卖VPS的写性能测试挺专业](http://www.vpsee.com/2009/11/linux-system-performance-monitoring-cpu/)
