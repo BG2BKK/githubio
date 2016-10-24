@@ -231,5 +231,6 @@ static void tcp_reset(struct sock *sk)
 	* 
 
 
+* [linux内核工程导论：TCP](http://www.lai18.com/content/1409216.html)
 
 

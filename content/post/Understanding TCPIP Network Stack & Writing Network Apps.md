@@ -163,7 +163,7 @@ socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP�
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/processing_interrupt_softirq_and_received_packet.png" width="70%" height="70%"><p>Figure 5: Processing Interrupt, softirq, and Received Packet.</p></div>
 
-想象下CPU 0正在执行应用程序，这个时候NIC收到一个数据包，向CPU 0产生一个中断。然后CPU执行内核中断处理程序。内核通过中断号调用中断处理程序，调用相应驱动的中断处理程序。NIC驱动释放已发送完成的数据包，然后调用napi_schedule()函数去接受数据包，该函数请求软中断（参考图4中(6)右边的黑线）。NIC驱动的中断处理程序结束，返回，控制权交回内核中断处理程序，内核中断处理程序执行刚才NIC驱动调用的napi_schedule()产生的软中断。硬中断上下文执行完成后，软中断开始执行（这里是内核的tasklet或者work_queue了吧，处于中断上下文的话，只能是tasklet），软硬中断上下文都是由同一个进程执行的（linux kernle）。不过，软硬中断的执行栈不一样，硬中断将会屏蔽硬件中断，软中断执行期间是不屏蔽的（老生常谈）。
+想象下CPU 0正在执行应用程序，这个时候NIC收到一个数据包，向CPU 0产生一个中断。然后CPU执行内核中断处理程序。内核通过中断号调用中断处理程序，调用相应驱动的中断处理程序。NIC驱动释放已发送完成的数据包，然后调用napi_schedule()函数去接受数据包，该函数请求软中断（参考图4中(6)右边的黑线）。NIC驱动的中断处理程序结束，返回，控制权交回内核中断处理程序，内核中断处理程序执行刚才NIC驱动调用的napi_schedule()产生的软中断。硬中断上下文执行完成后，软中断开始执行（这里是内核的tasklet或者work_queue了吧，处于中断上下文的话，只能是tasklet，涉及到阻塞方法，比如与NIC设备的通信，就需要wait_queue了），软硬中断上下文都是由同一个进程执行的（linux kernle）。不过，软硬中断的执行栈不一样，硬中断将会屏蔽硬件中断，软中断执行期间是不屏蔽的（老生常谈）。
 
 软中断处理程序调用net_rx_action()处理收到的数据包，这个函数调用驱动的poll()方法。poll()方法调用netif_receive_skb()方法收取数据包，然后讲其逐层向上层传送。处理完以上软中断后，应用程序从断点继续执行，此时可以开始调用系统调用比如read读取数据。
 

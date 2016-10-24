@@ -49,10 +49,12 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 	* cache失效/cache miss情况
 		* 测试CPU各级缓存速度
 			* 设计测试场景
+		* cache line对应用程序的性能的影响
 	* 进程调度能力
 		* context switch/ interrupt stats
 		* 进程切换时间，在不同负载下：[lmbench](http://blog.yufeng.info/archives/753)
-		* 进程切换统计
+		* 进程调度效率统计
+			* 在不同负载下，比如N多个进程需要调度运行
 	* CPU load balance
 		* 均衡负载测试
 	* 响应中断方面softirq
@@ -92,35 +94,36 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 * 硬件
 	* 磁盘类型/转速
 	* 查看kernel能够tuning的选项
-* 压测磁盘
-	* 磁盘块IO大小
-	* 读盘速度/文件系统
+		* 磁盘块IO大小
+		* 文件系统
+		* 盘转速
 
 * 读写文件方式
 	* 直接读写文件性能
 	* 经过文件系统读写速度
 
-* 读写文件的体积
-	* 读写大文件速度
-	* 读写小文件速度
+* 读文件的体积
+	* 读大文件速度
+		* 较大文件的读取效率，考验IO能力
+	* 读小文件速度
+		* 大量小文件
 
-* 文件缓存
+* 读文件缓存
 		* 首次读
+			* 可测试文件从磁盘读到kernel内存直到用户进程这一过程
 		* 非首次读
+			* 测试文件在缓存中后的读效率
 
 * bio调度队列的大小
-
-	* 文件系统缓存命中率
 	* 输入输出
 		* iostat
 	* 磁盘换页
 	* 读盘写盘
+
+* 文件系统缓存命中率
 	* 读文件
 	* 数据库
-
-* 文件
-	* 打开文件数
-
+	* 文件缓存内存使用情况
 
 ### 网卡吞吐能力
 * 硬件
@@ -145,8 +148,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 		* TCP状态分布
 			* ESTA
 			* TIME_WAIT等
-	* Unix Domain Socket的情况
-	* socket内存使用率
+	* socket内存使用情况
 	* socket缓冲队列
 	* 从sysctl配置开始，然后统计
 
@@ -156,10 +158,10 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 * 管道
 * IPC性能
 * unix domain socket性能
-* 开多虚拟机、多docker的能力
-
 
 
 * [context switch definition](http://www.linfo.org/context_switch.html)
 * [查询本机CPU相关信息](http://smilejay.com/2011/03/linux_cpu_core_thread/)
 * [海量小文件](http://blog.csdn.net/liuaigui/article/details/9981135)
+* [单机负载评估](http://www.jianshu.com/p/db8e8a2884ef)、[性能分析](http://www.jianshu.com/p/fd6e35f529c1)
+* [性能评估](http://blog.csdn.net/hguisu/article/details/39373311)

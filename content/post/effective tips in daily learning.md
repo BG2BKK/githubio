@@ -5,6 +5,11 @@ title = "effective tips in daily learning"
 
 +++
 
+kernel
+---------------
+
+* [kernel工程导论](http://blog.csdn.net/column/details/linux-kernel-no-code.html)
+
 内存管理
 --------------------
 
