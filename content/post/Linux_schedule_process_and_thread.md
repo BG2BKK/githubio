@@ -11,4 +11,3 @@ linux的进程切换
 
 [tips](http://www.cnblogs.com/kkshaq/p/4547725.html)
 [2](http://iamzhongyong.iteye.com/blog/1895728)
-[3](http://www.cnblogs.com/kkshaq/p/4547725.html)

@@ -41,20 +41,32 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 
 * 硬件
 	* 主频/核数/超线程：/proc/cpuinfo
-	* 各级缓存
-* 计算能力
-	* 计算能力
-		* 选择高CPU型应用压测
-		* 专业benchmark软件
-	* cache失效/cache miss情况
-		* 测试CPU各级缓存速度
-			* 设计测试场景
-		* cache line对应用程序的性能的影响
-	* 进程调度能力
-		* context switch/ interrupt stats
-		* 进程切换时间，在不同负载下：[lmbench](http://blog.yufeng.info/archives/753)
-		* 进程调度效率统计
-			* 在不同负载下，比如N多个进程需要调度运行
+	* 各级缓存大小
+
+* 测试场景
+	* 评估计算能力
+		* 方式一：选择高CPU型应用压测，采用专业benchmark软件观察
+		* 方式二：采用开源代码，或者手写计算型压测代码，通过systemtap等工具统计时长
+
+	* 评估各级CPU高速缓存L1/L2/L3失效对性能的影响
+		* 通过代码创造cache miss情况
+			* 采用systemtap等相关工具统计时长
+		* 获取CPU各级缓存速度
+			* 查文档，每层多少cycle
+			* 其他方式？
+			* [lmbench](http://www.bitmover.com/lmbench/)
+
+	* 评估进程调度和切换能力
+		* 场景：并发大量CPU繁忙任务
+		* 方法
+			* 统计context switch/ interrupt stats，通过sar等工具
+			* 进程切换平均时间统计，在不同负载下：[谁在做进程调度&&lmbench](http://blog.yufeng.info/archives/753)
+			* 进程调度效率统计
+				* load average，通过统计工具
+				* 动态跟踪方法动态确定处于调度队列中的任务规模
+<!--
+* tips
+
 	* CPU load balance
 		* 均衡负载测试
 	* 响应中断方面softirq
@@ -69,6 +81,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 
 * 感兴趣点
 	* CPU在虚拟化方面的性能
+-->
 
 ### 内存资源使用
 * 硬件
@@ -124,6 +137,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 	* 读文件
 	* 数据库
 	* 文件缓存内存使用情况
+	* 脏页回收效率
 
 ### 网卡吞吐能力
 * 硬件
