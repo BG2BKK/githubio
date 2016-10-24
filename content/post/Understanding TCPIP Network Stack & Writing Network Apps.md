@@ -163,13 +163,13 @@ socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP�
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/processing_interrupt_softirq_and_received_packet.png" width="70%" height="70%"><p>Figure 5: Processing Interrupt, softirq, and Received Packet.</p></div>
 
-想象下CPU 0正在执行应用程序，这个时候NIC收到一个数据包，向CPU 0产生一个中断。然后CPU执行内核中断处理程序。内核通过中断号调用中断处理程序，调用相应驱动的中断处理程序。NIC驱动释放已发送完成的数据包，然后调用napi_schedule()函数去接受数据包，该函数请求软中断（参考图4中(6)右边的黑线）。NIC驱动的中断处理程序结束，返回，控制权交回内核中断处理程序，内核中断处理程序执行刚才NIC驱动调用的napi_schedule()产生的软中断。硬中断上下文执行完成后，软中断开始执行（这里是内核的tasklet或者work_queue了吧），软硬中断上下文都是由同一个进程执行的（linux kernle吧）。不过，软硬中断的执行栈不一样，硬中断将会屏蔽硬件中断，软中断执行期间是不屏蔽的（老生常谈）。
+想象下CPU 0正在执行应用程序，这个时候NIC收到一个数据包，向CPU 0产生一个中断。然后CPU执行内核中断处理程序。内核通过中断号调用中断处理程序，调用相应驱动的中断处理程序。NIC驱动释放已发送完成的数据包，然后调用napi_schedule()函数去接受数据包，该函数请求软中断（参考图4中(6)右边的黑线）。NIC驱动的中断处理程序结束，返回，控制权交回内核中断处理程序，内核中断处理程序执行刚才NIC驱动调用的napi_schedule()产生的软中断。硬中断上下文执行完成后，软中断开始执行（这里是内核的tasklet或者work_queue了吧，处于中断上下文的话，只能是tasklet），软硬中断上下文都是由同一个进程执行的（linux kernle）。不过，软硬中断的执行栈不一样，硬中断将会屏蔽硬件中断，软中断执行期间是不屏蔽的（老生常谈）。
 
-软中断处理程序调用net_rx_action()处理收到的数据包，这个函数调用驱动的poll()方法。poll()方法调用netif_receive_skb()方法收取数据包，然后讲其逐层向上层传送。处理完软中断后，应用程序从断点返回，此时可以开始调用系统调用比如read读取数据。
+软中断处理程序调用net_rx_action()处理收到的数据包，这个函数调用驱动的poll()方法。poll()方法调用netif_receive_skb()方法收取数据包，然后讲其逐层向上层传送。处理完以上软中断后，应用程序从断点继续执行，此时可以开始调用系统调用比如read读取数据。
 
 这就是CPU从收到硬中断到完成接收数据包的完整过程，Linux、BSD和MS Windows系统都是大同小异的。
 
-当你查看服务器CPU使用率时，有事你可以看到只有一个CPU执行软中断，这个现象我们上文描述的可以解释，只有CPU 0在响应网卡中断，使用多队列网卡、RSS和RPS（在软件层面模拟实现硬件的多队列网卡功能）可以解决这个问题，将软中断绑定到多个CPU上。
+当你查看服务器CPU使用率时，有时你看到只有一个CPU在辛苦的执行软中断，这个现象我们上文描述的可以解释，只有CPU 0在响应网卡中断，使用多队列网卡、RSS和RPS（在软件层面模拟实现硬件的多队列网卡功能）可以解决这个问题，将软中断绑定到多个CPU上。
 
 相关数据结构
 ------------------
@@ -178,13 +178,13 @@ socket接收缓冲区的大小是TCP接收窗口大小。数据接收时，TCP�
 
 ## sk_buff structure
 
-首先，sk_buff结构体或者skb结构体表示一个数据包，图6表示sk_buff结构体的主要部分，足以说明sk_buff相关的通用方法。
+首先，sk_buff结构体或者skb结构体表示一个数据包，图6表示sk_buff结构体的主要部分。虽然sk_buff的功能越来越丰富，也越来越复杂，但图6足以说明sk_buff相关的通用方法。
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/packet_structure_sk_buff.png" width="70%" height="70%"><p>Figure 6: Packet Structure sk_buff.</p></div>
 
 ### sk_buff包括数据包的Data部分和元数据部分
 
-sk_buff直接包括包数据部分，或者用指针指向它。在图6中，sk_buff结构体中的data成员指向一个skb_shared_info结构体的Ethernet到buffer成员之间的内存，而额外的数据由skb_shared_info的frags成员指向具体的内存页。
+sk_buff直接包括数据包的数据部分，或者用指针指向它。在图6中，sk_buff结构体中的data成员指向一个skb_shared_info结构体的Ethernet到buffer成员之间的内存，而额外的数据由skb_shared_info的frags成员指向具体的内存页。
 
 sk_buff的一些基本信息，比如头部信息和包数据长度存在元数据区域(元数据待理解，初步认定是skb_shared_info)。如图6所示，链路层头部mac_header、网络层头部network_header和传输控制层头部transport_header都有对应的指针依次指向从元数据开始的地方。这种方式使得TCP协议处理更容易一些。
 
@@ -206,7 +206,7 @@ sk_buff的一些基本信息，比如头部信息和包数据长度存在元数�
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/tcp_connection_structure.png" width="70%" height="70%"><p>Figure 7: TCP Connection Structure.</p></div>
 
-当一个系统调用执行时，首先搜索进程的fd对应的struct file结构，对于类Uinx操作系统来说，一个socket、一个文件或者一个设备对于普通文件系统来说都抽象成struct file结构。因此，文件系统包括了基本信息，对于一个socket结构体来说，struct socket包含了与socket相关的信息，以及一个file指针，该socket结构体[同样有一个struct sock类型的指针sk成员，struct sock可强制类型转换到struct tcp_sock](include/linux/tcp.h中的tcp_sk函数)。
+当一个系统调用执行时，首先搜索进程的fd对应的struct file结构，对于类Uinx操作系统来说，一个socket、一个文件或者一个设备对于普通文件系统来说都抽象成struct file结构。因此，文件系统包括了基本信息，对于一个socket结构体来说，struct socket包含了与socket相关的信息，以及一个file指针，该socket结构体[同样有一个struct sock类型的指针sk成员，struct sock可强制类型转换到struct tcp_sock（参考tcp_sk函数）](http://lxr.free-electrons.com/source/include/linux/tcp.h)。
 
 ```cpp
 // socket 结构体, include/linux/net.h
@@ -249,7 +249,7 @@ socket发送缓冲区和socket接收缓冲区都是tcp_sock的sk_buff链表；tc
 
 最后，我们看下TCP连接的查找表，这是一个用于查找所收到数据包对应的TCP连接的哈希表，索引通过数据包的IP:PORT四元组进行Jenkins哈希算法计算得到。选择这个算法的原因是考虑到防范对此哈希表的攻击（待查）。
 
-其余代码：如何发送数据
+追踪代码：如何发送数据
 ---------------------------
 
 我们通过追踪阅读Linux kernel源码来学习TCP/IP协议栈如何执行，通过常用的读数据和写数据来观察。
@@ -412,8 +412,58 @@ static inline void tcp_push(struct sock *sk, int flags, int mss_now, ...)
 
 ```
 
-tcp_push()函数尽可能的将TCP允许发送的sk_buffs按序号发送出去。首先调用tcp_send_head()函数将发送缓冲区队列头的sk_buff发送，然后tcp_cwnd_test()和tcp_snd_wnd_test()函数用来检查拥塞窗口和接收窗口是否允许新的数据包发送，如果不可以，break退出当前发送循环，否则继续；调用tcp_transmit_skb()函数创建新的数据包。
+tcp_push()函数尽可能的将TCP允许发送的sk_buff按序号发送出去。首先调用tcp_send_head()函数获取发送缓冲区队列头的sk_buff，然后tcp_cwnd_test()和tcp_snd_wnd_test()函数用来检查拥塞窗口和接收窗口是否允许新的数据包发送，如果可以，调用tcp_transmit_skb()函数新建网络数据包，用于发送。
+
+```cpp
+
+static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,int clone_it, gfp_t gfp_mask)
+{
+	const struct inet_connection_sock *icsk = inet_csk(sk);
+	struct inet_sock *inet;
+	struct tcp_sock *tp;
+
+	[...]
+
+	if (likely(clone_it)) {
+		if (unlikely(skb_cloned(skb)))
+		skb = pskb_copy(skb, gfp_mask);
+		else
+		skb = skb_clone(skb, gfp_mask);
+		if (unlikely(!skb))
+		return -ENOBUFS;
+	}
+
+	[...]
+
+	skb_push(skb, tcp_header_size);
+	skb_reset_transport_header(skb);
+	skb_set_owner_w(skb, sk);
+
+	/* Build TCP header and checksum it. */
+	th = tcp_hdr(skb);
+	th->source = inet->inet_sport;
+	th->dest = inet->inet_dport;
+	th->seq = htonl(tcb->seq);
+	th->ack_seq = htonl(tp->rcv_nxt);
+
+	[...]
+
+	icsk->icsk_af_ops->send_check(sk, skb);
+
+	[...]
+
+	err = icsk->icsk_af_ops->queue_xmit(skb);
+	if (likely(err <= 0))
+		return err;
+	tcp_enter_cwr(sk, 1);
+	return net_xmit_eval(err);
+}
+
+```
+
+tcp_transmit_skb()首先调用pskb_copy()创建待发送sk_buff的副本，仅复制sk_buff的元数据；然后调用skb_push()保护tcp头部区域，然后填充头部字段，send_check()计算TCP头部的checksum。最后，queue_xmit()将数据包skb转移到下一层IP层，IPv4的queue_xmit()方法由函数ip_queue_xmit()实现。
 
 
 To Be Continued
 ------------------------
+
