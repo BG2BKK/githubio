@@ -93,7 +93,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 
 		* 最多能分配多少内存给某个资源
 			* 分配socket memory
-				* 与一位同事聊天，系统在已有大规模socket的情况下，对其分配内存的策略是惰性的
+				* 据说系统在已有大规模socket的情况下，对其分配内存的策略是惰性的，待查
 			* 分配page cache/page buffer
 				* [cache的使用，cache的重复使用](http://liwei.life/2016/01/22/cgroup_memory/)
 				* swap内存
@@ -181,6 +181,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 * IPC性能
 * unix domain socket性能
 
+### 参考链接
 
 * [context switch definition](http://www.linfo.org/context_switch.html)
 * [查询本机CPU相关信息](http://smilejay.com/2011/03/linux_cpu_core_thread/)
