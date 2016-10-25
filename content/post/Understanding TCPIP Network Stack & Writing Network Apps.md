@@ -551,6 +551,41 @@ int dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev, ...)
 
 ndo_start_xmit()函数负责调用NIC驱动代码。在调用之前你可以看到ptype_all和dev_queue_xmit_nit()语句，ptype_all是一个包括处理模块的链表，比如抓包模块，如果一个抓包程序在运行中，这个数据包将被ptype_all复制给这个程序。所以，类似于tcpdump这类软件显示的数据包，其实是发送给网卡驱动的；响应的tcpdump显示收到的数据包也是从这层拿到的。此时数据包未携带checksum，或者如果此时TSO使能的话，NIC将会操作编辑这个包。所以tcpdump抓到的包和实际发到网络的包还是有一定区别的。当完成发送数据包后，网卡驱动的终端处理程序返回发送的sk_buff。
 
+追踪代码：如何接收数据
+---------------------------
+
+姑且认为接收代码的流程与发送代码区别不大，所以我们先进行下一部分。
+
+NIC和NIC驱动是怎样通信的
+-----------------------------
+
+NIC和NIC驱动之间的通信属于网络栈的最底层，往往被人忽视。然而NIC目前在网络性能方面承担着越来越多的任务，了解基本的操作模式将帮你学习到更多。
+
+驱动和NIC之间是异步通信的。首先，NIC驱动请求发送一个数据包后，CPU转向执行其他任务，并不阻塞等待响应；然后NIC发送数据包，通知CPU；最后NIC驱动将发送完成的数据包返回给上层。与发送一样，数据接收也一样是异步的，首先，NIC驱动请求接收一个包，然后CPU转而执行其他任务，然后NIC收到包后，通知CPU，NIC驱动处理收到的包处理并返回（由之前图4所示，NIC驱动注册时会请求kernel提前分配好缓存收到数据包的内存，NIC接受指令将数据包写入这部分内存）。
+
+所以，有一个空间，用于存放请求和响应是很必要的。大部分NIC使用环状结构(ring structure)，环状结构与普通队列结构类似，有固定的容量，一个单位存储一个请求或者响应。使用时也是按序处理，区别在于到达队列末尾后重头开始，形成一个环。
+
+如图8所示的包发送流程图，我们可以看到ring是怎样工作的。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/driver_nic_communication_how_to_transmit_packet.png" width="70%" height="70%"><p>Figure 8: Driver-NIC Communication: How to Transmit Packet.</p></div>
+
+NIC驱动收到上层发来的数据包后，创建NIC可以理解的发送描述符(send descriptor)，发送描述符包括包大小、物理地址等信息；NIC要求通过物理地址访问NIC驱动的内存，所以NIC驱动需要将包的虚拟地址转换为物理地址。然后NIC驱动将send descriptor加入到发送环状缓冲(Send TX Ring Buffer)，如图8的流程(1)所示。
+
+然后，NIC驱动通知NIC有新的发送请求，见流程(2)，NIC驱动直接将这个请求写入到NIC的内存地址中，在这里，CPU采用Programmed I/O(PIO)的方法，直接将数据写到设备（其实这里如果开发过Linux 设备驱动，比如以前开发过的
+PCIE驱动就知道，将PCIE设备的配置寄存器映射到Host的内存空间中，kernel可以像访问自身内存一样读写这些地址，进而将控制指令写入设备中）。被通知的NIC从host的内存（发送环状内存缓冲区）以DMA方式获取发送描述符，见流程(3)。拿到发送描述符后，获得数据包在host内存的的物理地址和大小，然后将数据包以DMA方式读出。
+
+NIC取得发送数据包后，计算包的checksum然后加到数据包里，然后发送，见流程(5)。发送完成后，NIC将发送的数据包数量写回host内存(流程6)；然后向CPU发起中断(流程7)。NIC驱动独处发送了哪些数据包后，将数据包返回。(The NIC sends packets (5) and then writes the number of packets that are sent to the host memory (6). Then, it sends an interrupt (7). The driver reads the number of packets that are sent and then returns the packets that have been sent so far.)
+
+如图9所示，我们可以看到读取数据包流程图.
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/driver_nic_cmomunication_how_to_receive_packets.png" width="70%" height="70%"><p>Figure 9: Driver-NIC Communication: How to Receive Packets.</p></div>
+
+首先，NIC驱动在host分配用于存储接收数据包和接收描述符的内存。接收描述符包括缓冲区大小和物理地址，与发送描述符一样都是物理地址，用于DMA传输。然后，NIC驱动将接收描述符添加到RX ring中(流程1)。通过PIO，NIC驱动将新的接收描述符地址写入NIC中(流程2)，NIC从Rx ring中以DMA方式获取接收描述符，获得用于接收数据包的缓冲区的大小和物理地址并存储(流程3)。
+
+NIC收到数据包后(流程4)，NIC将数据包写入实现分配好的host内存中(流程5),如果网卡有计算数据包checksum的功能，那么NIC此时计算数据包的checksum。接收数据包的大小、checksum和其他信息存储在另一个环状buffer(the receive return ring，接收返回环 )中(流程6)。接收返回环也存储NIC处理接收到数据包的结果，比如返回包。然后NIC发出中断(流程7)，NIC驱动从接收返回包中获取包的信息，然后处理数据包。如果必要的话，NIC驱动还会继续分配内存并重复流程(1)和(2).
+
+在调优网络栈的时候，大家都认为环状缓存大小和中断设置要互相匹配。当发送环状缓存Tx ring比较大时，可以一次发出较多请求；当Rx ring比较大时，可以一次收到较多数据包。大Ring buffer可以并发大量发送操作，提高工作能力；实际实现中，NIC使用一个定时器定期收集处理中断，减少CPU中断的次数，以免CPU为处理中断而分心。
+
 To Be Continued
 ------------------------
 
