@@ -461,8 +461,95 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,int clone_it, g
 
 ```
 
-tcp_transmit_skb()首先调用pskb_copy()创建待发送sk_buff的副本，仅复制sk_buff的元数据；然后调用skb_push()保护tcp头部区域，然后填充头部字段，send_check()计算TCP头部的checksum。最后，queue_xmit()将数据包skb转移到下一层IP层，IPv4的queue_xmit()方法由函数ip_queue_xmit()实现。
+tcp_transmit_skb()首先调用pskb_copy()创建待发送sk_buff的副本，仅复制sk_buff的元数据；然后调用skb_push()锁定tcp头部区域，然后填充头部字段，send_check()计算TCP头部的checksum。最后，queue_xmit()将数据包skb转移到下一层IP层，IPv4的queue_xmit指针指向函数ip_queue_xmit()。
 
+```cpp
+
+int ip_queue_xmit(struct sk_buff *skb)
+{
+	[...]
+	rt = (struct rtable *)__sk_dst_check(sk, 0);
+	[...]
+
+	/* OK, we know where to send it, allocate and build IP header. */
+	skb_push(skb, sizeof(struct iphdr) + (opt ? opt->optlen : 0));
+	skb_reset_network_header(skb);
+	iph = ip_hdr(skb);
+	*((__be16 *)iph) = htons((4 << 12) | (5 << 8) | (inet->tos & 0xff));
+	if (ip_dont_fragment(sk, &rt->dst) && !skb->local_df)
+		iph->frag_off = htons(IP_DF);
+	else
+		iph->frag_off = 0;
+	iph->ttl = ip_select_ttl(inet, &rt->dst);
+	iph->protocol = sk->sk_protocol;
+	iph->saddr = rt->rt_src;
+	iph->daddr = rt->rt_dst;
+	[...]
+	res = ip_local_out(skb);
+	[...] ===>
+	int __ip_local_out(struct sk_buff *skb)
+	[...]
+	ip_send_check(iph);
+	return nf_hook(NFPROTO_IPV4, NF_INET_LOCAL_OUT, skb, NULL,	skb_dst(skb)->dev, dst_output);
+
+[...] ===>
+int ip_output(struct sk_buff *skb)
+{
+		struct net_device *dev = skb_dst(skb)->dev;
+		[...]
+		skb->dev = dev;
+		skb->protocol = htons(ETH_P_IP);
+		return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING, skb, NULL, dev,
+		ip_finish_output,
+
+[...] ===>
+static int ip_finish_output(struct sk_buff *skb)
+{
+	[...]
+	if (skb->len > ip_skb_dst_mtu(skb) && !skb_is_gso(skb))
+		return ip_fragment(skb, ip_finish_output2);
+	else
+		return ip_finish_output2(skb);
+```
+ip_queue_xmit()方法负责执行IP层的任务，__sk_dst_check()检查缓存的路由结果是否合法。如果此时没有缓存的路由，或者缓存路由结果过期，就会进行IP路由查找。然后调用skb_push()锁定IP包头，填充IP包头部字段。接着调用ip_send_check()计算IP头的checksum，然后使用nf_hook调用netfilter模块，nf_hook()方法设置回调函数为dst_output，该函数被调用时，作为函数指针指向的是ip_output()函数。在ip_output()函数中，设置ip_finish_output()为回调函数，当发送数据包需要被分片发送时，进行分片，否则调用ip_finish_output2()，添加Ethernet Header，进入链路层Ethernet层。这样，一个数据包最终生成。
+
+```cpp
+int dev_queue_xmit(struct sk_buff *skb)
+[...] ===>
+
+static inline int __dev_xmit_skb(struct sk_buff *skb, struct Qdisc *q, ...)
+[...]
+	if (...) {
+		....
+	} 
+	else if ((q->flags & TCQ_F_CAN_BYPASS) && !qdisc_qlen(q) && qdisc_run_begin(q)) 
+	{
+		[...]
+		if (sch_direct_xmit(skb, q, dev, txq, root_lock)) {
+
+[...] ===>
+int sch_direct_xmit(struct sk_buff *skb, struct Qdisc *q, ...)
+	[...]
+	HARD_TX_LOCK(dev, txq, smp_processor_id());
+	if (!netif_tx_queue_frozen_or_stopped(txq))
+		ret = dev_hard_start_xmit(skb, dev, txq);
+	HARD_TX_UNLOCK(dev, txq);
+	[...]
+}
+
+int dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev, ...)
+	[...]
+	if (!list_empty(&ptype_all))
+		dev_queue_xmit_nit(skb, dev);
+	[...]
+	rc = ops->ndo_start_xmit(skb, dev);
+	[...]
+}
+```
+
+上层最终生成数据包后，函数dev_queue_xmit()将数据包发送出去。首先，数据包以qdisc方式传递过去；如果采用默认数据包入队规则（FIFO）并且队列为空，sch_direct_xmit()函数将直接把数据包发送给网卡驱动，越过缓冲队列；该函数调用dev_hard_start_xmit()函数选择对应的驱动并发送。在调用网卡驱动前，设备的TX队列将被加锁，防止在多任务同时访问网络设备。由于kernel已经向设备的TX队列加锁，所以设备驱动的发送代码不需要额外加锁。这和接下来要讨论的并行处理紧密相关。
+
+ndo_start_xmit()函数负责调用NIC驱动代码。在调用之前你可以看到ptype_all和dev_queue_xmit_nit()语句，ptype_all是一个包括处理模块的链表，比如抓包模块，如果一个抓包程序在运行中，这个数据包将被ptype_all复制给这个程序。所以，类似于tcpdump这类软件显示的数据包，其实是发送给网卡驱动的；响应的tcpdump显示收到的数据包也是从这层拿到的。此时数据包未携带checksum，或者如果此时TSO使能的话，NIC将会操作编辑这个包。所以tcpdump抓到的包和实际发到网络的包还是有一定区别的。当完成发送数据包后，网卡驱动的终端处理程序返回发送的sk_buff。
 
 To Be Continued
 ------------------------
