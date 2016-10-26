@@ -586,6 +586,25 @@ NIC收到数据包后(流程4)，NIC将数据包写入实现分配好的host内�
 
 在调优网络栈的时候，大家都认为环状缓存大小和中断设置要互相匹配。当发送环状缓存Tx ring比较大时，可以一次发出较多请求；当Rx ring比较大时，可以一次收到较多数据包。大Ring buffer可以并发大量发送操作，提高工作能力；实际实现中，NIC使用一个定时器定期收集处理中断，减少CPU中断的次数，以免CPU为处理中断而分心。
 
+缓存和流控制
+--------------------
+
+流控制是网络栈各层通力合作实现的。图10显示发送数据时网络栈的各级缓存。首先，应用程序创建数据，添加到socket发送缓存中，如果缓存没有内存可用，则send/write系统调用返回失败或者堵塞。因此，应用程序流向kernel的数据流速由socket缓冲区大小来限制。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/buffers_related_to_packet_transmission.png" width="70%" height="70%"><p>Figure 10: Buffers Related to Packet Transmission.</p></div>
+
+TCP协议栈创建和发送数据包，通过发送队列transmit queue(qdisc)向NIC驱动发送。这是个典型的FIFO队列，队列长度可以由ifconfig工具配置，执行ifconfig工具结果中的txqueuelen的值，一般为1000，意味着缓存1000个数据包。
+
+环状发送队列(TX ring)处于NIC驱动和NIC之间，正如上一章提到的，Tx ring可被认为是发送请求队列。如果Tx ring满，此时NIC驱动不能发出发送请求，那么待发送的数据包将会累积在TCP/IP协议栈和NIC驱动之间的qdisc中，如果累积数据包超过qdisc大小，那么再想发送新包，会被直接丢弃。
+
+NIC将待发送数据包存储在自身缓存中，包速率主要由NIC的物理速度决定。而且由于链路层Ethernet layer的流控制，如果NIC的接收缓冲区没有空间，那么发送数据包也将停止（可以猜测原因是自身停止发送后，对端将不会再发送数据包过来，有助于NIC和NIC驱动将拥塞在接受缓冲区的数据包处理完）。
+
+当发送自kernel的数据包速度大于发送自NIC的数据包速度时，包将拥堵在NIC的缓存中。如果NIC自身缓存没有多余空间，NIC将不会从Tx ring中去取发送请求request；这样的话，越来越多的发送请求累积在Tx ring中，最终Tx ring也堵满；此时NIC驱动再也不能发起新的发送请求，并且要发送的新包将堵塞在qdisc中；就这样，性能衰退从底向上传递。（感觉这里我们可以通过检测各级buffer的堵塞情况，判断程序堵塞在哪一步）
+
+图11显示接受数据包的传递过程。首先，收到的数据包将缓存在NIC自身缓存中。从流控制的角度来看，NIC和NIC驱动之间的Rx ring队列作为缓存，NIC驱动从Rx ring中将已接受数据包的请求取出，发给上层，在这里NIC驱动和协议栈之前没有缓冲区，因为这里是通过kernel调用NAPI去poll已收到的数据包的。(需要想想怎么翻译).这里可以认为上层直接从Rx ring中获取数据包。网络包的数据部分将上传缓存在socket的接收缓冲区中，应用程序随后从socket的接受缓冲区中读取数据。
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/buffers_related_to_packaet_receiving.png" width="70%" height="70%"><p>Figure 11: Buffers Related to Packet Receiving.</p></div>
+
 To Be Continued
 ------------------------
 
