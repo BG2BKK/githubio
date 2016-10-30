@@ -7,7 +7,7 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 
 给你一台服务器，怎样能够全面评估它的性能？需要测试哪些指标？请写出每个指标的具体测试原理和测试代码。假设这台服务器完全处于线下。
 
-这个问题看似平常，但是细细审题的话，发现还是不一样的。我们过多关注线上机器的性能，但是如果单独拿出来一台服务器，它的性能怎样呢？这个问题网上还真没有答案，只能根据自己的理解查资料来解决。
+这个问题看似平常，但是细细审题的话，发现还是不一样的。我们过多关注线上机器的性能，但是如果单独拿出来一台服务器，它的性能怎样呢？
 
 评估和压榨一台服务器性能的话，找到评估的指标，然后进行压测加观察的方式，得到性能参数。
 
@@ -15,189 +15,72 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 2. 如何观察这些指标，测试原理，观测工具/统计代码
 3. 如何进行压测，实现测试场景，压测工具/压测代码
 
-评估服务器性能，需要：
+bench也分macro bench和micro bench
 
-1. 主要观察CPU、内存、磁盘和网络IO这四个指标
+对于macro bench，很多时候我们得到的是一个整体而粗略的结果，通过top我们可以看到系统负载，这些对于我们定位线上问题，分析应用程序的性能热点很有帮助，然而这并不能精确衡量一台Linux Server的性能；应用程序多种多样，线上系统目的各不相同，所以macro bench一般用于case by case的性能分析，[用于解决应用的性能瓶颈]()；而micro bench可以定量的分析一台机器+操作系统的性能，采用相同的测试基准，通过无干扰的大量重复基本操作，比如从L1 Cache读取单个字节，耗时一个CPU时钟，在大量重复中得到较为宏观的结果，再排除loop损耗、取运行时间的损耗，可以用于基本衡量一台server的运行效率。
 
-2. 首先看硬件配置，CPU核数/主频/超线程，内存带宽/大小/访问速度，磁盘类型/转速，网卡千兆/万兆/多队列等
-	* 知晓极限值，针对硬件选取场景。
+./bin/x86_64-linux-gnu/enough结果为n=322229, u=5172，执行322229次 TEN( p = *p )，TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结果的影响降低1/10；总共用时5172000ns，单次平均0.623ns；而CPU主频1999.830MHz，折合一个cycle 0.500ns，数据基本可信。
 
-3. 然后知道kernel关于这些设备的可tuning的配置选项，以及kernel自身配置，如vm策略、进程调度设置等
-	* 默认服务器设备的驱动都是厂商调优好的，或者采用kernel自带驱动
+目的是把CPU喂饱，所有的性能都是从CPU的角度来衡量；内存读写快慢，单纯比较数据从内存的一个位置移动到另一个位置，这是设备厂商用来做广告用的，不是计算机系统来评估性能的，不把数据从内存读到CPU，衡量这段时间的性能；把数据从CPU读一遍，然后写到另一个地址，数据流经过CPU后算是经过了计算机系统，测量这段时间才是有意义的。基于此，其他的bench，比如pipe的性能，需要排除数据流动的时间，排除其余的时间，才是单纯pipe的性能，；如context switch，需要bench时用pipe来驱动，这里需要排除掉数据流动的时间，pipe通信的时间，其他时间，才是context switch的时间
 
-4. 不同指标的通用观测方法
-	* 首选成熟工具：top、sar、vmstat、mpstat、netstat、iptraf等
-	* 从 ***/proc*** 定制
-	* 动态追踪，perf、systemtap等，在精细观察时使用
+性能评估主要对CPU、memory、disk IO和network IO四个指标，从带宽和时延两个角度评估。
 
-5. 根据软硬件变量的结合，搭配设计纯理论场景并实现，采用对应方法检测
-	* 先把linux server主流常用的配置配好，采用简单方法做性能测试，确定各个指标的性能，作为参照基准
-	* 然后设计场景，体现要突出的指标，确定极限值，与参照基准做对比
-		* kernel对相关资源进行优化
-		* 选择压测工具，必要时写代码实现
-	* 如果能够引入内核的一些新技术，就某个指标进行优化，可以进行后续测试。
-
-### CPU计算能力
-
-* 硬件
-	* 主频/核数/超线程：/proc/cpuinfo
-	* 各级缓存大小
-
-* 测试场景
-	* 评估计算能力
-		* 方式一：选择高CPU型应用压测，采用专业benchmark软件观察;[计算圆周率](http://wushank.blog.51cto.com/3489095/1585927)
-		* 方式二：采用开源代码，或者手写计算型压测代码，通过systemtap等工具统计时长
-			* [参考sysbench](https://github.com/akopytov/sysbench)
-
-	* 评估各级CPU高速缓存L1/L2/L3失效对性能的影响
-		* 场景：
-			* 通过代码创造cache miss情况
-		* 方法：
-			* 采用systemtap等相关工具统计时长
-			* 获取CPU各级缓存速度，需要多少cycle读取
-				* 查文档或者其他方式，如[lmbench](http://www.bitmover.com/lmbench/)
-
-	* 评估进程调度和切换能力
-		* 场景：并发大量CPU繁忙任务
-		* 方法：
-			* 查看CPU负载
-			* 统计context switch/ interrupt stats，通过sar等工具
-			* 进程切换平均时间统计，在不同负载下：[谁在做进程调度&&lmbench](http://blog.yufeng.info/archives/753)
-			* 进程调度能力
-				* load average，通过统计工具
-				* 动态跟踪方法动态确定处于调度队列中的任务规模
-				* taskset设置多cpu亲和性运行
-
-* TODO
-	* 评估CPU对软硬中断的响应处理能力
-		* 一段时间内的中断分布情况，CPU响应时间，需要动态追踪
-			* 多长时间响应中断
-			* 多长时间处理完中断
-			* 如何分配，如何均衡处理
-
-### 内存资源使用
-* 硬件
-	* 总线宽度/内存读写速度/内存颗粒主频
-		* [dmidecode获取主板信息](http://blog.opskumu.com/dmidecode.html)
-		* [内存带宽测试](http://www.latelee.org/using-gnu-linux/linux-memory-bandwidth-test-note.html)
-
-* 内存资源使用情况
-
-	* 评估系统的内存分配能力
-
-		* 系统自身需要的内存
-			* page entry
-			* slab/vma小内存块
-			* 值得具体了解
-			* 通过内核代码对各种分配函数进行统计，分配大小、位置和目的
-
-		* 最多能分配多少内存给某个资源
-			* 分配socket memory
-				* 据说系统在已有大规模socket的情况下，对其分配内存的策略是惰性的，待查
-			* 分配page cache/page buffer
-				* [cache的使用，cache的重复使用](http://liwei.life/2016/01/22/cgroup_memory/)
-				* swap内存
-
-		* 内存换页率和脏页情况
-			* /proc/meminfo等
-			* swap in和swap out
-			* [sar -B 1中的主缺页中断和次缺页中断](http://chuansong.me/n/285622451424)
-
-		* [采用huge page的性能影响](https://www.ibm.com/developerworks/cn/linux/l-cn-hugetlb/)
-
-### 磁盘读写能力
-* 硬件
-	* 磁盘类型/转速
-	* 查看kernel能够tuning的选项
-		* 磁盘块IO大小
-		* [调度策略](http://scoke.blog.51cto.com/769125/490546)
-	
-* 评估磁盘IO性能
-	
-	* 评估不同读写文件方式的性能
-		* 直接读写文件性能
-		* 经过文件系统读写速度
-
-	* 评估读小文件时的性能
-		* 读大文件速度
-			* 较大文件的读取效率，考验IO能力
-		* 读小文件速度
-			* 大量小文件
-	
-	* 评估文件缓存对磁盘性能的影响
-		* 首次读
-			* 可测试文件从磁盘读到kernel内存直到用户进程这一过程
-				* 微观角度，systemtap等脚本动态追踪
-		* 非首次读
-			* 测试文件在缓存中后的读效率
-				* 文件系统缓存命中率
-
-	* 评估不同调度策略对磁盘性能的影响
-		* 场景：
-			* 不同策略适应不同场景
-		* 方法：
-			* 写随机文件内容，记录参数
-			* bio调度队列的大小
-			* 输入输出能力
-				* iostat
-				* iotop
-
-### 网卡吞吐能力
-
-* 硬件
-	* 千兆/万兆
-	* 多队列
-	* 网卡缓冲区大小
-* 查看kernel能够tuning的选项
-	* [ethtool、网卡硬件信息和优化技术](http://www.blogjava.net/yongboy/archive/2015/01/30/422592.html)
-	* 网卡驱动的缓冲队列
-
-* 评估linux server的网络性能
-
-	* 评估网络子系统的吞吐量
-		* 场景：
-			* 测试网卡吞吐能力
-		* 方法：
-			* 少量TCP连接，发起大规模数据传输
-			* 网络压测工具netperf/iperf，或者写代码调整
-			* 测试过程中调整sysctl配置、网卡驱动、网卡硬件配置
-			* 检测工具：tcpdump/sar等工具
-			* 统计socket缓冲大小
-			* 在局域网内两台设备间执行
-
-	* 评估网络子系统的响应能力
-		* 场景：
-			* 在网络子系统繁忙时，对外服务的响应能力
-		* 方法:
-			* 采用iperf等工具发起大量tcp连接，发出巨量小包
-			* 检测工具，tcpdump/wireshark统计服务质量
-			* systemtap分析软中断响应时间
-			* 统计TCP状态分布情况
-			* 统计内存分配情况
-
-### 内核本身
-
-* 管道
-* IPC性能
-* unix domain socket性能
-
-### 参考链接
-
-* [context switch definition](http://www.linfo.org/context_switch.html)
-* [查询本机CPU相关信息](http://smilejay.com/2011/03/linux_cpu_core_thread/)
-* [海量小文件](http://blog.csdn.net/liuaigui/article/details/9981135)
-* [单机负载评估](http://www.jianshu.com/p/db8e8a2884ef)、[性能分析](http://www.jianshu.com/p/fd6e35f529c1)
-* [性能评估](http://blog.csdn.net/hguisu/article/details/39373311)
-* [Linux性能优化--CPU](http://kumu-linux.github.io/blog/2014/04/21/performance-cpu/)
-	* 参考该post前我也想到了CPU压测的几个关注点：待调度执行任务数、CPU负载和进程切换
-	* 该post有很大启发
-* [SAR的一些使用](http://www.thegeekstuff.com/2011/03/sar-examples/?utm_source=feedburner)
-* [Linux磁盘调度策略](http://blog.itpub.net/27425054/viewspace-768224/)
-* [其实没想到卖VPS的写性能测试挺专业](http://www.vpsee.com/2009/11/linux-system-performance-monitoring-cpu/)
-* [coolshell的性能调优攻略](http://coolshell.cn/articles/7490.html)
-* [linux下网络环境性能测试](http://www.samirchen.com/linux-network-performance-test/)
+所谓带宽，不仅仅是硬件上的读写速度，而是数据从源头到达CPU，然后CPU将其送往目的地的速度，考验的是传输能力；所谓时延，更多的评估传输的效率，读取一定量的数据，数据可以在多长时间内从内存读取到CPU。
 
 
+带宽性能测试
+----------------
+
+> 带宽包括了数据从内存到CPU的带宽；从磁盘文件读取数据的带宽；从系统提供的IPC机制，比如pipe的带宽；从网络读取数据的带宽；
+
+* mem 
+	* rd
+		* 单次读取512Byte数据，即128个int整数，并做相加操作以防止编译器优化；循环展开，而非在for中挨个相加
+		* use_int(sum)等指令也是防止编译器优化的
+		* 每次读取512Byte，直到读完，算是一次读取完成
+		* 如果rd的数据块太小，比如32MB，很快被读完，这时需要调整连续循环读取iterations次，然后求平均；iterations的取值取决于根据系统负载情况，实时计算需要执行的次数。
+		* 我的CPU是[至强E5-2620](http://www.cpu-world.com/CPUs/Xeon/Intel-Xeon%20E5-2620.html)，包含6*32KB的8路组相连数据L1缓存，6*256KB的8路组相连L2,15MB的20路共享L3cache
+		* 根据读取的数据块大小，我们可以逻辑上推断该数据处于哪级缓存；本机的L1/L2/L3分别为192kb/1536kb/15360kb，
+			* 数据块16KB，带宽34999.46MB/s
+			* 数据块32KB，带宽19191.28MB/s
+			* 数据块320KB，带宽10669.75MB/s
+			* 数据块8MB，带宽6394.37MB/s
+			* 数据块16MB，带宽4993.96MB/s
+			* 数据块1024MB，带宽4979.76MB/s
+				* 纯内存带宽
+	* wr
+		* 向内存块每一个4字节写入1
+	* rdwr
+		* wr与rd的结合，性能略差
+			 
+
+* pipe
+	* 测量方式：父子进程阻塞读写pipe
+	* tips
+		* 用bw_pipe，默认是64kb的块，发现采用32kb更快一些，16kb和32kb没区别；
+		* 通过sar -w 1发现，64kb的时候的csw是32kb时的10倍以上
+		* 最后发现，块大小是32kb - 1 和32kb +1是分水岭，
+		* 正在查原因
+
+* mmap方式读取文件
+	* mmap方式读取文件，首先要打开文件，然后通过mmap将fd映射到匿名内存页，mmap的内存页在读取时才会真正分配
+	* 测量方式：
+		* 一、多次循环中，open、mmap，然后读取内容，最后close
+		* 二、在测量前open文件，并进行mmap；在多次循环中，每次读取目标大小的文件数据；
+		* 前者可以得到通过读取文件数据时，mmap的纯开销；后者更贴近实际情况
+	* 测量结果
+		* 读取1024m数据；测试采用-C标志，复制文件后再进行，可以以冷数据的方式避开文件缓存
+		* 结果一：3223.58 MB/s
+		* 结果二：7948.87 MB/s
+
+* read方式读取文件
+	* 测量方式
+		* 一、以及包含open、read和close的带宽
+		* 二、测试单纯读文件(read)的带宽，
+	* 测量结果
+		* 读取1024m数据；测试采用-C标志，复制文件后再进行，可以以冷数据的方式避开文件缓存
+		* 一、5526.29 MB/s
+		* 二、5442.29 MB/s
 
 bw_mem
 ----------------
