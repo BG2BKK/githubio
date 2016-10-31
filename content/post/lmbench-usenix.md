@@ -141,5 +141,22 @@ benchmark注意事项
 		* 连续读内存时，每次load都会跟着一个load。
 		* 连续读可能会导致时延高于空闲读，有些系统会有"关键字优先"的机制，读取某个字时不等待整个cache line填充就把该line中的要读取数据喂给CPU，然而此时cache依然处于busy状态；如果此时再有第二次load，会因为当前cache busy而停顿等待。在UltraSPARC中空闲读和连续读的差异可达35%.
 
+```cpp
+p = head;
+while(p->p_next)
+	p = p->p_next;
+```
+
+* back-to-back-load latency
+	* 上述代码就三句汇编，loop、load和jmp
+	* 300MHz的cpu可以在3个cycle中完成一次load，即10ns，然而实际上却执行了400ns，说明400ns都耗费在了停顿上，等待数据可用
+	* 所以从内存load数据非常慢，发生cache miss的话会停顿住；尤其在超标量计算机中，一次执行多个指令，但是停顿在load上，很浪费
+	
+* cache预取
+	* stride小的话，预取数据具有较高的空间局部性，性能会高
+	* stride大一点会好，但是大太多的话：
+		* 填充cache往往是原子操作，后续指令只能等待cache操作完成
+		* cache只有一个操作入口，预取数据量太大的话可能包括很多用不着的数据，会妨碍其他正常的cache访问
+
 
 
