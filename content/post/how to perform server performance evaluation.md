@@ -15,16 +15,25 @@ title = "怎样尽可能全面的评估一台服务器的性能"
 2. 如何观察这些指标，测试原理，观测工具/统计代码
 3. 如何进行压测，实现测试场景，压测工具/压测代码
 
-bench也分macro bench和micro bench
+bench可以分类为macro bench和micro bench;对于macro bench，很多时候我们得到的是一个整体而粗略的结果，通过top我们可以看到系统负载，这些对于我们定位线上问题，分析应用程序的性能热点很有帮助，然而这并不能精确衡量一台Linux Server的性能；应用程序多种多样，线上系统目的各不相同，所以macro bench一般用于case by case的性能分析，[用于解决应用的性能瓶颈](https://github.com/BG2BKK/githubio/blob/master/content/post/macrobench.md)；而micro bench可以定量的分析一台机器+操作系统的性能，采用相同的测试基准，通过无干扰的大量重复基本操作，比如从L1 Cache读取单个字节，耗时一个CPU时钟，在大量重复中得到较为宏观的结果，再排除loop损耗、取运行时间的损耗，可以用于基本衡量一台server的运行效率。
 
-对于macro bench，很多时候我们得到的是一个整体而粗略的结果，通过top我们可以看到系统负载，这些对于我们定位线上问题，分析应用程序的性能热点很有帮助，然而这并不能精确衡量一台Linux Server的性能；应用程序多种多样，线上系统目的各不相同，所以macro bench一般用于case by case的性能分析，[用于解决应用的性能瓶颈](https://github.com/BG2BKK/githubio/blob/master/content/post/macrobench.md)；而micro bench可以定量的分析一台机器+操作系统的性能，采用相同的测试基准，通过无干扰的大量重复基本操作，比如从L1 Cache读取单个字节，耗时一个CPU时钟，在大量重复中得到较为宏观的结果，再排除loop损耗、取运行时间的损耗，可以用于基本衡量一台server的运行效率。
+```bash
+./bin/x86_64-linux-gnu/enough
 
-./bin/x86_64-linux-gnu/enough结果为n=322229, u=5172，执行322229次 TEN( p = *p )，TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结果的影响降低1/10；总共用时5172000ns，单次平均0.623ns；而CPU主频1999.830MHz，折合一个cycle 0.500ns，数据基本可信。
+结果为n=322229, u=5172，执行322229次 TEN( p = *p )，
 
-目的是把CPU喂饱，所有的性能都是从CPU的角度来衡量；内存读写快慢，单纯比较数据从内存的一个位置移动到另一个位置，这是设备厂商用来做广告用的，不是计算机系统来评估性能的，不把数据从内存读到CPU，衡量这段时间的性能；把数据从CPU读一遍，然后写到另一个地址，数据流经过CPU后算是经过了计算机系统，测量这段时间才是有意义的。基于此，其他的bench，比如pipe的性能，需要排除数据流动的时间，排除其余的时间，才是单纯pipe的性能，；如context switch，需要bench时用pipe来驱动，这里需要排除掉数据流动的时间，pipe通信的时间，其他时间，才是context switch的时间
+TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结果的影响降低1/10；
+
+总共用时5172000ns，单次平均0.623ns；CPU主频1999.830MHz，折合一个cycle 0.500ns，数据基本可信。
+```
+
+提升性能主要是把CPU喂饱，所有的性能都是从CPU的角度来衡量；内存读写快慢，单纯比较数据从内存的一个位置移动到另一个位置，这是设备厂商用来做广告用的，不是计算机系统来评估性能的；把数据从内存读到CPU，然后写到另一个地址，数据流经过CPU即是经过了计算机系统，测量这段时间才是有意义的。以数据流动为基础，其他的bench，比如pipe的性能，需要排除数据流动的时间，排除loop等时间，才是单纯pipe的带宽性能；比如context switch速度，在做bench时，需要用pipe来驱动切换进程，这里需要排除掉数据流动的时间，pipe通信的时间，其余开销时间，才是context switch的时间。
 
 性能评估主要对CPU、memory、disk IO和network IO四个指标，从带宽和时延两个角度评估。
 
+所谓带宽，不仅仅是硬件上的读写速度，而是数据从源头到达CPU，然后CPU将其送往目的地的速度，考验的是传输能力；所谓时延，更多的评估传输的效率，读取一定量的数据，数据可以在多长时间内从内存读取到CPU。
+
+所谓时延，其实也是另一种意义的速度，比如context switch，并没有吞吐量这个概念，但是通过将多个进程切换N次，得到总体时间，平均后可以获得单次切换用时，用以评估context switch的latency。
 
 测试前的准备
 -------------------
@@ -43,7 +52,6 @@ bench也分macro bench和micro bench
 	* 测试时运行的benchmark也都比较小，其实可以视为和单处理器没有区别；或者我们可以将进程绑定到某个CPU上。
 	* 用gcc编译benchmark，优化级别为 -O，可以避免优化过度；注意一些load指令，如果load结果没有被用到的话，可能会被优化掉
 
-> 所谓带宽，不仅仅是硬件上的读写速度，而是数据从源头到达CPU，然后CPU将其送往目的地的速度，考验的是传输能力；所谓时延，更多的评估传输的效率，读取一定量的数据，数据可以在多长时间内从内存读取到CPU。
 
 带宽性能测试
 ----------------
@@ -97,58 +105,36 @@ bench也分macro bench和micro bench
 		* 一、5526.29 MB/s
 		* 二、5442.29 MB/s
 
-bw_mem
-----------------
+时延性能测试
+--------------------
+
+计算机所有的时延几乎都跟memory时延有关，做context switch时首先要store当前进程状态，然后load下一个进程。可以说准确测量计算机内存时延是评估其他时延的前提，虽然内存时延的准确测量不太容易。
+
+### 内存延时
+
+* 内存延时有多种定义，刨去硬件相关的内存芯片和系统总线时延外，从总线和内存空闲时读数据，和连续读数据这两种场景的差异值得探讨。
+	* 总线空闲时读取内存数据
+		* 处理器等待从内存中取数据的时间
+			* 这个时间通常是一种标称值，有些处理器取数据时并不等待和停顿，因此测量延时可能显得小于标称值
+			* 而压测时，由于突发读取导致cache miss，导致实际延时又比这个值大
+			* 因此采用这个值也不是那么合理
+	* 连续繁忙读内存数据
+		* 连续读内存时，每次load都会跟着一个load。
+		* 连续读可能会导致时延高于空闲读，有些系统会有"关键字优先"的机制，读取某个字时不等待整个cache line填充就把该line中的要读取数据喂给CPU，然而此时cache依然处于busy状态；如果此时再有第二次load，会因为当前cache busy而停顿等待。在UltraSPARC中空闲读和连续读的差异可达35%.
+	* 所以lmbench采用的是测试连续读时的内存时延，一来连续读的测量比空闲读容易些，二来连续读更贴近实际情况。
 
 
-* init_loop
+lmbench测试框架
+----------------------
 
-* get_enough
-	* init_timing
-		* compute_enough()
-			* 计算可以得到计算机准确执行时间的时间段，在该时间段内计算机的执行时间能够稳定
-		* t_overload()
-			* 用循环计算 gettimeofday() 的开销
-		* l_overload()
-			* 计算仅用于循环的时间开销
-		* init_timing()在一次benchmakr中只执行一次，除非第二次运行程序
+* fork出child进程，作为bench执行体；parent作为控制体；
+* parent和child通过pipe互相通信，child通知parent准备好，parent通知child开始，child执行完毕后通知parent完成；parent取完执行结果，通知child结束。
+* 应用程序中child首先执行init程序，将准备工作做好；比如如果是bw_mem中的cp benchmark，需要首先分配好src内存块，然后分配dst内存块，准备好后即返回，init结束；
+* init结束后，benchmp框架进行下一步，while循环中执行benchmark进入warmup状态
+* child执行benchmark是以状态机方式实现的
+	* 首先是warmup状态，在该状态中childparent发送ready信号，阻塞等待parent的start信号。child收到start后，状态设置为timing_interval，取iterations为1，执行benchmark程序；执行完后重入while循环；
+	* 然后切换到timing_interval状态。由于之前在warmup状态执行以iterations为1的benchmark，重入循环时满足state->need_warmup == 0，所以开始统计上一次benchmark开始到现在的用时，并刨去t_overload和l_overload；进入状态机的timing_interval状态，该状态评估本次benchmark的用时是否符合期望，如果符合，将本次bench结果记录，并设置状态为cooldown；如果不符合期望，分情况，如果用时result小于150，说明单次benchmark用时太短，需要多次迭代得到总结果，因此将iterations扩大8倍去计算；如果用时大于150，说明单次benchmark执行时间是够的，但是需要微调迭代次数，按照 enough * 1.1 / (iterations / result)；所以说timing_interval状态是用来在bench过程中微调迭代次数以使执行时间符合预期的过程。
+	* 在cooldown状态，child阻塞等待取结果信号，并将结果写回response管道中；执行清理函数后，得到parent发出的exit信号，结束自己。
+* 最终结果存储在全局变量iterations和stop_tv中，其实是通过get_time()和get_n()，以及set_time()/save_n()或者set_results()中，并在用户程序的结束时进行计算。
 
-	* compute_enough()
-		* 预估5000us、10000us、50000us和100000us，比如在5000us内计算机用时能够稳定，那么认为运行想运行的任务，5000us足够使计算机测量稳定下来，那么就返回5000us；如果四个都不行，则返回SHORT，也就是1000000us，一个足够大的数据。理论上讲其实计算机执行一个非常快或者用时普通的任务，在循环足够次数，运行足够时间，平均下来都能使单次时间稳定，但是如果能找到合适的时长，benchmark过程可以更快，且执行时间短意味着受到外界干扰小。
-		* compute_enough() 调用 test_time() 依次评估每个预估值
-		* test_time(enough)
-			* find_N(enough)，得到执行任务A，执行时长为enough us，需要跑多少次，得到N。
-				* find_N 首先执行 N = 10000, time_N(N)，看看执行10000次A的运行时间t，如果运行时间t与enough误差在2%以下，那么就返回N；如果运行时间t过小，低于1000us，说明执行N次还不够，需要加码，扩大10倍，N = N * 10；如果t不低于1000us，说明执行N次还可以，不过要按照运行时间t和enough的比值，再结合运行N次需要t us，折算出运行enough时间大概需要  N = enough * N / t;
-				* 拿着新的N再次find_N(N)，直到执行时间与enough相差不到2%时，可以认为，计算机执行N次任务A，需要用时enough us。
-				* 这个逼近过程循环10次，返回结果；如果不能收敛在2%里，则认为enough时长还不足以让CPU运行稳定，需要加长。
-					* time_N(N)通过执行执行duration(N)，执行Nx10次 long **p; p = (long **) *p;这样一个赋值运算，汇编是[ move (%eax), %eax ]，从内存中读值，写入寄存器；读p地址的值只是读L1 cache中，所以在CPU内运行，不会有外界干扰。在不同平台不同性能的机器上，大家都执行这个duration(N)，通过执行N次达到时间u，作为cpu的基准。这样还是蛮科学的
-					* 执行TRIES次 time_N(N)，取最小值返回
-					* duration(N)就是任务A。
-			* test_time(enough)中，拿到find_N(enough)所需要的执行次数N后，再次计算执行N次用时，time_N(N)，以这次结果为baseline；然后将N扩大到1.015倍、1.020倍和1.035倍，计算执行所需要时间time_N(N * factor)，得到结果与baseline * factor比较，误差在0.25%内的话，说明执行enough时间，需要N次，这个经过更新的N存储在全局变量中(save_n())，也就是存储在全局变量iterations里。
-			* 如果误差仍然较大，那么我们选用一个较大的时间，比如SHORT=1000000；此时的N并无意义。
 
-	* t_overload()
-		* 如果在之前的compute_enough()没有计算得到enough时间，返回的是SHORT，或者即使得到了，但是大于50000，执行时间足够长，那么我们认为gettimeofday的时间开销可以忽略不计，记为0。
-		* 如果得到一个时间enough小雨50000us，那么认为gettimeofday的开销有必要列入，需要在循环中确定它的调用所需时长
-	* l_overload()
-		* 在需要循环很多次的benchmark中，loop的开销很有必要列入统计中，再bench总时长中排除loop的影响
-		* loop的计算比较巧妙，假设loop开销是overhead，在同样的loop下，loop循环体执行一个任务和两个任务，分别进行bench，循环n1次和n2次，得到执行时长为u1、u2
-			* u1 = n1 * ( overhead + work)
-			* u2 = n2 * ( overhead + 2 * work)
-			* overhead = 2*u1/n1 - u2/n2
-			* overhead即为单次loop的开销，一般很小，但是累计起来比较客观。
-* benchmp框架
-	* fork出child进程，作为bench执行体；parent作为控制体；
-	* parent和child通过pipe互相通信，child通知parent准备好，parent通知child开始，child执行完毕后通知parent完成；parent取完执行结果，通知child结束。
-	* 应用程序中child首先执行init程序，将准备工作做好；比如如果是bw_mem中的cp benchmark，需要首先分配好src内存块，然后分配dst内存块，准备好后即返回，init结束；
-	* init结束后，benchmp框架进行下一步，while循环中执行benchmark进入warmup状态
-	* child执行benchmark是以状态机方式实现的
-		* 首先是warmup状态，在该状态中childparent发送ready信号，阻塞等待parent的start信号。child收到start后，状态设置为timing_interval，取iterations为1，执行benchmark程序；执行完后重入while循环；
-		* 由于已经执行以此iterations为1的benchmark，重入循环时满足state->need_warmup == 0，所以开始统计上一次benchmark开始到现在的用时，并刨去t_overload和l_overload；进入状态机的timing_interval状态，该状态评估本次benchmark的用时是否符合期望，如果符合，将本次bench结果记录，并设置状态为cooldown；如果不符合期望，分情况，如果用时result小于150，说明单次benchmark用时太短，需要多次迭代得到总结果，因此将iterations扩大8倍去计算；如果用时大于150，说明单次benchmark执行时间是够的，但是需要微调迭代次数，按照 enough * 1.1 / (iterations / result)；所以说timing_interval状态是用来在bench过程中微调迭代次数以使执行时间符合预期的过程。
-		* 在cooldown状态，child阻塞等待取结果信号，并将结果写回response管道中；执行清理函数后，得到parent发出的exit信号，结束自己。
-	* 最终结果存储在全局变量iterations和stop_tv中，其实是通过get_time()和get_n()，以及set_time()/save_n()或者set_results()中，并在用户程序的结束时进行计算。
-
-	* 如果进行多任务
-		* 1
-		* 2
-		* 3
