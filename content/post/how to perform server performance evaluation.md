@@ -139,6 +139,39 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 
 ### 上下文切换
 
+intel的超线程技术
+--------------------
+[超线程加快了 Linux 的速度](https://www.ibm.com/developerworks/cn/linux/l-htl/)
+
+intel的turbo技术
+---------------------
+
+[linux的睿频工具](https://magiclen.org/linux-intel-cpu/)
+
+```bash
+sudo i7z
+```
+
+可以实时看到CPU的运行频率，在CPU空闲时主频低至
+
+```bash
+        Core [core-id]  :Actual Freq (Mult.)      C0%   Halt(C1)%  C3 %   C6 %  Temp      VCore
+        Core 1 [0]:       1366.96 (13.72x)      24.9    81.6    4.69       0    62      1.1008
+        Core 2 [2]:       1381.01 (13.86x)      23.3    79.2    7.89       0    62      1.1008
+```
+
+甚至更低
+
+而运行lmbench让CPU满载时，CPU主频可达
+
+```bash
+        Core [core-id]  :Actual Freq (Mult.)      C0%   Halt(C1)%  C3 %   C6 %  Temp      VCore
+        Core 1 [0]:       2989.17 (30.00x)      16.9    73.4    6.37       0    69      1.1409
+        Core 2 [2]:       3050.32 (30.61x)      99.1       0       0       0    73      1.1409
+```
+
+可见睿频的主要作用是动态调整CPU主频适应处理任务，当我们运行lmbench时，理所应当的CPU将会满载运行，所以计算CPU主频时完全不用担心睿频导致的频率变化，总是接近最高值的。
+
 lmbench测试框架
 ----------------------
 
