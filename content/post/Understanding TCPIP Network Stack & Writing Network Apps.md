@@ -608,3 +608,5 @@ NIC将待发送数据包存储在自身缓存中，包速率主要由NIC的物�
 To Be Continued
 ------------------------
 
+[ldd](https://static.lwn.net/images/pdf/LDD3/ch17.pdf)
+
