@@ -127,13 +127,52 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 * 测量方法
 	* ~~读取一块数据，每次读取的长度，从cache line的长度到较大的一块~~
 
-### 调用系统组件 
+### 调用系统组件（系统调用） 
 
-调用操作系统的入口，比如读写设备；选择操作/dev/null设备，每次写一个字，一般为4字节；选择该设备的原因是所有操作系统都没有对该设备进行优化，相对于其他系统调用比如getpid、gettimeofday的不同优化，甚至是实现在用户层。
+调用操作系统的入口，一般指系统调用，比如读写设备的read/write，比如getpid()或getimeofday()。
 
-向/dev/null设备写一个字，整个过程可用于测量调用系统接口的时延。
+对于前者的bench，选择操作/dev/null设备，每次写一个字，一般为4字节，经历了用户进程发起系统调用、转入内核态、查询文件描述符、VFS层等一整个过程，测量这个过程的时间；选择该设备的原因是所有操作系统都没有对该设备进行优化
+
+而后者，系统调用比如getpid、gettimeofday，各平台不同优化，甚至是实现在用户层，不过在Linux上仍然是实现在内核态的。所以可以通过getpid()了解基本开销，通过写/dev/null设备了解整体开销。
+
+* 原理：
+	* 在循环中调用getpid()和write(fd, *buf, 1)
+* 结果：
+	* getpid	
+		* Simple syscall: 0.0540 microseconds
+	* write to /dev/null
+		* Simple write: 0.0897 microseconds
 
 ### 信号处理耗时
+
+* 建立信号sigaction耗时
+	* 测量原理：
+		* 在本进程内部，调用sigaction建立信号
+		* time = sig_installation
+	* 测量结果：
+		* Signal handler installation: 0.1492 microseconds
+
+* 发送信号耗时 kill(pid, sig)
+	* 测量原理：
+		* 设置不捕获信号，进程内向自己发送信号，kill(pid_self, SIGUSR1)
+		* time = sig_send 
+	* 测量结果：
+		* 0.1240 microseconds
+
+* 捕获并处理信号耗时		
+	* 测量原理：
+		* 设置捕获信号，向自己发送信号，kill(pid_self, SIGUSR1)
+		* sig_handle = total_time - sig_installation - sig_send
+	* 测量结果：
+		* Signal handler overhead: 0.9763 microseconds
+
+* 捕获信号耗时：
+	* 测量原理：
+		* 在bench进程中以只读方式mmap一段内存，如果试图写这块内存，则会一直触发SIGBUS和SIGSEGV信号
+		* 在触发信号前设置SIGBUS和SIGSEGV的处理函数，在处理函数中不执行任务，只动态调整捕获次数；捕获次数达到一定数量时，评估单次处理用时
+		* 由于重复捕获信号，并且信号处理函数里基本没有任务，可以认为这段时间是捕获信号耗时，或者说是信号传递耗时
+	* 测量结果:
+		* Protection fault: 0.4928 microseconds
 
 ### 创建进程开销
 
@@ -141,19 +180,25 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 
 intel的超线程技术
 --------------------
-[超线程加快了 Linux 的速度](https://www.ibm.com/developerworks/cn/linux/l-htl/)
+
+[CPU的超线程机制](https://www.ibm.com/developerworks/cn/linux/l-htl/)通过复制、分区和共享 Intel NetBurst 微结构管道中的资源，使得一个物理处理器能包含两个逻辑处理器。逻辑处理器有自己的处理器状态、指令指针、重命名逻辑以及一些较小的资源，共享的资源有乱序执行引擎和高速缓存。超线程机制HT利用各资源的速度差异，在时间上并行模拟出两份计算资源，理论上讲提供多一倍的计算能力，而代价是，既然涉及到共享，那么在一些操作中会因为共享和竞争而有性能损耗。下表是超线程对Linux API的影响，采用lmbench测试结果，这份bench报表在运行有linux-2.4.19内核的Intel Xeon处理器上，主频1.60GHz。
+
+<h5 id="N100C0"> 超线程对 Linux API 的影响</h5>
+<table border="1" cellpadding="5" cellspacing="1" class="ibm-data-table" summary=""><thead xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr><th><strong>内核函数</strong></th><th><strong>2419s-noht</strong></th><th><strong>2419s-ht</strong></th><th><strong>加速</strong></th></tr></thead><tbody xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr><td>简单的 syscall</td><td>1.10</td><td>1.10</td><td>0%</td></tr><tr><td>简单的 read</td><td>1.49</td><td>1.49</td><td>0%</td></tr><tr><td>简单的 write</td><td>1.40</td><td>1.40</td><td>0%</td></tr><tr><td>简单的 stat</td><td>5.12</td><td>5.14</td><td>0%</td></tr><tr><td>简单的 fstat</td><td>1.50</td><td>1.50</td><td>0%</td></tr><tr><td>简单的 open/close</td><td>7.38</td><td>7.38</td><td>0%</td></tr><tr><td>对 10 个 fd 的选择</td><td>5.41</td><td>5.41</td><td>0%</td></tr><tr><td>对 10 个 tcp fd 的选择</td><td>5.69</td><td>5.70</td><td>0%</td></tr><tr><td>信号处理程序安装</td><td>1.56</td><td>1.55</td><td>0%</td></tr><tr><td>信号处理程序开销</td><td>4.29</td><td>4.27</td><td>0%</td></tr><tr><td>管道延迟</td><td>11.16</td><td>11.31</td><td>-1%</td></tr><tr><td>进程 fork+exit</td><td>190.75</td><td>198.84</td><td>-4%</td></tr><tr><td>进程 fork+execve</td><td>581.55</td><td>617.11</td><td>-6%</td></tr><tr><td>进程 fork+/bin/sh -c</td><td>3051.28</td><td>3118.08</td><td>-2%</td></tr><tr><td colspan="4">注：数据用微秒表示：越小越好。</td></tr></tbody></table>
+
+我认为上表中，ht没有影响的API是一些lmbench单进程可以测试的项，比如read、write等，而ht有影响的选项，比如管道延迟、进程fork+exit等，是lmbench需要发起多个进程进行bench，这些进程在逻辑处理器间有竞争，导致性能有些下降。从报表中可以看到，开启ht的bench结果在有些项目中耗时加长，但是比较小，但是整个系统获得了一倍的计算资源。
 
 intel的turbo技术
 ---------------------
 
-[linux的睿频工具](https://magiclen.org/linux-intel-cpu/)
+[linux的睿频工具](https://magiclen.org/linux-intel-cpu/)可以实时看到CPU的运行频率
 
 ```bash
 sudo i7z
 ```
 
-可以实时看到CPU的运行频率，在CPU空闲时主频低至
-
+以笔记本CPU i5-2520M 为例，在CPU空闲时主频低至
+ 
 ```bash
         Core [core-id]  :Actual Freq (Mult.)      C0%   Halt(C1)%  C3 %   C6 %  Temp      VCore
         Core 1 [0]:       1366.96 (13.72x)      24.9    81.6    4.69       0    62      1.1008
@@ -162,7 +207,7 @@ sudo i7z
 
 甚至更低
 
-而运行lmbench让CPU满载时，CPU主频可达
+运行lmbench时，CPU满载，主频可达
 
 ```bash
         Core [core-id]  :Actual Freq (Mult.)      C0%   Halt(C1)%  C3 %   C6 %  Temp      VCore
