@@ -189,3 +189,18 @@ title = "macrobench"
 * [linux下网络环境性能测试](http://www.samirchen.com/linux-network-performance-test/)
 
 
+Intel CPU 5300U的cache测试
+-----------------------------
+
+L1 cache: 32768 bytes 1.50 nanoseconds 64 linesize 7.95 parallelism
+L2 cache: 2097152 bytes 8.50 nanoseconds 64 linesize 4.90 parallelism
+L3 cache: 4194304 bytes 21.73 nanoseconds 128 linesize 4.76 parallelism
+L4 cache: 33554432 bytes 33.48 nanoseconds 64 linesize 3.76 parallelism
+Memory latency: 857.39 nanoseconds 6.18 parallelism
+
+而dmidecode -t cache的输出结果是
+
+L1 32KB
+L2 256KB
+L3 3072KB
+
