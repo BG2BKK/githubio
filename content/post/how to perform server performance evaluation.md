@@ -131,7 +131,7 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 	* 与bw_mem不同的是，并不读取数据块，而是通过地址链表跨stride去访问内存，以此测试内存时延，可见目的和测试bandwidth不一样
 
 * 测量结果
-	* 测量结果[如图所示](https://raw.githubusercontent.com/BG2BKK/githubio/master/static/lat_mem_latency.svg)，原始数据[见文件](https://github.com/BG2BKK/githubio/blob/master/static/data.set)
+	* 测量结果[如图所示](https://raw.githubusercontent.com/BG2BKK/githubio/master/static/lat_mem_latency.png)，原始数据[见文件](https://github.com/BG2BKK/githubio/blob/master/static/data.set)
 
 ### 调用系统组件（系统调用） 
 
