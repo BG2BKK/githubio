@@ -140,6 +140,11 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 		纵轴是load平均延迟，单位为ns，从1ns到50ns
 		不同颜色的线表示不同的Stride，即每次读内存时跨越的数据长度
 		系统L1 Cache 32KB、L2 Cache 256KB、L3 Cache 3072KB
+	
+TODO
+---------------
+
+[IBM关于lmbench对mem latency的深度benchmark](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W51a7ffcf4dfd_4b40_9d82_446ebc23c550/page/Untangling%20memory%20access%20measurements%20-%20memory%20latency)
 
 ### 调用系统组件（系统调用） 
 
