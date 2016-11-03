@@ -112,6 +112,8 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 
 计算机所有的时延几乎都跟memory时延有关，做context switch时首先要store当前进程状态，然后load下一个进程。可以说准确测量计算机内存时延是评估其他时延的前提，虽然内存时延的准确测量不太容易。
 
+计算机系统中存在的时延主要有内存访问时延、调用操作系统组件如读写文件和系统调用等、进程创建的时延，以及进程切换导致的上下文切换时延。
+
 ### 内存延时
 
 * 定义:
@@ -142,8 +144,9 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 		纵轴是load平均延迟，单位为ns，从1ns到50ns
 		不同颜色的线表示不同的Stride，即每次读内存时跨越的数据长度
 		系统L1 Cache 32KB、L2 Cache 256KB、L3 Cache 3072KB
+		getconf命令可以获取系统的必要信息，包括各级Cache
 	
-TODO
+#### TODO
 ---------------
 
 [IBM关于lmbench对mem latency的深度benchmark](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W51a7ffcf4dfd_4b40_9d82_446ebc23c550/page/Untangling%20memory%20access%20measurements%20-%20memory%20latency)
