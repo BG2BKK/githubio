@@ -135,6 +135,12 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/lat_mem_latency.png" ><p>多级内存的读写速度，从L1、L2、L3到主存</p></div>
 
+	图例：
+		横轴读取的内存块大小，从4KB到8MB，横轴以0.5MB为单位
+		纵轴是load平均延迟，单位为ns，从1ns到50ns
+		不同颜色的线表示不同的Stride，即每次读内存时跨越的数据长度
+		系统L1 Cache 32KB、L2 Cache 256KB、L3 Cache 3072KB
+
 ### 调用系统组件（系统调用） 
 
 调用操作系统的入口，一般指系统调用，比如读写设备的read/write，比如getpid()或getimeofday()。
