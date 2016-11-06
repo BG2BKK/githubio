@@ -139,9 +139,9 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 
 	char *buf = (char *)malloc(sizeof(char ) * 1024);
 	memset(buf, 0, 1024);
-	*(char **)&(buf[0]) = (char **)&(buf[512]);
+	*(char **)&(buf[0]) = (char *)&(buf[512]);
 	printf("%p\t%p\n", buf, buf + 512);
-	char **p = (char **)&buf[0];
+	char **p = (char *)&buf[0];
 	printf("%p\t%p\n", p, *p);
 
 ```
@@ -188,7 +188,7 @@ Remote Dram ~100 ns
 
 ##### L1 Cache Latency
 
-对于intel i5-2520M来说，L1 Cache的32KB容量，cache line长64KB，8路组相连，每路4KB大小，有64组cache line供选择；在不考虑其他因素的情况下，每32KB连续数据中一定会产生L1 miss，每4KB连续数据一定会有一次组内选择哪路cache line存储数据，可能产生cache miss；一旦产生cache miss，会进行L2乃至下一级的读取，造成时延加大，影响L1 cache的latency测量。因此为了避免cache miss带来的影响，在测量L1时尽量采用小步长，小内存块进行逼近，得到尽可能精确的L1 Cache的latency。
+对于intel i5-2520M来说，L1 Cache的32KB容量，cache line长64B，8路组相连，每路4KB大小，有64组cache line供选择；在不考虑其他因素的情况下，每32KB连续数据中一定会产生L1 miss，每4KB连续数据一定会有一次组内选择哪路cache line存储数据，可能产生cache miss；一旦产生cache miss，会进行L2乃至下一级的读取，造成时延加大，影响L1 cache的latency测量。因此为了避免cache miss带来的影响，在测量L1时尽量采用小步长，小内存块进行逼近，得到尽可能精确的L1 Cache的latency。
 
 ##### L2 Cache Latency
 
@@ -205,6 +205,12 @@ L3 Cache的latency反而难以测量，原因一是L3可能是多核共享的，
 * [lwn](https://lwn.net/Articles/252125/)
 * [IBM关于lmbench对mem latency的深度benchmark](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W51a7ffcf4dfd_4b40_9d82_446ebc23c550/page/Untangling%20memory%20access%20measurements%20-%20memory%20latency)
 * [stackoverflow_1](http://stackoverflow.com/questions/4087280/approximate-cost-to-access-various-caches-and-main-memory) [stackoverflow_2](http://stackoverflow.com/questions/10274355/cycles-cost-for-l1-cache-hit-vs-register-on-x86)
+* 读内存过程
+	* [CPU读数据的一系列过程](http://yuhaozhu.com/CacheMemory.pdf)
+	* [What Your Computer Dos While You Wait](http://duartes.org/gustavo/blog/post/what-your-computer-does-while-you-wait/)
+	* [译文](http://www.cnblogs.com/xkfz007/archive/2012/10/08/2715163.html)
+	* [intel: Cache相关的问题](https://software.intel.com/sites/default/files/m/1/1/7/0/a/12645-6.7__Cache_e7_9b_b8_e5_85_b3_e9_97_ae_e9_a2_98.pdf)
+
 
 ### 调用系统组件（系统调用） 
 
