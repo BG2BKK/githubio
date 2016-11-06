@@ -5,6 +5,11 @@ title = "github 上那些令我感到惊艳又实用的项目"
 
 +++
 
+* [What Your Computer Does While You Wait](http://duartes.org/gustavo/blog/post/what-your-computer-does-while-you-wait/) 关于现代CPU和OS有详解
+* [读薄csapp](http://wdxtub.com/2016/04/16/thin-csapp-2/)
+* [深入探索并发编程](http://www.chongh.wiki/archives/)
+* [刘浩mit 6.824](https://www.zhihu.com/question/29597104/answer/129995189) [代码](https://github.com/liuhaobupt/mit6.824)
+* [packagecloud: guide to linux system call](http://blog.packagecloud.io/eng/2016/04/05/the-definitive-guide-to-linux-system-calls/) [ltrace](http://blog.packagecloud.io/eng/2016/03/14/how-does-ltrace-work/) [strace](http://blog.packagecloud.io/eng/2016/02/29/how-does-strace-work/)
 * [一位很棒的小朋友](http://luodw.cc/2016/02/27/cpu-cache/)
 * [赖明星数据库](http://mingxinglai.com/cn/)
 
