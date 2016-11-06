@@ -163,9 +163,51 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 		不同颜色的线表示不同的Stride，即每次读内存时跨越的数据长度
 		系统L1 Cache 32KB、L2 Cache 256KB、L3 Cache 3072KB
 		getconf命令可以获取系统的必要信息，包括各级Cache
+
+* intel CPU的各级缓存latency的[官方数据](https://software.intel.com/sites/products/collateral/hpc/vtune/performance_analysis_guide.pdf)和[其他解释](https://software.intel.com/en-us/forums/intel-manycore-testing-lab/topic/287236)
+
+```bash
+Core i7 Xeon 5500 Series
+
+Data Source Latency (approximate)
+
+L1 CACHE hit, ~4 cycles
+
+L2 CACHE hit, ~10 cycles
+
+L3 CACHE hit, line unshared ~40 cycles
+
+L3 CACHE hit, shared line in another core ~65 cycles
+
+L3 CACHE hit, modified in another core ~75 cycles
+
+remote L3 CACHE ~100-300 cycles
+
+Local Dram ~60 ns
+
+Remote Dram ~100 ns
+
+```
 	
+#### 对于测量各级Cache的latency来说，需要对每级进行特定分析。
+
+##### L1 Cache Latency
+
+对于intel i5-2520M来说，L1 Cache的32KB容量，cache line长64KB，8路组相连，每路4KB大小，有64组cache line供选择；在不考虑其他因素的情况下，每32KB连续数据中一定会产生L1 miss，每4KB连续数据一定会有一次组内选择哪路cache line存储数据，可能产生cache miss；一旦产生cache miss，会进行L2乃至下一级的读取，造成时延加大，影响L1 cache的latency测量。因此为了避免cache miss带来的影响，在测量L1时尽量采用小步长，小内存块进行逼近，得到尽可能精确的L1 Cache的latency。
+
+##### L2 Cache Latency
+
+对于L2 Cache来说，所用内存块和步长应该加大，尽量使L1 Cache失效，访问L2；也应该注意步长不能过大，造成L2 失效；所采用的内存块大小倒不是关键，因为即使再大的内存块也需要按照步长读取
+
+##### L3 Cache Latency
+
+L3 Cache的latency反而难以测量，原因一是L3可能是多核共享的，容易受干扰，二是相比L1/L2和DRAM的性能差异，L3与DRAM的访问差异显得不那么大。此外，TLB的因素也应该考虑在内。
+
 #### TODO
 ---------------
+* measure cache line
+* measure tlb
+* [lwn](https://lwn.net/Articles/252125/)
 
 [IBM关于lmbench对mem latency的深度benchmark](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W51a7ffcf4dfd_4b40_9d82_446ebc23c550/page/Untangling%20memory%20access%20measurements%20-%20memory%20latency)
 
