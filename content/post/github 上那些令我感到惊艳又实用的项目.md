@@ -13,7 +13,7 @@ title = "github 上那些令我感到惊艳又实用的项目"
 * [一位很棒的小朋友](http://luodw.cc/2016/02/27/cpu-cache/)
 * [赖明星数据库](http://mingxinglai.com/cn/)
 
-* https://github.com/phodal
+* [intel 什么是代码现代化](https://software.intel.com/zh-cn/articles/what-is-code-modernization)
 
 * https://github.com/martinezjavier/ldd3
 	* ldd3在kernel-2.6.32、kernel-2.6.35和kernel-2.6.37调试通过，可供学习。

@@ -133,6 +133,22 @@ TEN(T)表示循环展开执行10次任务T，可使loop开销对单次执行结�
 	* 读取内存，每跨读一步，如果跨度很小，比如64B/128B小于Cache line，那么时延会很小，如果跨度很大，比如1M，可能就需要从主存中将该地址内容读出，时延会相应增大
 	* ~~每次测量前先通过分配一块内存将cache内容全部替换掉~~
 	* 与bw_mem不同的是，并不读取数据块，而是通过地址链表跨stride去访问内存，以此测试内存时延，可见目的和测试bandwidth不一样
+		* 地址链表的实现方式是，比如512KB的内存块buf，编址从0开始，以512 Byte为一跳
+		* buf = 0x77889900, buf + 512 = 0x77889b00
+		* *buf = 0x77889b00，即用内存块存放下一跳地址，这个时候 buf = 0x77889900, *(long *)buf = 0x77889b00, buf[0] = 0x00, buf[1] = 0x9b等等
+		* 这个地址链表非常高效，因为我们不关心buf存放内容，所以就利用buf的空间来存储下一跳地址；类似于如下代码
+
+```cpp
+
+	char *buf = (char *)malloc(sizeof(char ) * 1024);
+	memset(buf, 0, 1024);
+	*(char **)&(buf[0]) = (char **)&(buf[512]);
+	printf("%p\t%p\n", buf, buf + 512);
+	char **p = (char **)&buf[0];
+	printf("%p\t%p\n", p, *p);
+
+```
+
 
 * 测量结果
 	* 测量结果如下图所示，[原图见](https://raw.githubusercontent.com/BG2BKK/githubio/master/static/lat_mem_latency.png)，原始数据[见文件](https://github.com/BG2BKK/githubio/blob/master/static/data.set)
