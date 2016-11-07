@@ -198,6 +198,8 @@ Remote Dram ~100 ns
 
 L3 Cache的latency反而难以测量，原因一是L3可能是多核共享的，容易受干扰，二是相比L1/L2和DRAM的性能差异，L3与DRAM的访问差异显得不那么大。此外，TLB的因素也应该考虑在内。
 
+拜读完[CacheMemory.pdf](yuhaozhu.com/CacheMemory.pdf)的第一章后，发现自己考虑的太少了，所以以上的测量方法其实只能说明一个大概，并不能极具说服力的得出时延数据就是L1 Latency。
+
 #### TODO
 ---------------
 * measure cache line
