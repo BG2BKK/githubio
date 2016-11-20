@@ -1,5 +1,5 @@
 +++
-date = "2016-11-20T15:31:44+08:00"
+date = "2016-07-20T15:31:44+08:00"
 draft = false
 title = "ble_nrf51822_dfu_空中升级"
 
@@ -15,7 +15,7 @@ nrf51822的dfu与别的芯片的空中升级几乎没有差别，以ESP8266为�
 			* softdevice: SDK_10_PATH/components/softdevice/s110/hex/s110_nrf51_8.0.0_softdevice.hex
 			* bootloader: SDK_10_PATH/examples/dfu/bootloader/pca10028/dual_bank_ble_s110
 			* ble application: SDK_10_PATH/examples/ble_peripheral/ble_app_uart
-			* [nrf-Connect](https://github.com/NordicSemiconductor/Android-nRF-Connect)，主要使用hex2bin.exe和[怎样制作DFU初始化包](https://raw.githubusercontent.com/NordicSemiconductor/Android-nRF-Connect/version_4.7.0/init%20packet%20handling/How%20to%20generate%20the%20INIT%20file%20for%20DFU.pdf
+			* [nrf-Connect](https://github.com/NordicSemiconductor/Android-nRF-Connect)，主要使用hex2bin.exe和[怎样制作DFU初始化包](https://raw.githubusercontent.com/BG2BKK/githubio/master/static/How%20to%20generate%20the%20INIT%20file%20for%20DFU.pdf)
 			* Keil MDK4/5
 			* Master Control Panel，采用最新版3.10.0.14
 				* 制作升级包
@@ -175,7 +175,7 @@ flash_softdevice:
 			* 在_build/ 中生成nrf51422_xxac_s130.hex和nrf51422_xxac_s130.bin，但是在linux下不需要bin文件，使用hex作为应用程序
 		* 制作升级包
 			* ``` nrfutil dfu genpkg --application _build/nrf51422_xxac_s130.hex --application-version 0xffffffff --dev-revision 0xffff --dev-type 0xffff --sd-req 0xfffe _build/nrf51422_xxac_s130.zip```
-			* 注意观察```--sd-req 0xfff3```，在[文档How to generate the INIT file for DFU.pdf](https://raw.githubusercontent.com/NordicSemiconductor/Android-nRF-Connect/version_4.7.0/init%20packet%20handling/How%20to%20generate%20the%20INIT%20file%20for%20DFU.pdf)中讲到softdevice版本对应的0x5A代表SD 7.1.0,0x4F代表 SD 7.0.0，0x64代表SD 8.0.0，而SDK10中的SD正是8.0.0，但是我怎么试都不好使，只能使用0xFFFE，它可以接受任何版本的softdevice
+			* 注意观察```--sd-req 0xfff3```，在[文档How to generate the INIT file for DFU.pdf](https://raw.githubusercontent.com/BG2BKK/githubio/master/static/How%20to%20generate%20the%20INIT%20file%20for%20DFU.pdf)中讲到softdevice版本对应的0x5A代表SD 7.1.0,0x4F代表 SD 7.0.0，0x64代表SD 8.0.0，而SDK10中的SD正是8.0.0，但是我怎么试都不好使，只能使用0xFFFE，它可以接受任何版本的softdevice
 			* 注意观察```--application _build/nrf51422_xxac_s130.hex```，application采用的是hex文件
 			* 可能是nrfutil版本和SDK版本较老的原因吧，很多参数都很不正规，比如application-version，采用的全是FF
 	* 空中升级

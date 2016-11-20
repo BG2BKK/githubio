@@ -169,5 +169,5 @@ main() {
 ```
 
 * [dfu](https://devzone.nordicsemi.com/documentation/nrf51/4.4.1/html/group__bootloader__dfu__description.html)
-	* 如何根据官方例程进行DFU升级，可以参考我的另一篇博客
+	* 如何根据官方例程进行DFU升级，可以参考我的[博客 nrf51822 dfu 升级](https://bg2bkk.github.io/post/ble_nrf51822_dfu_%E7%A9%BA%E4%B8%AD%E5%8D%87%E7%BA%A7/)
 
