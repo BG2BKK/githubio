@@ -5,6 +5,7 @@ title = "BLE 和 NRF51822 开发"
 
 +++
 
+* [nrf51822 sdk document](http://developer.nordicsemi.com/nRF51_SDK/doc/)
 
 * flash和ram布局
 	* 在armgcc文件夹里的ld文件，应用程序的ld需要严格按照51822的内存布局来，
@@ -143,4 +144,30 @@ main() {
 	* [ble利用adc实现电量检测服务](http://blog.chinaunix.net/uid-28852942-id-5711152.html)
 
 <div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/nrf51822_adc_config.png" ><p>nrf51822 adc的配置寄存器</p></div>
+
+* 疑难杂症
+	* [armgcc: region RAM overflowed with stack](https://devzone.nordicsemi.com/question/3771/ld-region-ram-overflowed-with-stack/)
+		* 原因是sd+app的ram布局超过了芯片整体的ram大小
+		* 其实设置app start=0x20002800 length=0x1800 是刚够0x4000即16KB的，应该不会有这个问题；所以在注释掉<SDK_PATH>/components/toolchain/gcc/nrf5x_common.ld的最后一句ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")并编译、烧写是可以正常工作的
+		* 内存超过布局是因为还留有一定ram给heap内存了，但是如果没有malloc等动态内存分配函数的话，[是用不到heap内存的，所以将HEAP_SIZE设置为0或者512](https://devzone.nordicsemi.com/question/3771/ld-region-ram-overflowed-with-stack/?answer=3778#post-id-3778)，可以编译通过
+			* <SDK_PATH>/components/toolchain/gcc/gcc_startup_nrf51.s
+			*     .equ    Heap_Size, 2048	改为 512
+		* [另一个方法更优雅一点](https://devzone.nordicsemi.com/question/64564/having-problem-of-region-ram-overflowed-with-stack/)
+			* 在Makefile中添加ASMFLAGS += -D__HEAP_SIZE=0
+			* 如果是keil的话，Target >> C/C++ >> Preproccesor Symbols 添加 __HEAP_SIZE = 0
+		* 参考链接
+			* [课外阅读1](https://devzone.nordicsemi.com/question/38781/region-ram-overflowed-with-stack/)
+			* [课外阅读2](https://devzone.nordicsemi.com/question/1088/putting-my-app-on-a-ram-memory-diet/)
+			* [region ram overflow after upgrading with Segger RTT](https://devzone.nordicsemi.com/question/79873/region-ram-overflowed-with-stack-when-upgrading-segger-rtt/)
+
+```bash	
+	Linking target: nrf51422_xxac_s130.out
+	/home/huang/workspace/nrf51822/gcc-arm-none-eabi-4_9-2015q3/bin/../lib/gcc/arm-none-eabi/4.9.3/../../../../arm-none-eabi/bin/ld: region RAM overflowed with stack
+	collect2: error: ld returned 1 exit status
+	Makefile:174: recipe for target 'nrf51422_xxac_s130' failed
+	make: *** [nrf51422_xxac_s130] Error 1
+```
+
+* [dfu](https://devzone.nordicsemi.com/documentation/nrf51/4.4.1/html/group__bootloader__dfu__description.html)
+	* 如何根据官方例程进行DFU升级，可以参考我的另一篇博客
 
