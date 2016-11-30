@@ -171,3 +171,28 @@ main() {
 * [dfu](https://devzone.nordicsemi.com/documentation/nrf51/4.4.1/html/group__bootloader__dfu__description.html)
 	* 如何根据官方例程进行DFU升级，可以参考我的[博客 nrf51822 dfu 升级](https://bg2bkk.github.io/post/ble_nrf51822_dfu_%E7%A9%BA%E4%B8%AD%E5%8D%87%E7%BA%A7/)
 
+* [nordic tutorials of bluetooth low energy](https://devzone.nordicsemi.com/tutorials/)
+	* [advertising](https://devzone.nordicsemi.com/tutorials/5/)
+		* advertising address
+			* [gap address type](https://devzone.nordicsemi.com/question/6496/gap-address-types/)
+				* Public Address
+					* 公共地址
+					* 在IEEE 注册
+					* 设备地址终身不变
+				* [Random Static Address](https://devzone.nordicsemi.com/question/43670/how-to-distinguish-between-random-and-public-gap-addresses/)
+					* 可变静态地址
+					* 在设备启动时动态设置
+					* 设备断电前地址不变
+					* 默认设置
+				* Private Resolvable Address
+					* 这种地址由identity resolving key(IRK)和一个随机数生成
+					* 可以更改，甚至可以在一个连接的生命周期内更改，从而避免被位置设备标定和跟踪
+					* 设备只能被拥有其下发IRK的设备解析，允许他们识别自己
+				* Private Non-Resolvable Address
+					* 不常用
+		* advertising type
+			* non-connectable
+				* ibeacon
+			* connectable
+		* advertising data
+
