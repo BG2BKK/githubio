@@ -195,4 +195,37 @@ main() {
 				* ibeacon
 			* connectable
 		* advertising data
+			* [限制31bytes](https://devzone.nordicsemi.com/tutorials/5/)
+			* 可以在scan response data中再加31bytes，这样在被扫描的时候可以总共发送62bytes的负载数据
+	* [service](https://devzone.nordicsemi.com/tutorials/8/ble-services-a-beginners-tutorial/)
+		* [the Generic Attribute Profile, GATT](https://devzone.nordicsemi.com/tutorials/8/ble-services-a-beginners-tutorial/)
+			* he GATT Profile specifies the structure in which profile data is exchanged. This structure defines basic elements such as services and characteristics, used in a profile.
+				* [GATT](https://www.bluetooth.com/specifications/adopted-specifications)指定了描述数据传输的结构体，这个结构体定义描述了基本元素：services服务和characteristics特征。
+				* 通俗来讲，GATT是一组描述使用BLE进行数据的绑定、展现和传输的规则
+		* Services
+			* A service is a collection of data and associated behaviors to accomplish a particular function or feature. [...] A service definition may contain […] mandatory characteristics and optional characteristics.
+				* 服务，***The Bluetooth Core Specification*** 定义为，一个服务是数据及数据的关联操作的集合，用于实现特定功能。一个service包括一个必须要有的characteristics和几个可选的characteritics。
+				* 换句话说，一个service是信息的集合，比如传感器的值。Bluetooth SIG[预先定义了一些服务](https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx)，比如battery service，比如Heart Rate service，你也可以自定义服务。
+		* Characteristics
+			* A characteristic is a value used in a service along with properties and configuration information about how the value is accessed and information about how the value is displayed or represented.
+				* 特性，官方定义是在一个服务里，所包含的属性值和配置信息，用于确定数据值如何被访问，如何呈现。
+				* 换句话说，特征决定了值和信息如何被呈现和访问。
+				* Security parameters，units和其他相关元数据也封装在特征中
+		* 三者的关系相当于是，在房间里有柜子，柜子里有抽屉。GATT是房间，services是柜子，而特征就是存东西的抽屉。
+		* Universally Unique ID, UUID
+			* UUID是我们在BLE中经常看到的一个缩写，这是一个独一无二的数字，用来表示一个service、特征或者描述符。通过传输这些ID，peripheral设备可以向centeral设备通知自己提供的服务。
+			* 有两类UUID
+				* 16-bit UUID
+					* 比如预先定义的Heart rate service是0x180D，Heart Rate Measurement characteristic是0x2A37.
+					* 16-bit UUID是出于节省内存和能量来设计的，你只能用来表示已经定义好的这些UUID
+				* 128-bit UUID
+					* 128-bit UUID可以表示自定义的UUID，一般来说可以自定义UUID作为base UUID，比如4A98xxxx-1CC4-E7C1-C757-F1267DD021E8，中间的x表示你可以将service和特征的UUID填充进去
+					* nRFgo Studio可以生成UUID
+					* 该类随机生成的UUID只有3e~-39的概率是一样的，所以如果是随机生成的，一般不会冲突
+	
+	* [ble connection parameters](https://devzone.nordicsemi.com/question/60/what-is-connection-parameters/)
+		* Connection Interval
+		* Slave latency
+		* Connection supervision timeout
+	* [changing Gatt Characteristic Properties](https://devzone.nordicsemi.com/question/15099/changing-gatt-characteristic-properties/)
 

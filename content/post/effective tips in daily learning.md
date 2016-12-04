@@ -5,6 +5,9 @@ title = "effective tips in daily learning"
 
 +++
 
+* markdown
+	* [markdown边角料](http://blog.csdn.net/phunxm/article/details/49565427)
+
 kernel
 ---------------
 

@@ -186,3 +186,12 @@ flash_softdevice:
 	
 
 * 以上就是根据nordic的sdk10提供的官方bootloader例程和ble_app_uart应用程序实现的空中升级，只是一个最简单的实现，还需要多学习和总结
+
+* 在应用程序中添加dfu支持
+	* [官方文档](http://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v8.x.x/doc/8.0.0/s110/html/a00082.html)
+		* [方法](http://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v8.x.x/doc/8.0.0/s110/html/a00081.html)
+		* [应用程序切换到dfu](http://developer.nordicsemi.com/nRF51_SDK/nRF51_SDK_v8.x.x/doc/8.0.0/s110/html/a00083.html)
+		* [网友供稿](http://blog.chinaunix.net/uid-28852942-id-5753917.html)
+
+* 如何提高ble通信速率
+	* [csdn](http://blog.chinaunix.net/uid-28852942-id-5753308.html)
