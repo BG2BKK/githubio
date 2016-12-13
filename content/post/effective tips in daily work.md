@@ -5,6 +5,23 @@ title = "effective tips in daily work"
 
 +++
 
+普通用户获取linux的root权限
+------------------------
+
+* 方法一：sudo sh -c "su"
+* 方法二：sudo strace su
+
+改变默认登录的shell
+------------------------
+
+使用不同linux发行版或者上不同机器时，发现shell不是我喜欢的bash，而是sh等，这个时候需要修改
+
+* 修改登录shell
+	* 方法一：chsh -s /bin/bash
+	* 方法二：修改/etc/passwd中的shell设置
+
+[解决shell不显示路径的方法](http://blog.sina.com.cn/s/blog_56aa61930101773n.html)
+
 sar在ubuntu中的配置
 -------------------------
 
