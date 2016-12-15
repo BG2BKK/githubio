@@ -35,4 +35,9 @@ sudo ./debian_shadowsocks_tennfy.sh
     * [android](http://pan.baidu.com/s/1YbQTg)
     * [ios](http://www.iyingsuo.com/ios-shadowsocks-tutorials.html)
 
+* [privoxy将sock5转为http连接](https://gist.github.com/Alexniver/9a4f1791fe4305b0750a)
+    * [macos](http://tblog.im/2015/09/23/shi-yong-privoxyzhong-zhuan/)
+
 * 如果您觉得shadowsocks很容易搭建起来，想试一下的话，可以通过的推荐链接来注册，这样会有一定奖励:http://www.vultr.com/?ref=6870148
+
+

@@ -5,6 +5,14 @@ title = "C++基础知识学习"
 
 +++
 
+lamba学习
+---------------
+
+1. [直观认识](http://www.lellansin.com/c-lambda表达式基本用法.html)
+2. [cppreference](http://en.cppreference.com/w/cpp/language/lambda)
+3. [微软cpp](https://msdn.microsoft.com/zh-cn/library/dd293608.aspx)
+4. [function bind 和lambda的关系](http://blog.csdn.net/crayondeng/article/details/9996625)
+
 
 static和const关键字各自的作用
 --------------------------------

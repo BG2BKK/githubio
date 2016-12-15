@@ -5,6 +5,11 @@ title = "effective tips in daily work"
 
 +++
 
+mac os下virtual box与虚拟机进行网络互通
+---------------------------------------
+
+方法见[链接](https://dplord.com/2016/03/10/some-exploration-of-the-virtualbox-on-mac-os/)，需要在virtual box添加host only网卡，并在虚拟机中添加网卡。
+
 普通用户获取linux的root权限
 ------------------------
 
