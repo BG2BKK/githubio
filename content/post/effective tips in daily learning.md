@@ -5,7 +5,14 @@ title = "effective tips in daily learning"
 
 +++
 
-* markdown
+OmniGraffle
+--------------
+
+* [OmniGraffle简书](http://www.jianshu.com/p/52f3ecbe8f2d)
+* [UX基础 - OmniGraffle新手指南](http://beforweb.com/node/202)
+
+markdown
+------------
 	* [markdown边角料](http://blog.csdn.net/phunxm/article/details/49565427)
 
 kernel
