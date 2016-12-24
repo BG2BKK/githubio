@@ -21,3 +21,5 @@ title = "data_structure数据结构"
 	* http://www.cnblogs.com/CarpenterLee/p/5525688.html
 
 * [lsm-tree](https://en.wikipedia.org/wiki/Log-structured_merge-tree)
+    * [中文](http://www.cnblogs.com/siegfang/archive/2013/01/12/lsm-tree.html)
+    * [leveldb](http://www.cnblogs.com/haippy/archive/2011/12/04/2276064.html)
