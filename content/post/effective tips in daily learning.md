@@ -5,6 +5,15 @@ title = "effective tips in daily learning"
 
 +++
 
+C语言中的宏
+--------------
+
+在看代码的过程中我看到了 ## 和 # 两个符号，前一个我知道，后一个就不清楚了。在[文档](http://blog.csdn.net/dotphoenix/article/details/4345174)中我才知道C语言有这么多的宏，##表示连接符concat，而#EXP表示将代码中的表达式EXP转为字符串，这样写在错误日志中我们就知道是那句代码导致错误的了。
+
+C语言中的宏以及用法还有很多，上述文档总结的非常好，除了##和#外，还有...、宏展开时多次求值问题都有讲解，值得一读一试。
+
+[这篇文章](http://hbprotoss.github.io/posts/cyu-yan-hong-de-te-shu-yong-fa-he-ji-ge-keng.html)也不错，他们都源自于[gnu的官方文档](http://gcc.gnu.org/onlinedocs/cpp/Macros.html)
+
 OmniGraffle
 --------------
 
