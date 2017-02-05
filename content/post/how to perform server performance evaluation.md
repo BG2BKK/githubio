@@ -204,6 +204,7 @@ L3 Cache的latency反而难以测量，原因一是L3可能是多核共享的，
 ---------------
 * measure cache line
 * measure tlb
+    * [tlb和cache区别](http://blog.chinaunix.net/uid-26009500-id-3089718.html)
 * [lwn](https://lwn.net/Articles/252125/)
 * [IBM关于lmbench对mem latency的深度benchmark](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W51a7ffcf4dfd_4b40_9d82_446ebc23c550/page/Untangling%20memory%20access%20measurements%20-%20memory%20latency)
 * [stackoverflow_1](http://stackoverflow.com/questions/4087280/approximate-cost-to-access-various-caches-and-main-memory) [stackoverflow_2](http://stackoverflow.com/questions/10274355/cycles-cost-for-l1-cache-hit-vs-register-on-x86)

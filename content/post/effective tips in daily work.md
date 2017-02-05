@@ -5,6 +5,61 @@ title = "effective tips in daily work"
 
 +++
 
+ubuntu命令行连接wifi
+----------------------
+[wifi设置](https://i.cmgine.net/archives/11053.html)
+
+```bash
+ cat /etc/network/interfaces
+
+ # interfaces(5) file used by ifup(8) and ifdown(8)
+ auto lo
+ iface lo inet loopback
+
+# 添加如下，启动时自动启动wlp2s0网卡，dhcp模式，采用wpa_conf配置
+ auto wlp2s0
+ iface wlp2s0 inet dhcp
+ wpa_conf /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+wpa_supplicant.conf内容
+
+```bash
+network={
+    ssid="wills"
+    psk="1234567890"
+    priority=1
+}
+```
+
+连接wifi和密码，priority为优先级，数字越大级别越高
+
+vim和shell的配置方式
+--------------------
+
+作为一个懒人，现在自然期待有一键脚本能够将我的shell和vim配置好。github上有很多repo帮助我们实现。
+
+[知乎帮助一](https://www.zhihu.com/question/19989337)
+[知乎帮助二](https://www.zhihu.com/question/20151659)
+[vim一键配置](https://github.com/spf13/spf13-vim)
+[shell && zsh](https://github.com/robbyrussell/oh-my-zsh)
+[vim一键配置二](https://github.com/ma6174/vim)
+
+linux下进程的有效用户ID和实际用户ID
+-----------------------------------
+
+见[博客](http://www.cpplive.com/html/1352.html)，getuid()
+
+hexdump查看文件指定位置
+------------------------
+
+[方法为](http://crazyof.me/blog/archives/254.html)所示，
+
+
+```bash
+hexdump -s OFFSET -l LENGTH FILENAME
+```
+
 mac os下virtual box与虚拟机进行网络互通
 ---------------------------------------
 
