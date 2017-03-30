@@ -5,6 +5,35 @@ title = "effective tips in daily work"
 
 +++
 
+免密登录配置脚本
+---------------------
+
+```bash
+
+#!/bin/bash
+
+passwd='xxxxxxx'
+
+pub_key=`cat ~/.ssh/id_rsa.pub`
+
+for i in `cat $1`;do
+/usr/bin/expect <<-EOF
+set time 30
+spawn ssh zhendong.hzd@$i "mkdir -p .ssh/;touch .ssh/authorized_keys;chmod 700 .ssh/authorized_keys;echo \"$pub_key\" >> .ssh/authorized_keys"
+expect {
+    "*yes/no" { send "yes\r"; exp_continue }
+    "*password:" { send "$passwd\r" }
+}
+interact
+expect eof
+EOF
+done
+
+```
+
+将待登录IP列表写入文件中，更改相应密码配置和用户名，然后执行
+
+
 ubuntu命令行连接wifi
 ----------------------
 [wifi设置](https://i.cmgine.net/archives/11053.html)
