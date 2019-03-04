@@ -69,7 +69,15 @@ Window和PerSecond的使用场景需要多体会，建议多参考[官方文档]
 
 #### bvar的使用示例
 
-初次接触brpc，跑最简单的echo_c++例程，我就惊艳于brpc完善的监控项，并且在进程中内置http接口，能直接从浏览器读到进程实时更新的各项指标，这就是把活做到位了。在没有brpc server的情况下，brpc提供一个`brpc::StartDummyServerAt(8080/*port*/);`开启监控端口，因此我们在无brpc server的时候也可以享受这一便利。
+初次接触brpc，跑最简单的echo_c++例程，我就惊艳于brpc完善的监控项，并且在进程中内置http接口，能直接从浏览器读到进程实时更新的各项指标，这就是把活做到位了。如下图所示，图一为echo_server的status监控，图二为echo_server的bvar监控
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/echo_server_status.png" ><p>图一 echo_server的status</p></div>
+
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/echo_server_bvar.png" ><p>图二 echo_server的bvar指标</p></div>
+
+
+在没有brpc server的情况下，brpc提供一个`brpc::StartDummyServerAt(8080/*port*/);`开启监控端口，因此我们在无brpc server的时候也可以享受这一便利。
 
 bvar模块设计很独立，使用非常简单，可以单独使用。通过`FLAGS_bvar_dump`和`FLAGS_bvar_dump_interval`配置bvar是否dump到文件以及频率，通过`FLAGS_bvar_log_dumpped`配置是否打印在日志中；另外就是http接口。
 
@@ -129,10 +137,14 @@ g++ -g -O0 var.cpp -lbrpc -std=c++11 -I/pathto/brpc/output/include/ -lpthread -l
 
 ```
 
+浏览器打开`http://localhost:8080/vars`
+
+
+<div align="center"><img src="https://raw.githubusercontent.com/BG2BKK/githubio/master/static/demo_bvar.png" ><p>图三 demo的bvar指标</p></div>
+
+
 ### 最后
 
 bvar是一个性能高、功能全、设计好的性能采集库，它的设计和实现值得深入学习，尤其是把事情做到位的精神。
 
 通读代码的过程中，我能感受到brpc在实现的过程尽力的满足需求，基本没有拒绝过需求。江海不择细流，故能成其大，实现用户需求的过程中丰富基础设施的功能，然后接更多的需求，这是一个正向反馈的过程，这种态度也是值得鼓励学习的。
-
-
