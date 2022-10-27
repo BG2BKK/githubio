@@ -1,7 +1,7 @@
 +++
-date = "2016-05-30T13:58:17+08:00"
+date = '2016-05-30T13:58:17+08:00'
 draft = true
-title = "effective tips about tcp ip on Linux"
+title = 'effective tips about tcp ip on Linux'
 
 +++
 

@@ -1,7 +1,7 @@
 +++
-date = "2016-10-14T18:18:41+08:00"
+date = '2016-10-14T18:18:41+08:00'
 draft = true
-title = "page cache和buffer cache"
+title = 'page cache和buffer cache'
 
 +++
 

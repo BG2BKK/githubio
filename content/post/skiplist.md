@@ -1,7 +1,7 @@
 +++
-date = "2016-08-10T20:44:15+08:00"
+date = '2016-08-10T20:44:15+08:00'
 draft = true
-title = "skiplist"
+title = 'skiplist'
 
 +++
 

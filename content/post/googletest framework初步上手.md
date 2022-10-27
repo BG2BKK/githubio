@@ -1,7 +1,7 @@
 +++
-date = "2016-04-03T13:14:13+08:00"
+date = '2016-04-03T13:14:13+08:00'
 draft = true
-title = "googletest framework初步上手"
+title = 'googletest framework初步上手'
 
 +++
 

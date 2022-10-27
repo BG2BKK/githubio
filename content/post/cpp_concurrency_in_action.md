@@ -1,7 +1,7 @@
 +++
-date = "2016-05-26T01:24:43+08:00"
+date = '2016-05-26T01:24:43+08:00'
 draft = true
-title = "cpp_concurrency_in_action"
+title = 'cpp_concurrency_in_action'
 
 +++
 

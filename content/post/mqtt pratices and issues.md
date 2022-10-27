@@ -1,7 +1,7 @@
 +++
-date = "2016-05-25T23:55:24+08:00"
+date = '2016-05-25T23:55:24+08:00'
 draft = true
-title = "mqtt pratices and issues"
+title = 'mqtt pratices and issues'
 
 +++
 

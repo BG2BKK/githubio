@@ -1,7 +1,7 @@
 +++
-date = "2016-03-11T11:33:10+08:00"
-draft = false
-title = "design patterns 设计模式"
+date = '2016-03-11T11:33:10+08:00'
+draft = true
+title = 'design patterns 设计模式'
 
 +++
 

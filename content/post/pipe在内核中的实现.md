@@ -1,11 +1,11 @@
 +++
-date = "2016-02-27T09:49:41+08:00"
+categories = ['source code']
+date = '2016-02-27T09:49:41+08:00'
 draft = false
-title = "pipe在内核中的实现"
+series = ['read kernel code']
+tags = ['linux kenrel']
+title = 'pipe在内核中的实现'
 
-tags = ["linux kenrel"]
-categories = ["source code"]
-series = ["read kernel code"]
 +++
 
 pipe在linux内核中的实现

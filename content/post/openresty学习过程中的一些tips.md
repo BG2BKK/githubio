@@ -1,7 +1,7 @@
 +++
-date = "2016-03-14T16:36:14+08:00"
+date = '2016-03-14T16:36:14+08:00'
 draft = false
-title = "openresty学习过程中的一些tips"
+title = 'openresty学习过程中的一些tips'
 
 +++
 

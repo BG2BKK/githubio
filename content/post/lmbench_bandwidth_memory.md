@@ -1,7 +1,7 @@
 +++
-date = "2016-10-31T11:07:28+08:00"
+date = '2016-10-31T11:07:28+08:00'
 draft = true
-title = "lmbench_bandwidth_memory"
+title = 'lmbench_bandwidth_memory'
 
 +++
 

@@ -1,7 +1,7 @@
 +++
-date = "2016-05-18T18:42:22+08:00"
+date = '2016-05-18T18:42:22+08:00'
 draft = true
-title = "kvm qemu Virtual Machine实践"
+title = 'kvm qemu Virtual Machine实践'
 
 +++
 

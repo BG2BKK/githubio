@@ -1,7 +1,7 @@
 +++
-date = "2016-10-24T19:15:59+08:00"
+date = '2016-10-24T19:15:59+08:00'
 draft = true
-title = "Linux_schedule_process_and_thread"
+title = 'Linux_schedule_process_and_thread'
 
 +++
 

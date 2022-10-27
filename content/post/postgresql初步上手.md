@@ -1,7 +1,7 @@
 +++
-date = "2016-07-08T00:37:41+08:00"
+date = '2016-07-08T00:37:41+08:00'
 draft = true
-title = "postgresql初步上手"
+title = 'postgresql初步上手'
 
 +++
 

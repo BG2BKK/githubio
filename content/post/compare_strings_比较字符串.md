@@ -1,7 +1,7 @@
 +++
-date = "2016-06-05T22:47:08+08:00"
+date = '2016-06-05T22:47:08+08:00'
 draft = true
-title = "compare_strings_比较字符串"
+title = 'compare_strings_比较字符串'
 
 +++
 

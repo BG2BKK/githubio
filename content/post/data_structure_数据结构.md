@@ -1,7 +1,7 @@
 +++
-date = "2016-05-27T11:39:18+08:00"
+date = '2016-05-27T11:39:18+08:00'
 draft = true
-title = "data_structure数据结构"
+title = 'data_structure数据结构'
 
 +++
 

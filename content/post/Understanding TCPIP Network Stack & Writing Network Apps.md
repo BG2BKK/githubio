@@ -1,7 +1,7 @@
 +++
-date = "2016-10-20T22:21:55+08:00"	
+date = '2016-10-20T22:21:55+08:00'
 draft = false
-title = "Understanding TCPIP Network Stack & Writing Network Apps"
+title = 'Understanding TCPIP Network Stack & Writing Network Apps'
 
 +++
 

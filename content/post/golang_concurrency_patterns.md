@@ -1,7 +1,7 @@
 +++
-date = "2016-06-08T11:32:32+08:00"
+date = '2016-06-08T11:32:32+08:00'
 draft = true
-title = "golang_concurrency_patterns"
+title = 'golang_concurrency_patterns'
 
 +++
 

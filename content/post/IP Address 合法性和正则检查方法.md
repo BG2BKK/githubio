@@ -1,7 +1,7 @@
 +++
-date = "2016-05-20T18:41:29+08:00"
+date = '2016-05-20T18:41:29+08:00'
 draft = true
-title = "IP Address 合法性和正则检查方法"
+title = 'IP Address 合法性和正则检查方法'
 
 +++
 

@@ -1,7 +1,7 @@
 +++
-date = "2016-05-27T13:46:13+08:00"
+date = '2016-05-27T13:46:13+08:00'
 draft = true
-title = "consistent_hash_一致性哈希算法的实现"
+title = 'consistent_hash_一致性哈希算法的实现'
 
 +++
 

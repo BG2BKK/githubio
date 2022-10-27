@@ -1,7 +1,7 @@
 +++
-date = "2016-05-06T11:39:48+08:00"
+date = '2016-05-06T11:39:48+08:00'
 draft = false
-title = "effective tips in daily learning"
+title = 'effective tips in daily learning'
 
 +++
 

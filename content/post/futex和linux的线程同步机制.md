@@ -1,7 +1,7 @@
 +++
-date = "2016-10-13T13:57:31+08:00"
+date = '2016-10-13T13:57:31+08:00'
 draft = false
-title = "futex和linux的线程同步机制"
+title = 'futex和linux的线程同步机制'
 
 +++
 

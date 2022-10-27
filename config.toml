@@ -1,8 +1,54 @@
 baseurl = "https://bg2bkk.github.io"
 languageCode = ""
 title = "BG2BKK Site"
+paginate = 10
+hasCJKLanguage = false
+DefaultContentLanguage = "en"
+disqusShortname= "hugo-theme-stack"
+
+[permalinks]
+    post= "/p/:slug/"
+    page= "/:slug/"
+
+
+[languages]
+[languages.en]
+  languageName = "English"
+  title = "Bg2bkk Site"
+  description = "my site"
+  weight = 1
+#[languages.zh-cn]
+#  languageName = "中文"
+#  title = "bg2bkk 个站"
+#  description = "个站"
+#  weight = 1
+
 
 [taxonomies]
 tag = "tags"
 category = "categories"
 series = "series"
+
+[[module.imports]]
+path = "github.com/CaiJimmy/hugo-theme-stack/v3"
+
+
+[params]
+[params.dateFormat]
+  published = "Jan 02, 2006"
+  lastUpdated = "Jan 02, 2006 15:04 MST"
+
+[params.sidebar]
+[params.sidebar.avatar]
+  src = "img/avatar.jpg"
+  emoji = "🍥"
+
+[markup]
+[markup.highlight]
+noClasses= false
+codeFences= true
+guessSyntax= true
+lineNoStart= 1
+lineNos= true
+lineNumbersInTable= true
+tabWidth= 4

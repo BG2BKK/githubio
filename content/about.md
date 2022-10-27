@@ -1,10 +1,10 @@
 +++
-date = "2016-02-18T20:45:46+08:00"
-draft = true
-title = "about"
+date = '2016-02-18T20:45:46+08:00'
+draft = false
+title = 'about'
 
 +++
 
-黄振栋
+bg2bkk
 ========
-未知太多
+没事早睡觉，有空多读书

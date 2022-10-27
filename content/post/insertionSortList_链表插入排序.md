@@ -1,7 +1,8 @@
 +++
-date = "2016-06-05T22:27:39+08:00"
-draft = false
-title = "insertionSortList_链表插入排序"
+date = '2016-06-05T22:27:39+08:00'
+draft = true
+title = 'insertionSortList_链表插入排序'
+
 +++
 
 写go并发代码有点疲劳，那就A个题吧。我觉得LintCode上的题目都很不错，有难有易，循序渐进的，随手选一道题来做吧。

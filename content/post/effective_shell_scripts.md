@@ -1,7 +1,7 @@
 +++
+date = '2017-03-02T22:21:18+08:00'
 draft = true
-title = "effective_shell_scripts"
-date = "2017-03-02T22:21:18+08:00"
+title = 'effective_shell_scripts'
 
 +++
 

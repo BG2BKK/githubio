@@ -1,7 +1,7 @@
 +++
-date = "2016-04-12T10:20:13+08:00"
+date = '2016-04-12T10:20:13+08:00'
 draft = true
-title = "Developing stm32 on Linux"
+title = 'Developing stm32 on Linux'
 
 +++
 
