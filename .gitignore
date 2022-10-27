@@ -4,3 +4,4 @@ public/
 .hugo_build.lock
 hugo-theme-stack
 themes/stack
+resources
