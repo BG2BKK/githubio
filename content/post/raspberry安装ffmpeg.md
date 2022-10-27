@@ -1,7 +1,7 @@
 +++
-date = "2016-08-15T08:00:14+08:00"
+date = '2016-08-15T08:00:14+08:00'
 draft = true
-title = "raspberry安装ffmpeg"
+title = 'raspberry安装ffmpeg'
 
 +++
 

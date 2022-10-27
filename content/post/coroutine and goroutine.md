@@ -1,7 +1,7 @@
 +++
-date = "2016-03-13T17:59:29+08:00"
+date = '2016-03-13T17:59:29+08:00'
 draft = false
-title = "coroutine and goroutine"
+title = 'coroutine and goroutine'
 
 +++
 

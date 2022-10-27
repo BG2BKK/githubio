@@ -1,7 +1,7 @@
 +++
-date = "2016-06-11T12:27:29+08:00"
+date = '2016-06-11T12:27:29+08:00'
 draft = true
-title = "modern_c++_现代C++"
+title = 'modern_c++_现代C++'
 
 +++
 

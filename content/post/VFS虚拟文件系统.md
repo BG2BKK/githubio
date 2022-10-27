@@ -1,10 +1,10 @@
 +++
-date = "2016-02-29T15:33:32+08:00"
+categories = ['source code']
+date = '2016-02-29T15:33:32+08:00'
 draft = false
-title = "VFS虚拟文件系统"
-tags = ["linux kenrel"]
-categories = ["source code"]
-series = ["read kernel code"]
+series = ['read kernel code']
+tags = ['linux kenrel']
+title = 'VFS虚拟文件系统'
 
 +++
 

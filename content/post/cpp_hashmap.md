@@ -1,7 +1,7 @@
 +++
-date = "2016-05-11T14:58:27+08:00"
+date = '2016-05-11T14:58:27+08:00'
 draft = true
-title = "cpp_hashmap"
+title = 'cpp_hashmap'
 
 +++
 

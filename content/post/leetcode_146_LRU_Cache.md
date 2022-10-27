@@ -1,7 +1,7 @@
 +++
-date = "2016-05-11T14:40:00+08:00"
+date = '2016-05-11T14:40:00+08:00'
 draft = true
-title = "leetcode_146_LRU_Cache"
+title = 'leetcode_146_LRU_Cache'
 
 +++
 

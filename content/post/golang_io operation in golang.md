@@ -1,7 +1,7 @@
 +++
-date = "2016-05-09T14:34:50+08:00"
+date = '2016-05-09T14:34:50+08:00'
 draft = true
-title = "golang中的io操作对比"
+title = 'golang中的io操作对比'
 
 +++
 

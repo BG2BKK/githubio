@@ -1,7 +1,7 @@
 +++
-date = "2016-04-13T11:37:24+08:00"
+date = '2016-04-13T11:37:24+08:00'
 draft = false
-title = "DNS with golang"
+title = 'DNS with golang'
 
 +++
 

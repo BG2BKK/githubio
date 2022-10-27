@@ -1,7 +1,7 @@
 +++
-date = "2016-04-01T18:38:31+08:00"
+date = '2016-04-01T18:38:31+08:00'
 draft = true
-title = "stapxx使用过程"
+title = 'stapxx使用过程'
 
 +++
 

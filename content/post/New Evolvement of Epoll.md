@@ -1,11 +1,11 @@
 +++
-date = "2016-03-22T01:48:41+08:00"
+categories = ['source code']
+date = '2016-03-22T01:48:41+08:00'
 draft = false
-title = "New evolvement of Epoll"
+series = ['read kernel code']
+tags = ['linux kenrel']
+title = 'New evolvement of Epoll'
 
-tags = ["linux kenrel"]
-categories = ["source code"]
-series = ["read kernel code"]
 +++
 
 EPOLL在linux 内核中的新发展

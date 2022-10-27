@@ -1,7 +1,7 @@
 +++
-date = "2016-05-11T11:47:34+08:00"
+date = '2016-05-11T11:47:34+08:00'
 draft = true
-title = "leetcode_150_valid_number"
+title = 'leetcode_150_valid_number'
 
 +++
 

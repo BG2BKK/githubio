@@ -1,7 +1,7 @@
 +++
-date = "2016-08-10T20:58:28+08:00"
+date = '2016-08-10T20:58:28+08:00'
 draft = true
-title = "nodejs拾疑"
+title = 'nodejs拾疑'
 
 +++
 

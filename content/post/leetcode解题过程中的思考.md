@@ -1,7 +1,7 @@
 +++
-date = "2016-05-11T11:36:47+08:00"
+date = '2016-05-11T11:36:47+08:00'
 draft = true
-title = "leetcode解题过程中的思考"
+title = 'leetcode解题过程中的思考'
 
 +++
 

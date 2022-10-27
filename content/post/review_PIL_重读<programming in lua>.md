@@ -1,7 +1,7 @@
 +++
-date = "2016-05-25T15:01:41+08:00"
+date = '2016-05-25T15:01:41+08:00'
 draft = true
-title = "review_PIL_重读<programming in lua>"
+title = 'review_PIL_重读<programming in lua>'
 
 +++
 

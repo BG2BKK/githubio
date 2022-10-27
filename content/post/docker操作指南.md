@@ -1,7 +1,7 @@
 +++
-date = "2016-08-14T16:09:53+08:00"
+date = '2016-08-14T16:09:53+08:00'
 draft = true
-title = "docker操作指南"
+title = 'docker操作指南'
 
 +++
 

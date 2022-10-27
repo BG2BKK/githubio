@@ -1,7 +1,7 @@
 +++
-date = "2016-05-26T01:19:05+08:00"
+date = '2016-05-26T01:19:05+08:00'
 draft = true
-title = "cpp_condtion_variable"
+title = 'cpp_condtion_variable'
 
 +++
 

@@ -1,7 +1,7 @@
 +++
-date = "2016-03-25T20:16:51+08:00"
+date = '2016-03-25T20:16:51+08:00'
 draft = false
-title = "nginx gdb utils的编译 安装和使用"
+title = 'nginx gdb utils的编译 安装和使用'
 
 +++
 

@@ -1,7 +1,7 @@
 +++
-date = "2016-08-18T11:51:16+08:00"
+date = '2016-08-18T11:51:16+08:00'
 draft = true
-title = "redis client buffer"
+title = 'redis client buffer'
 
 +++
 

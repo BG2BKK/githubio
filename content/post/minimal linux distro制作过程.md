@@ -1,7 +1,7 @@
 +++
-date = "2016-03-30T15:13:13+08:00"
+date = '2016-03-30T15:13:13+08:00'
 draft = true
-title = "minimal linux distro制作过程"
+title = 'minimal linux distro制作过程'
 
 +++
 

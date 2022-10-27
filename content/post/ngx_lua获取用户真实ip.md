@@ -1,7 +1,7 @@
 +++
-date = "2016-09-08T17:06:19+08:00"
+date = '2016-09-08T17:06:19+08:00'
 draft = true
-title = "ngx_lua获取用户真实ip"
+title = 'ngx_lua获取用户真实ip'
 
 +++
 

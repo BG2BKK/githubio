@@ -1,7 +1,7 @@
 +++
-date = "2016-07-06T12:51:05+08:00"
-draft = false 
-title = "stm32_eclipse_openocd_stlink"
+date = '2016-07-06T12:51:05+08:00'
+draft = false
+title = 'stm32_eclipse_openocd_stlink'
 
 +++
 

@@ -1,7 +1,7 @@
 +++
-date = "2016-07-13T17:03:29+08:00"
+date = '2016-07-13T17:03:29+08:00'
 draft = true
-title = "nodemcu_smart_home"
+title = 'nodemcu_smart_home'
 
 +++
 
