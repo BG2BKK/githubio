@@ -1,6 +1,6 @@
 ---
-title: About
-description: Hugo, the world's fastest framework for building websites
+title: 关于我
+description: Life is so beautiful
 date: '2019-02-28'
 aliases:
   - about-us
@@ -15,4 +15,4 @@ menu:
             icon: user
 ---
 
-
+没事多睡觉，有空多读书

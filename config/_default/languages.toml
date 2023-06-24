@@ -1,0 +1,21 @@
+# Uncomment this file to enable multilanguage site support
+
+#[en]
+#languageName = "English"
+#languagedirection = "ltr"
+#title = "Example Site"
+#weight = 1
+
+[en]
+  languageName = "English"
+  title = "Bg2bkk Site"
+  weight = 1
+[en.params]
+  description = "my site"
+
+#[zh-cn]
+#  languageName = "中文"
+#  title = "bg2bkk 个站"
+#  weight = 1
+#[zh-cn.params]
+#  description = "个站"

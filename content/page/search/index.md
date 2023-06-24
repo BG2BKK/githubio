@@ -9,7 +9,4 @@ title = 'Search'
     [menu.main.params]
       icon = 'search'
 
-
-
-
 +++
