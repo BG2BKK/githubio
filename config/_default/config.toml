@@ -1,9 +1,12 @@
 baseurl = "https://bg2bkk.github.io"
 languageCode = ""
 title = "BG2BKK Site"
-paginate = 10
+#paginate = 10
 hasCJKLanguage = false
 DefaultContentLanguage = "en"
 disqusShortname= "hugo-theme-stack"
+
+[pagination]
+  pagerSize = 10
 
 

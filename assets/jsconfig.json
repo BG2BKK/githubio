@@ -3,7 +3,7 @@
   "baseUrl": ".",
   "paths": {
    "*": [
-    "../../../../../var/folders/s8/gnrt28ms5jzfc7yytkwk7kx40000gn/T/hugo_cache_huang/modules/filecache/modules/pkg/mod/github.com/!cai!jimmy/hugo-theme-stack/v3@v3.16.0/assets/*"
+    "../../../Library/Caches/hugo_cache/modules/filecache/modules/pkg/mod/github.com/!cai!jimmy/hugo-theme-stack/v3@v3.32.0/assets/*"
    ]
   }
  }
