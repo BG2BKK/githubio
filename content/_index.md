@@ -6,7 +6,4 @@
     [menu.main.params]
       icon = 'home'
 
-
-
-
 +++

@@ -7,6 +7,6 @@ DefaultContentLanguage = "en"
 disqusShortname= "hugo-theme-stack"
 
 [pagination]
-  pagerSize = 10
+  pagerSize = 5
 
 
