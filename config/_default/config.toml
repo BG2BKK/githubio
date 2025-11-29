@@ -9,4 +9,6 @@ disqusShortname= "hugo-theme-stack"
 [pagination]
   pagerSize = 5
 
-
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
