@@ -7,4 +7,6 @@ title = 'reading notes'
 
 # TEST
 
-test  test testk
+test test testk
+
+when I read the design pattern
